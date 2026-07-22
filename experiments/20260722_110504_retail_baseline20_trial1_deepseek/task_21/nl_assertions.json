@@ -1,0 +1,7 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user their gift card balance is $44.08.",
+    "met": true,
+    "justification": "The agent explicitly states the updated gift card balance as $44.08 in the final summary."
+  }
+]

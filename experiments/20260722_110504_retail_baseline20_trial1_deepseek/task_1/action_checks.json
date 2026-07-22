@@ -1,0 +1,86 @@
+[
+  {
+    "action": {
+      "action_id": "1_0",
+      "requestor": "assistant",
+      "name": "find_user_id_by_name_zip",
+      "arguments": {
+        "first_name": "Yusuf",
+        "last_name": "Rossi",
+        "zip": "19122"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "1_1",
+      "requestor": "assistant",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#W2378156"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "1_2",
+      "requestor": "assistant",
+      "name": "get_product_details",
+      "arguments": {
+        "product_id": "1656367028"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "1_3",
+      "requestor": "assistant",
+      "name": "get_product_details",
+      "arguments": {
+        "product_id": "4896585277"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "1_4",
+      "requestor": "assistant",
+      "name": "exchange_delivered_order_items",
+      "arguments": {
+        "order_id": "#W2378156",
+        "item_ids": [
+          "4983901480"
+        ],
+        "new_item_ids": [
+          "7747408585"
+        ],
+        "payment_method_id": "credit_card_9513926"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "write"
+  }
+]

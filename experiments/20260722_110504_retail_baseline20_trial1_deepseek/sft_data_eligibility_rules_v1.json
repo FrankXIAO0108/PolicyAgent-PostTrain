@@ -1,0 +1,100 @@
+{
+  "version": "v1",
+  "core_principles": [
+    {
+      "rule_id": "R01",
+      "rule": "Raw Reward is not a training label.",
+      "reason": "Reward=0 may be benchmark/evaluator noise, and Reward=1 may contain hidden process, policy, or state-integrity defects."
+    },
+    {
+      "rule_id": "R02",
+      "rule": "Action Match Rate is not a trajectory-quality score.",
+      "reason": "Equivalent reasoning paths can fail action matching, while high action match can coexist with hidden state corruption."
+    },
+    {
+      "rule_id": "R03",
+      "rule": "Only human/verifier-audited GOLD trajectories enter raw SFT Gold.",
+      "reason": "Unaudited Reward=1 trajectories remain UNREVIEWED."
+    },
+    {
+      "rule_id": "R04",
+      "rule": "SILVER trajectories require correction before positive SFT.",
+      "reason": "Outcome may be correct while process defects would be copied by imitation training."
+    },
+    {
+      "rule_id": "R05",
+      "rule": "SUSPECT or environment-bug-contaminated trajectories are held out.",
+      "reason": "Do not train on corrupted observations/states before adjudication or environment repair."
+    },
+    {
+      "rule_id": "R06",
+      "rule": "Valid Agent failures may be used only with explicit failure labels and corrected target trajectories.",
+      "reason": "Negative trajectory alone is insufficient for standard SFT."
+    },
+    {
+      "rule_id": "R07",
+      "rule": "Mixed badcases must be segmented and relabeled.",
+      "reason": "A single trajectory can contain both correct behavior and benchmark noise or real failures."
+    },
+    {
+      "rule_id": "R08",
+      "rule": "Benchmark-alignment cases are excluded from raw negative pools.",
+      "reason": "Training against an incorrect/static label can teach the Agent to ignore final explicit user intent."
+    },
+    {
+      "rule_id": "R09",
+      "rule": "User Authorized Scope must cover Tool Effect Scope.",
+      "reason": "A technically executable write is unsafe when its actual effect exceeds what the user explicitly authorized."
+    },
+    {
+      "rule_id": "R10",
+      "rule": "Tool success is not sufficient evidence of business success.",
+      "reason": "Tool output must be checked against policy, expected state, and user intent."
+    },
+    {
+      "rule_id": "R11",
+      "rule": "Post-tool state must be verified before final success claims.",
+      "reason": "Task 21 demonstrates that a tool can return a corrupted state while Reward still equals 1."
+    },
+    {
+      "rule_id": "R12",
+      "rule": "Final Claim must match Tool Result and Final State.",
+      "reason": "False or stale success claims are production-critical even when a tool call itself succeeded."
+    },
+    {
+      "rule_id": "R13",
+      "rule": "Latest explicit user intent must be tracked subject to Policy and Tool constraints.",
+      "reason": "Dynamic conversations can legitimately diverge from a static pre-generated action path."
+    },
+    {
+      "rule_id": "R14",
+      "rule": "Equivalent correct computation paths should not be penalized as failures.",
+      "reason": "Missing a specific calculator call is not a correctness failure when the verified result is mathematically correct."
+    }
+  ],
+  "gold_gate": {
+    "required": [
+      "Outcome correct",
+      "Critical write arguments correct",
+      "Policy compliant",
+      "User authorized scope respected",
+      "No unresolved environment/tool corruption",
+      "Post-tool state consistent with intended state",
+      "Final claim consistent with tool result/final state",
+      "No high-risk hidden process failure"
+    ],
+    "not_required": [
+      "100% exact Static Action Match",
+      "Identical reasoning path to one Golden trajectory",
+      "Mandatory calculator call when equivalent verified arithmetic is correct"
+    ]
+  },
+  "buckets": {
+    "GOLD": "Direct positive SFT eligible after audit.",
+    "SILVER": "Outcome correct but requires trajectory cleanup/correction.",
+    "SUSPECT": "Hold. Requires adjudication, source verification, or environment repair.",
+    "NEGATIVE": "Valid Agent failure. Use for corrected SFT, preference, or verifier construction; not as naive positive imitation.",
+    "MIXED": "Segment and relabel before any training use.",
+    "EXCLUDED": "Do not use raw trajectory as training signal."
+  }
+}

@@ -1,0 +1,7 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user the materials of the two t-shirts are polyester and cotton.",
+    "met": true,
+    "justification": "The user asked about the two t-shirts in another order. The agent identified that the user has t-shirts in two orders, but the user specifically asked about 'the two t-shirts I ordered in another order' (referring to Order #W9609649). In that order, there are two t-shirts: one blue cotton crew neck and one black polyester crew neck. The agent correctly stated that the blue t-shirt is cotton and the black t-shirt is polyester, thus covering both materials (polyester and cotton)."
+  }
+]

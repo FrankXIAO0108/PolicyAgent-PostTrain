@@ -1,0 +1,85 @@
+[
+  {
+    "action": {
+      "action_id": "43_0",
+      "requestor": "assistant",
+      "name": "find_user_id_by_name_zip",
+      "arguments": {
+        "first_name": "Lucas",
+        "last_name": "Santos",
+        "zip": "80239"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "43_1",
+      "requestor": "assistant",
+      "name": "get_user_details",
+      "arguments": {
+        "user_id": "lucas_santos_6600"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "43_2",
+      "requestor": "assistant",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#W1588712"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "43_3",
+      "requestor": "assistant",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#W7895761"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "43_4",
+      "requestor": "assistant",
+      "name": "modify_user_address",
+      "arguments": {
+        "user_id": "lucas_santos_6600",
+        "address1": "943 Maple Drive",
+        "address2": "Suite 356",
+        "city": "Chicago",
+        "state": "IL",
+        "country": "USA",
+        "zip": "60621"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "write"
+  }
+]

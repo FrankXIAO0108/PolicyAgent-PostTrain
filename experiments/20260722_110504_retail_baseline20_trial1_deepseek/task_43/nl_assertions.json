@@ -1,0 +1,17 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user the tracking number is 840887978435.",
+    "met": true,
+    "justification": "The agent explicitly states 'the tracking ID is 840887978435' in the conversation."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the order was shipped to 943 Maple Drive, Suite 356, Chicago, IL 60621.",
+    "met": true,
+    "justification": "The agent mentions the order was shipped to '943 Maple Drive, Suite 356, Chicago, IL 60621' when describing Order #W7895761."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the tablet storage is 64GB.",
+    "met": true,
+    "justification": "The agent lists the tablet specs including 'Storage: 64GB' in response to the user's question."
+  }
+]

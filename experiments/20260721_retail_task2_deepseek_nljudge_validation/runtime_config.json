@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-07-21T14:03:52.014842",
+  "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "domain": "retail",
+  "task_ids": [
+    "2"
+  ],
+  "agent": "llm_agent",
+  "agent_llm": "deepseek/deepseek-chat",
+  "agent_llm_args": {
+    "temperature": 0.0
+  },
+  "user": "user_simulator",
+  "user_llm": "deepseek/deepseek-chat",
+  "user_llm_args": {
+    "temperature": 0.0
+  },
+  "nl_judge_llm": "deepseek/deepseek-chat",
+  "nl_judge_llm_args": {
+    "temperature": 0.0
+  },
+  "evaluation_type": "ALL_WITH_NL_ASSERTIONS",
+  "seed": 300,
+  "max_steps": 200,
+  "num_trials": 1,
+  "max_concurrency": 1,
+  "max_retries": 0,
+  "task_nl_assertions": [
+    "Agent should tell the user that there are 10 t-shirt options available."
+  ]
+}

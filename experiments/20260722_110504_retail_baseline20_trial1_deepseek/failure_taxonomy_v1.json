@@ -1,0 +1,182 @@
+{
+  "version": "v1",
+  "artifact_name": "Failure Taxonomy and Training Data Eligibility Matrix",
+  "baseline": {
+    "experiment_role": "Prompt Base / Trial-1",
+    "domain": "retail",
+    "task_count": 20,
+    "business_success_count": 16,
+    "business_failure_count": 4,
+    "raw_success_rate": 0.8,
+    "raw_failure_task_ids": [
+      "59",
+      "98",
+      "95",
+      "107"
+    ],
+    "important_note": "Raw baseline score remains 16/20 = 80%. Human audit labels do not retroactively modify the frozen benchmark result."
+  },
+  "human_audit_policy": {
+    "raw_reward_is_not_training_label": true,
+    "raw_baseline_must_not_be_retroactively_modified": true,
+    "benchmark_suspect_cases_require_separate_annotation": true,
+    "mixed_badcases_require_segment_level_relabeling": true,
+    "unresolved_policy_cases_must_not_enter_negative_training_pool": true
+  },
+  "failures": [
+    {
+      "task_id": "59",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 0.0,
+      "human_audit_category": "BENCHMARK_ALIGNMENT_FAILURE",
+      "primary_label": "USER_SIMULATOR_GOLD_MISMATCH",
+      "secondary_labels": [
+        "STATIC_GOLD_FINAL_INTENT_MISMATCH",
+        "EVALUATOR_SPECIFICATION_ALIGNMENT_ISSUE"
+      ],
+      "human_audit_summary": "User Simulator explicitly instructed the Agent to cancel #W2702727 and leave #W8268610 unchanged, while Static Golden expected cancellation of #W8268610 and address modification of #W2702727. The Agent followed the final explicit user authorization after clarification and confirmation.",
+      "first_divergence_point": "The divergence begins in the generated user trajectory: the User Simulator identifies #W2702727 as the older order to cancel, conflicting with the Static Golden branch.",
+      "real_agent_failure": false,
+      "benchmark_suspect": true,
+      "evaluator_suspect": true,
+      "policy_issue": false,
+      "tool_execution_failure": false,
+      "claim_action_consistency": "PASS",
+      "whole_trajectory_negative_sft": "NO",
+      "corrected_positive_sft_candidate": "POSSIBLE_AFTER_ADJUDICATION",
+      "preference_training": "NO_AS_RAW_REWARD_PAIR",
+      "verifier_training": "YES_FOR_BENCHMARK_ALIGNMENT_AND_FINAL_INTENT",
+      "rl_training": "NO",
+      "training_priority": "AUDIT_ONLY",
+      "training_status": "EXCLUDE_FROM_RAW_NEGATIVE_POOL",
+      "recommended_use": [
+        "Benchmark / evaluator auditing",
+        "User Simulator consistency checking",
+        "Final authorized intent tracking",
+        "Reward-label-noise detection"
+      ],
+      "do_not_do": [
+        "Do not treat Reward=0 as direct Agent negative label",
+        "Do not train the Agent to ignore the user's final explicit intent"
+      ]
+    },
+    {
+      "task_id": "98",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 1.0,
+      "human_audit_category": "MIXED_BADCASE",
+      "primary_label": "DYNAMIC_INTENT_STATIC_GOLD_MISMATCH",
+      "secondary_labels": [
+        "CLAIM_ACTION_INCONSISTENCY",
+        "ACTION_SCOPE_CONFIRMATION_FAILURE",
+        "EVALUATOR_COVERAGE_GAP"
+      ],
+      "human_audit_summary": "All three write tools actually executed successfully. The two exchange actions mismatched Static Golden only because the Agent used the Visa card explicitly confirmed by the user, while Static Golden expected a different card. Separately, the Agent made a real production-risk error: cancel_pending_order cancelled the entire order and refunded $1058.79, but the Agent described it as cancelling only the skateboard with a $202.13 refund.",
+      "first_divergence_point": "Benchmark divergence occurs when the user explicitly confirms credit_card_3951670 while Static Golden expects credit_card_8105988. The first real Agent error occurs after cancellation when the Agent misrepresents whole-order cancellation as single-item cancellation.",
+      "real_agent_failure": true,
+      "benchmark_suspect": true,
+      "evaluator_suspect": true,
+      "policy_issue": true,
+      "tool_execution_failure": false,
+      "claim_action_consistency": "FAIL_ON_CANCELLATION",
+      "whole_trajectory_negative_sft": "NO",
+      "corrected_positive_sft_candidate": "SEGMENT_LEVEL_ONLY",
+      "preference_training": "YES_AFTER_SEGMENTATION_AND_RELABELING",
+      "verifier_training": "YES_HIGH_VALUE",
+      "rl_training": "NOT_YET",
+      "training_priority": "HIGH",
+      "training_status": "SEGMENT_AND_RELABEL",
+      "recommended_use": [
+        "Action-scope verifier",
+        "Post-tool state grounding",
+        "Claim-action consistency verifier",
+        "Final authorized payment-method tracking",
+        "Mixed reward-label-noise analysis"
+      ],
+      "do_not_do": [
+        "Do not treat the entire Reward=0 trajectory as a single negative",
+        "Do not penalize the user-confirmed payment method solely because Static Golden differs"
+      ]
+    },
+    {
+      "task_id": "95",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 0.0,
+      "human_audit_category": "VALID_AGENT_FAILURE",
+      "primary_label": "ENVIRONMENT_STATE_SEMANTICS_MISUNDERSTANDING",
+      "secondary_labels": [
+        "FALSE_CAPABILITY_BOUNDARY_DETECTION",
+        "PREMATURE_ESCALATION",
+        "INCOMPLETE_MULTI_GOAL_EXECUTION"
+      ],
+      "human_audit_summary": "The Agent correctly found the target laptop variant 9844888101, but incorrectly interpreted one matching Variant as one physical inventory unit. It therefore concluded that only one of the two laptops could be exchanged and prematurely escalated to a human. Static Golden shows that both orders should use the same target variant.",
+      "first_divergence_point": "After finding item_id=9844888101 with available=true, the Agent incorrectly infers that only one physical unit exists and that a second exchange to the same Variant is impossible.",
+      "real_agent_failure": true,
+      "benchmark_suspect": false,
+      "evaluator_suspect": false,
+      "policy_issue": false,
+      "tool_execution_failure": false,
+      "claim_action_consistency": "NO_FAKE_SUCCESS_BUT_FALSE_CAPABILITY_CLAIM",
+      "whole_trajectory_negative_sft": "YES_WITH_CORRECTED_TARGET",
+      "corrected_positive_sft_candidate": "YES",
+      "preference_training": "YES",
+      "verifier_training": "YES_HIGH_VALUE",
+      "rl_training": "NOT_YET",
+      "training_priority": "VERY_HIGH",
+      "training_status": "ELIGIBLE_AFTER_CORRECTION",
+      "recommended_use": [
+        "SFT badcase correction",
+        "Environment-schema grounding",
+        "Tool-state semantic reasoning",
+        "Premature-escalation verifier",
+        "Multi-goal completeness verifier",
+        "Preference pair construction"
+      ],
+      "do_not_do": [
+        "Do not confuse Variant identity with physical inventory count",
+        "Do not escalate without evidence of a real capability boundary"
+      ]
+    },
+    {
+      "task_id": "107",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 1.0,
+      "human_audit_category": "UNRESOLVED_POLICY_TOOL_SEMANTICS",
+      "primary_label": "CONDITIONAL_BRANCH_STATIC_GOLD_MISMATCH",
+      "secondary_labels": [
+        "TOOL_SEMANTICS_AMBIGUITY",
+        "POLICY_SEMANTICS_NEEDS_VERIFICATION",
+        "EVALUATOR_BRANCH_ALIGNMENT_ISSUE"
+      ],
+      "human_audit_summary": "The user first requested a fresh pair of hiking boots with the same specs. Only if that exchange was not allowed should the fallback be size 9, leather, waterproof. The Agent performed a same-variant exchange, which the Tool accepted successfully. Static Golden instead fixes the fallback variant 8106223139. Policy semantics must be verified before declaring the Agent wrong.",
+      "first_divergence_point": "The Agent chooses the primary same-spec replacement branch because the original variant is available and the Tool accepts same-item exchange, while Static Golden assumes the fallback branch.",
+      "real_agent_failure": null,
+      "benchmark_suspect": true,
+      "evaluator_suspect": true,
+      "policy_issue": "UNRESOLVED",
+      "tool_execution_failure": false,
+      "claim_action_consistency": "PASS",
+      "whole_trajectory_negative_sft": "NO",
+      "corrected_positive_sft_candidate": "HOLD",
+      "preference_training": "HOLD",
+      "verifier_training": "YES_FOR_BRANCH_AND_POLICY_CHECKING",
+      "rl_training": "NO",
+      "training_priority": "VERIFY_FIRST",
+      "training_status": "HOLD_UNTIL_POLICY_VERIFIED",
+      "recommended_use": [
+        "Conditional-intent tracking",
+        "Branch-aware evaluator research",
+        "Policy/tool semantic consistency audit",
+        "Same-variant replacement rule verification"
+      ],
+      "do_not_do": [
+        "Do not use as a negative Agent sample before Policy verification",
+        "Do not assume DB=0 proves the Tool execution was incorrect"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{"timestamp": "2026-07-21T15:19:12.639816", "event": "NL_JUDGE_CALL_STARTED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}
+{"timestamp": "2026-07-21T15:19:15.256683", "event": "NL_JUDGE_CALL_SUCCEEDED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}
+{"timestamp": "2026-07-21T15:19:46.011355", "event": "NL_JUDGE_CALL_STARTED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}
+{"timestamp": "2026-07-21T15:19:47.683276", "event": "NL_JUDGE_CALL_SUCCEEDED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}
+{"timestamp": "2026-07-21T15:21:06.491422", "event": "NL_JUDGE_CALL_STARTED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}
+{"timestamp": "2026-07-21T15:21:08.363105", "event": "NL_JUDGE_CALL_SUCCEEDED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}

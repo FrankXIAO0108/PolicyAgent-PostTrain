@@ -1,0 +1,713 @@
+====================================================================================================
+TASK 59 FAILURE TRAJECTORY REVIEW
+====================================================================================================
+
+=== BASELINE RESULT ===
+
+Reward = 0.0
+DB = 0.0
+NL = 0.0
+Action = 3/5
+Read = 3/3
+Write = 0/2
+Generic = 0/0
+Termination Reason = user_stop
+Duration Seconds = 18.26862859999528
+Total Model Cost USD = 0.0014824152
+
+=== TASK DEFINITION ===
+
+{
+  "id": "59",
+  "description": {
+    "purpose": null,
+    "relevant_policies": null,
+    "notes": null
+  },
+  "user_scenario": {
+    "persona": null,
+    "instructions": {
+      "domain": "retail",
+      "reason_for_call": "You recently placed two orders, and now you would like to make several changes and checks. You'll first inquire about the status difference between your two orders, #W2702727 and #W8268610, since both are \"pending,\" but one was placed much earlier in the year. You are considering cancelling the older order as you find the wait time unreasonable. If the agent cannot guarantee the older order will be processed within 5 days, you want to cancel it. You also want to confirm the total price of the refund. \n\n    For order #W2702727, you intend to switch the shipping address to your new home in a different city because you plan to move prior to its delivery next month. Your new address is 1234 Elm St, Springfield, IL, 62701. You want the agent to confirm the change and ensure the order will be delivered to the new address. You also want to confirm the total price of the order after the address change.",
+      "known_info": "You are Yusuf Taylor from San Jose, CA, 95154.",
+      "unknown_info": "You do not remember your email address.",
+      "task_instructions": "Your approach will be firm, as you are unhappy with the pending status's duration but try to make all requests in one go and ask for them to be resolved efficiently and correctly in context with each other."
+    }
+  },
+  "ticket": null,
+  "initial_state": null,
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "59_0",
+        "requestor": "assistant",
+        "name": "find_user_id_by_name_zip",
+        "arguments": {
+          "first_name": "Yusuf",
+          "last_name": "Taylor",
+          "zip": "95154"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "59_1",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W2702727"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "59_2",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W8268610"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "59_3",
+        "requestor": "assistant",
+        "name": "cancel_pending_order",
+        "arguments": {
+          "order_id": "#W8268610",
+          "reason": "no longer needed"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "59_4",
+        "requestor": "assistant",
+        "name": "modify_pending_order_address",
+        "arguments": {
+          "order_id": "#W2702727",
+          "address1": "1234 Elm St",
+          "address2": "",
+          "city": "Springfield",
+          "state": "IL",
+          "country": "USA",
+          "zip": "62701"
+        },
+        "info": null,
+        "compare_args": null
+      }
+    ],
+    "env_assertions": null,
+    "communicate_info": [
+      "164.28",
+      "625.60"
+    ],
+    "nl_assertions": [
+      "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+      "Agent should tell the user the total price of order #W2702727 is $625.60."
+    ],
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ]
+  },
+  "issues": null,
+  "required_documents": null,
+  "user_tools": null
+}
+
+=== EXPECTED / GOLDEN ACTIONS ===
+
+[0] name=find_user_id_by_name_zip | type=read | reward=1.0 | match=True
+ARGS:
+{
+  "first_name": "Yusuf",
+  "last_name": "Taylor",
+  "zip": "95154"
+}
+
+[1] name=get_order_details | type=read | reward=1.0 | match=True
+ARGS:
+{
+  "order_id": "#W2702727"
+}
+
+[2] name=get_order_details | type=read | reward=1.0 | match=True
+ARGS:
+{
+  "order_id": "#W8268610"
+}
+
+[3] name=cancel_pending_order | type=write | reward=0.0 | match=False
+ARGS:
+{
+  "order_id": "#W8268610",
+  "reason": "no longer needed"
+}
+
+[4] name=modify_pending_order_address | type=write | reward=0.0 | match=False
+ARGS:
+{
+  "order_id": "#W2702727",
+  "address1": "1234 Elm St",
+  "address2": "",
+  "city": "Springfield",
+  "state": "IL",
+  "country": "USA",
+  "zip": "62701"
+}
+
+=== ACTUAL TRAJECTORY ===
+
+------------------------------------------------------------------------------------------
+[0] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Hi! How can I help you today?
+
+------------------------------------------------------------------------------------------
+[1] USER | role=user | sender=None | recipient=None
+CONTENT:
+Hi, I need help with two orders I placed. Both are still showing as "pending," but one of them—#W2702727—was placed much earlier this year, and I’m getting frustrated with the wait. The other is #W8268610. Can you tell me why both are still pending and why the older one hasn’t moved forward? Also, if you can’t guarantee that the older order will be processed within the next 5 days, I want to cancel it and need to know the total refund amount.
+
+For order #W2702727, I also need to change the shipping address to my new home since I’m moving before it’s supposed to be delivered next month. The new address is 1234 Elm St, Springfield, IL, 62701. Please confirm the change and that it will go to the new address, and let me know the total price after the address update.
+
+I’d appreciate it if you could handle all of this together and get back to me clearly.
+
+------------------------------------------------------------------------------------------
+[2] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+I'd be happy to help you with your orders! First, I need to authenticate your identity. Could you please provide me with your email address, or your first name, last name, and zip code so I can look you up?
+
+------------------------------------------------------------------------------------------
+[3] USER | role=user | sender=None | recipient=None
+CONTENT:
+I don’t remember my email address, but my name is Yusuf Taylor and my zip code is 95154. Let me know if you need anything else to verify me.
+
+------------------------------------------------------------------------------------------
+[4] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Let me look you up using your name and zip code.
+TOOL CALL:
+{
+  "id": "call_00_oBmDsIRQh6OlIiPKZss16851",
+  "name": "find_user_id_by_name_zip",
+  "arguments": {
+    "first_name": "Yusuf",
+    "last_name": "Taylor",
+    "zip": "95154"
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[5] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+yusuf_taylor_7149
+
+------------------------------------------------------------------------------------------
+[6] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Great, I found you! Let me now look up your details and the details of both orders.
+TOOL CALL:
+{
+  "id": "call_00_HqELXWWFTeNOL6Q6Sx2T7986",
+  "name": "get_user_details",
+  "arguments": {
+    "user_id": "yusuf_taylor_7149"
+  },
+  "requestor": "assistant"
+}
+{
+  "id": "call_01_TTxGn3UIUDn6eDWkWplY4715",
+  "name": "get_order_details",
+  "arguments": {
+    "order_id": "#W2702727"
+  },
+  "requestor": "assistant"
+}
+{
+  "id": "call_02_5NPe7YFO0vFSzzsxu8AS1530",
+  "name": "get_order_details",
+  "arguments": {
+    "order_id": "#W8268610"
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[7] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"user_id": "yusuf_taylor_7149", "name": {"first_name": "Yusuf", "last_name": "Taylor"}, "address": {"address1": "163 Cedar Street", "address2": "Suite 165", "city": "San Jose", "country": "USA", "state": "CA", "zip": "95154"}, "email": "yusuf.taylor6118@example.com", "payment_methods": {"credit_card_3599838": {"source": "credit_card", "id": "credit_card_3599838", "brand": "visa", "last_four": "4012"}}, "orders": ["#W2702727", "#W5690487", "#W8268610"]}
+
+------------------------------------------------------------------------------------------
+[8] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"order_id": "#W2702727", "user_id": "yusuf_taylor_7149", "address": {"address1": "163 Cedar Street", "address2": "Suite 165", "city": "San Jose", "country": "USA", "state": "CA", "zip": "95154"}, "items": [{"name": "Bookshelf", "product_id": "8600330539", "item_id": "7373893106", "price": 531.22, "options": {"material": "glass", "color": "white", "height": "4 ft"}}, {"name": "Yoga Mat", "product_id": "4635925001", "item_id": "2733768059", "price": 94.38, "options": {"thickness": "6mm", "material": "natural rubber", "color": "pink"}}], "status": "pending", "fulfillments": [], "payment_history": [{"transaction_type": "payment", "amount": 625.6, "payment_method_id": "credit_card_3599838"}], "cancel_reason": null, "exchange_items": null, "exchange_new_items": null, "exchange_payment_method_id": null, "exchange_price_difference": null, "return_items": null, "return_payment_method_id": null}
+
+------------------------------------------------------------------------------------------
+[9] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"order_id": "#W8268610", "user_id": "yusuf_taylor_7149", "address": {"address1": "163 Cedar Street", "address2": "Suite 165", "city": "San Jose", "country": "USA", "state": "CA", "zip": "95154"}, "items": [{"name": "Desk Lamp", "product_id": "6817146515", "item_id": "9083642334", "price": 164.28, "options": {"color": "white", "brightness": "high", "power source": "USB"}}], "status": "pending", "fulfillments": [], "payment_history": [{"transaction_type": "payment", "amount": 164.28, "payment_method_id": "credit_card_3599838"}], "cancel_reason": null, "exchange_items": null, "exchange_new_items": null, "exchange_payment_method_id": null, "exchange_price_difference": null, "return_items": null, "return_payment_method_id": null}
+
+------------------------------------------------------------------------------------------
+[10] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Great, I've got all the information. Let me summarize what I've found:
+
+**Your Profile:** Yusuf Taylor (user ID: yusuf_taylor_7149)
+
+---
+
+### Order #W2702727 (Older Order)
+- **Status:** Pending
+- **Items:** Bookshelf ($531.22) + Yoga Mat ($94.38)
+- **Total Paid:** $625.60 via credit card (ending in 4012)
+- **Current Address:** 163 Cedar Street, Suite 165, San Jose, CA 95154
+
+### Order #W8268610 (Newer Order)
+- **Status:** Pending
+- **Items:** Desk Lamp ($164.28)
+- **Total Paid:** $164.28 via credit card (ending in 4012)
+
+---
+
+Now, regarding your requests:
+
+**1. Why are they still pending?**
+Both orders are in "pending" status, which means they haven't been processed yet. Unfortunately, I don't have visibility into the internal processing timeline or guarantees on when they'll move forward.
+
+**2. Cancelling #W2702727 if it can't be processed in 5 days**
+I'm not able to guarantee processing times from my end. However, if you'd like to cancel order #W2702727, I can help with that. The total refund would be **$625.60**, and since it was paid via credit card, the refund would take 5-7 business days to process. But first, I'd need a reason for cancellation — it must be either **"no longer needed"** or **"ordered by mistake"**.
+
+**3. Changing the address for #W2702727**
+You'd like to change the shipping address to **1234 Elm St, Springfield, IL, 62701**. I can do that, but please note that if we modify the address, the order stays as "pending" — it doesn't guarantee faster processing.
+
+**Important:** Since modifying items can only be done once per order, and the address change is separate from cancellation, let me clarify what you'd like to do:
+
+- **Option A:** Cancel order #W2702727 (with a valid reason)
+- **Option B:** Modify the address for #W2702727 to your new address
+
+Could you please clarify which path you'd like to take for order #W2702727? And what about order #W8268610 — did you need anything done with that one?
+
+------------------------------------------------------------------------------------------
+[11] USER | role=user | sender=None | recipient=None
+CONTENT:
+Thanks for the details. Since you can’t guarantee that order #W2702727 will be processed within 5 days, I want to cancel it. The reason is “no longer needed.” Please confirm the total refund amount is $625.60 and that it will go back to my credit card ending in 4012 within 5–7 business days.
+
+For order #W8268610, I don’t need any changes right now—I just wanted to understand why it’s also pending, but since you can’t give a timeline, I’ll leave it as is for now.
+
+Please proceed with cancelling #W2702727 and let me know once it’s done.
+
+------------------------------------------------------------------------------------------
+[12] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Let me confirm the cancellation details for you:
+
+**Order #W2702727 - Cancellation Summary:**
+- **Reason:** No longer needed
+- **Total Refund:** $625.60
+- **Refund Method:** Credit card ending in 4012 (original payment method)
+- **Refund Timeline:** 5-7 business days (since it's a credit card, not a gift card)
+
+Could you please confirm that you'd like to proceed with this cancellation? Please say **yes** to confirm.
+
+------------------------------------------------------------------------------------------
+[13] USER | role=user | sender=None | recipient=None
+CONTENT:
+Yes, please proceed with the cancellation. I confirm I want to cancel order #W2702727 for the reason “no longer needed” and receive the full refund of $625.60 back to my credit card ending in 4012. Please let me know once it’s done.
+
+------------------------------------------------------------------------------------------
+[14] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Let me process the cancellation now.
+TOOL CALL:
+{
+  "id": "call_00_0mL838VLhAdmKhbSuyKK3754",
+  "name": "cancel_pending_order",
+  "arguments": {
+    "order_id": "#W2702727",
+    "reason": "no longer needed"
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[15] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"order_id": "#W2702727", "user_id": "yusuf_taylor_7149", "address": {"address1": "163 Cedar Street", "address2": "Suite 165", "city": "San Jose", "country": "USA", "state": "CA", "zip": "95154"}, "items": [{"name": "Bookshelf", "product_id": "8600330539", "item_id": "7373893106", "price": 531.22, "options": {"material": "glass", "color": "white", "height": "4 ft"}}, {"name": "Yoga Mat", "product_id": "4635925001", "item_id": "2733768059", "price": 94.38, "options": {"thickness": "6mm", "material": "natural rubber", "color": "pink"}}], "status": "cancelled", "fulfillments": [], "payment_history": [{"transaction_type": "payment", "amount": 625.6, "payment_method_id": "credit_card_3599838"}, {"transaction_type": "refund", "amount": 625.6, "payment_method_id": "credit_card_3599838"}], "cancel_reason": "no longer needed", "exchange_items": null, "exchange_new_items": null, "exchange_payment_method_id": null, "exchange_price_difference": null, "return_items": null, "return_payment_method_id": null}
+
+------------------------------------------------------------------------------------------
+[16] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Order #W2702727 has been successfully cancelled! Here's a summary:
+
+✅ **Cancellation Complete**
+- **Order:** #W2702727
+- **Status:** Cancelled
+- **Reason:** No longer needed
+- **Refund Amount:** $625.60
+- **Refund Method:** Credit card ending in 4012
+- **Refund Timeline:** 5-7 business days
+
+As for order **#W8268610**, it remains pending with no changes. If you ever need help with it in the future, feel free to reach out. Is there anything else I can help you with?
+
+------------------------------------------------------------------------------------------
+[17] USER | role=user | sender=None | recipient=None
+CONTENT:
+Thanks for confirming the cancellation and refund details. That covers everything I needed for now. Appreciate your help! 
+
+###STOP###
+
+=== NL ASSERTIONS ===
+
+[0]
+{
+  "nl_assertion": "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+  "met": false,
+  "justification": "The user cancelled order #W2702727 (Bookshelf and Yoga Mat), not the desk lamp order (#W8268610). The refund amount for the cancelled order is $625.60, not $164.28. The agent never mentioned a refund of $164.28 for a desk lamp order."
+}
+
+[1]
+{
+  "nl_assertion": "Agent should tell the user the total price of order #W2702727 is $625.60.",
+  "met": true,
+  "justification": "The agent explicitly stated the total paid for order #W2702727 is $625.60 in the summary and confirmed the refund amount as $625.60."
+}
+
+
+
+=== 人工根因分析 ===
+
+任务 ID：59
+
+
+1. 用户最终意图：
+
+用户最终明确表达的意图是：
+
+- 取消订单 #W2702727；
+- 取消原因是“no longer needed”；
+- 确认退款金额为 $625.60；
+- 退款退回原信用卡；
+- 对订单 #W8268610 暂时不做任何修改。
+
+用户最开始提出的“修改 #W2702727 收货地址”这一需求，在后续明确选择取消该订单之后，已经失效。
+
+因此，最终有效授权意图应当以用户后续明确确认的取消请求为准。
+
+
+2. 预期关键动作：
+
+根据 Benchmark 静态 Golden Evaluation，预期 Agent 应执行：
+
+- cancel_pending_order(
+    order_id="#W8268610",
+    reason="no longer needed"
+  )
+
+- modify_pending_order_address(
+    order_id="#W2702727",
+    address="1234 Elm St, Springfield, IL, 62701"
+  )
+
+同时，NL Assertion 还要求 Agent 告知用户：
+
+- 被取消的 Desk Lamp 订单退款为 $164.28；
+- 订单 #W2702727 总价为 $625.60。
+
+也就是说，静态 Golden 预设的是：
+
+取消 #W8268610
++
+修改 #W2702727 地址
+
+
+3. Agent 实际执行的关键动作：
+
+Agent 实际行为为：
+
+- 正确完成用户身份查询；
+- 正确读取两个订单详情；
+- 发现用户同时提出“取消 #W2702727”和“修改 #W2702727 地址”存在业务冲突；
+- 主动要求用户澄清最终选择；
+- 用户明确选择取消 #W2702727，并表示 #W8268610 不做修改；
+- Agent 再次要求用户确认取消这一破坏性操作；
+- 用户明确确认；
+- Agent 执行：
+
+  cancel_pending_order(
+      order_id="#W2702727",
+      reason="no longer needed"
+  )
+
+- Tool 返回取消成功；
+- 实际退款金额为 $625.60；
+- Agent 最终准确向用户反馈了真实执行结果；
+- #W8268610 保持未修改状态。
+
+
+4. 第一次偏离点（First Divergence Point）：
+
+第一次偏离实际上并不是发生在 Agent 的 Tool Call 阶段，而是在 User Simulator 生成用户对话时就已经发生。
+
+在 USER 第 [1] 轮中，User Simulator 明确表示：
+
+- #W2702727 是“更早下单的旧订单”；
+- 如果无法保证 5 天内处理，就希望取消这个旧订单。
+
+这意味着按照实际对话语义：
+
+应该取消 #W2702727。
+
+但静态 Golden Evaluation 却预期：
+
+- 取消 #W8268610；
+- 修改 #W2702727 地址。
+
+因此：
+
+User Simulator 实际生成的用户意图
+与
+Benchmark 静态 Golden Action
+
+从这一刻开始已经发生语义分叉。
+
+第二次更明确的分叉发生在 USER 第 [11] 轮：
+
+用户明确要求：
+
+- 取消 #W2702727；
+- #W8268610 暂时不做任何修改。
+
+此后 Agent 按照用户最新且明确确认的意图执行。
+
+
+5. 失败类型：
+
+主要类型：
+
+USER_SIMULATOR_GOLD_MISMATCH
+（用户模拟器与静态 Golden 不一致）
+
+更一般的分类：
+
+BENCHMARK_SPECIFICATION / EVALUATION ALIGNMENT FAILURE
+（Benchmark 任务定义与评测对齐失败）
+
+当前不应该将该样本简单归类为：
+
+“Agent 执行能力失败”。
+
+
+6. 根因：
+
+根因在于：
+
+任务原始描述、User Simulator 生成的实际对话、Static Golden Actions 和 NL Assertions 之间没有保持完全一致。
+
+静态 Golden 假设：
+
+- 应取消 #W8268610；
+- 应修改 #W2702727。
+
+但 User Simulator 实际生成的对话却明确把：
+
+#W2702727
+
+描述为用户希望取消的“旧订单”。
+
+Agent 后续又通过澄清和二次确认获得了用户明确授权，因此 Agent 按照真实对话执行取消 #W2702727 是合理的。
+
+最终产生：
+
+真实对话一致性正确
+但
+静态 Evaluator 判错
+
+的问题。
+
+
+7. Policy 是否存在问题：
+
+目前没有发现明显 Policy 违规。
+
+相反，Agent 的处理流程比较稳健：
+
+- 先完成身份验证；
+- 查询真实订单状态；
+- 发现同一订单同时存在“修改地址”和“取消”的冲突；
+- 没有直接执行；
+- 主动向用户澄清；
+- 在取消这一破坏性写操作前再次确认；
+- 用户明确确认后才真正执行。
+
+从生产系统角度看，这种行为更接近安全、可靠的 Agent 行为。
+
+
+8. Tool / Environment 是否存在问题：
+
+未发现 Tool 或 Environment 故障。
+
+实际调用：
+
+cancel_pending_order(
+    order_id="#W2702727",
+    reason="no longer needed"
+)
+
+执行成功。
+
+Tool 返回结果显示：
+
+- status = cancelled
+- refund = $625.60
+- cancel_reason = no longer needed
+
+数据库 / Tool State 与 Agent 最终对用户的描述是一致的。
+
+
+9. Evaluator 是否存在问题：
+
+存在明显的 Evaluator / Specification 对齐疑点。
+
+当前存在四层不一致风险：
+
+任务描述
+→ User Simulator
+→ Static Golden Actions
+→ NL Assertions
+
+静态 Evaluator 预期：
+
+- 取消 Desk Lamp 订单 #W8268610；
+- 退款 $164.28。
+
+但实际 User Simulator 明确授权：
+
+- 取消 #W2702727；
+- 退款 $625.60；
+- #W8268610 不修改。
+
+因此 Evaluator 最终惩罚了一个“符合实际对话最终授权意图”的执行结果。
+
+该任务应暂时标记为：
+
+BENCHMARK_SUSPECT
+（Benchmark 可疑样本）
+
+在人工复核之前，不应直接认定这是模型能力失败。
+
+
+10. Claim-Action Consistency（声明-动作一致性）：
+
+通过。
+
+Agent 只有在 Tool 已经成功返回：
+
+#W2702727 cancelled
+
+以及：
+
+refund = $625.60
+
+之后，才向用户声明：
+
+- 订单已经取消；
+- 退款金额为 $625.60；
+- #W8268610 保持不变。
+
+因此：
+
+Agent 的最终声明
+=
+实际 Tool 执行结果
+=
+最终数据库状态
+
+没有观察到“嘴上说成功，但实际上没执行”的 Claim-Action Inconsistency。
+
+
+11. 训练价值：
+
+该样本不应该直接作为普通负样本用于：
+
+- SFT 负样本；
+- Preference Optimization 负偏好；
+- RL Reward=0 惩罚样本。
+
+原因是：
+
+如果直接把该 Reward=0 当作“模型错误”，可能会训练模型学会：
+
+忽略用户最新明确授权
+而去迎合隐藏的静态 Golden。
+
+这对真实业务 Agent 是危险的。
+
+该轨迹更适合用于：
+
+- Benchmark / Evaluator Audit；
+- User Simulator 一致性检查；
+- Reward Label Noise 分析；
+- Latest Intent Tracking；
+- Final Authorized Intent 验证；
+- Confirmation Mechanism 评估。
+
+经过人工裁决后，它甚至可能成为一个“正确遵循用户最终意图”的正向轨迹候选。
+
+
+12. 候选改进方案：
+
+Benchmark / 数据侧：
+
+1. 在任务定义中明确指定目标订单实体，避免“旧订单”“那个订单”等模糊指代。
+
+2. 对 User Simulator 增加一致性约束，防止其生成与 Golden Actions 冲突的用户意图。
+
+3. 增加自动一致性检查：
+
+Task Instruction
+→ User Simulator Intent
+→ Golden Actions
+→ NL Assertions
+
+四者必须一致。
+
+4. 对动态用户意图任务，不应完全依赖固定 Static Golden。
+
+可以考虑引入：
+
+Final Authorized Intent
+→ Expected Execution
+
+这种基于最终授权意图的动态评测机制。
+
+5. 将 Task 59 暂时标记为：
+
+BENCHMARK_SUSPECT
+USER_SIMULATOR_GOLD_MISMATCH
+
+在人工裁决前不进入普通失败训练集。
+
+
+项目实验侧：
+
+原始 Trial-1 结果不 retroactively 修改。
+
+仍然保留：
+
+Raw Baseline:
+16 / 20 = 80%
+
+同时额外记录：
+
+Task 59:
+BENCHMARK_SUSPECT
+
+后续如果要计算“人工审计后的有效成功率”，必须：
+
+- 先定义统一人工裁决规则；
+- 再对全部 suspect case 使用同一规则复核；
+- Raw Metric 和 Audited Metric 分开报告；
+- 不能为了提高分数只修正对自己有利的样本。

@@ -1,0 +1,17 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+    "met": true,
+    "justification": "The agent correctly calculated the price difference for exchanging the laptop from order #W2905754 (item 3478699712, $2,291.87) to the matching item 9844888101 ($2,459.74) as $167.87, and communicated this to the user."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+    "met": false,
+    "justification": "The agent did not calculate or mention a price difference of $60.78 for the second laptop exchange. The agent noted that only one matching item was available and did not proceed with a calculation for the second laptop, so this expectation was not met."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the total amount to pay today is $107.09.",
+    "met": false,
+    "justification": "The agent did not provide a total amount of $107.09. Instead, the agent only mentioned the $167.87 difference for one laptop and did not combine any figures to give a total, as the second exchange could not be completed due to lack of inventory."
+  }
+]

@@ -1,0 +1,70 @@
+{
+  "run_id": "20260722_110504",
+  "created_at": "2026-07-22T11:05:04.624608",
+  "experiment": "retail_baseline_trial1_v1",
+  "experiment_role": "Prompt Base / Trial-1",
+  "scope": "Frozen 20-task Retail development Prompt Baseline Trial-1",
+  "not_official_leaderboard_score": true,
+  "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "baseline_config_path": "D:\\PolicyAgent-PostTrain\\configs\\baseline_20_tasks.json",
+  "run_config_path": "D:\\PolicyAgent-PostTrain\\configs\\baseline_trial1_run_config.json",
+  "baseline_config_sha256": "f287807479c37f8fe3fe2ff60c1bc2dc7d357055f5a03d9c76bd4b03f9087a80",
+  "run_config_sha256": "a0627f1785f36861d99f9d3b0eaecd7564eef00f5627a8ee386a277281fa21cd",
+  "task_ids": [
+    "16",
+    "59",
+    "76",
+    "98",
+    "1",
+    "29",
+    "52",
+    "95",
+    "107",
+    "21",
+    "37",
+    "43",
+    "72",
+    "109",
+    "24",
+    "50",
+    "19",
+    "28",
+    "46",
+    "89"
+  ],
+  "agent": {
+    "implementation": "llm_agent",
+    "model": "deepseek/deepseek-chat",
+    "temperature": 0.0
+  },
+  "user": {
+    "implementation": "user_simulator",
+    "model": "deepseek/deepseek-chat",
+    "temperature": 0.0
+  },
+  "nl_judge": {
+    "model": "deepseek/deepseek-chat",
+    "temperature": 0.0,
+    "explicit_runtime_override": true
+  },
+  "evaluation": {
+    "type": "ALL_WITH_NL_ASSERTIONS"
+  },
+  "runtime": {
+    "seed": 300,
+    "max_steps": 200,
+    "max_errors": 10,
+    "num_trials": 1,
+    "max_concurrency": 1,
+    "max_retries": 0,
+    "verbose_logs": true,
+    "auto_review": false
+  },
+  "protocol": {
+    "no_task_replacement_after_freeze": true,
+    "no_prompt_tuning_during_trial1": true,
+    "business_failure_must_be_preserved": true,
+    "system_failure_may_be_fixed_but_must_be_logged": true,
+    "official_test_split_must_remain_unused": true
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "id": "52",
+  "description": {
+    "purpose": null,
+    "relevant_policies": null,
+    "notes": null
+  },
+  "user_scenario": {
+    "persona": null,
+    "instructions": {
+      "domain": "retail",
+      "reason_for_call": "The digital camera you received doesn't zoom as far as you expected. You use the camera for bird-watching and want to exchange it for a camera that has the maximum zoom capacity. Price is not an issue, but ensure all the other specifications of the camera to be exchanged are the same, except for the zoom capacity which has to be maximized. You want the exchange to be completed as soon as possible. You want to use your PayPal account for any additional payment.",
+      "known_info": "You are Sofia Li, residing in San Antonio, 78260.",
+      "unknown_info": "You do not remember your email address",
+      "task_instructions": "."
+    }
+  },
+  "ticket": null,
+  "initial_state": null,
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "52_0",
+        "requestor": "assistant",
+        "name": "find_user_id_by_name_zip",
+        "arguments": {
+          "first_name": "Sofia",
+          "last_name": "Li",
+          "zip": "78260"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "52_1",
+        "requestor": "assistant",
+        "name": "get_user_details",
+        "arguments": {
+          "user_id": "sofia_li_9219"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "52_2",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W4689314"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "52_3",
+        "requestor": "assistant",
+        "name": "get_product_details",
+        "arguments": {
+          "product_id": "8940227892"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "52_4",
+        "requestor": "assistant",
+        "name": "exchange_delivered_order_items",
+        "arguments": {
+          "order_id": "#W4689314",
+          "item_ids": [
+            "5996159312"
+          ],
+          "new_item_ids": [
+            "9228757377"
+          ],
+          "payment_method_id": "paypal_8194385"
+        },
+        "info": null,
+        "compare_args": null
+      }
+    ],
+    "env_assertions": null,
+    "communicate_info": [],
+    "nl_assertions": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ]
+  },
+  "issues": null,
+  "required_documents": null,
+  "user_tools": null
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user that returning the water bottle gives a refund of $54.04.",
+    "met": true,
+    "justification": "The agent clearly states that returning the water bottle results in a refund of $54.04, both in the summary of options and when confirming the return."
+  },
+  {
+    "nl_assertion": "Agent should tell the user that exchanging the pet bed and office chair saves $41.64 total.",
+    "met": true,
+    "justification": "The agent calculates and states that exchanging the pet bed saves $14.18 and exchanging the office chair saves $27.46, totaling $41.64."
+  }
+]

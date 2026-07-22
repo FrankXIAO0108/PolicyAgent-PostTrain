@@ -1,0 +1,40 @@
+{
+  "source_run": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "audit_role": "Reward=1 suspicious trajectory quality audit",
+  "task_ids": [
+    "46",
+    "16",
+    "21",
+    "28"
+  ],
+  "tasks": [
+    {
+      "task_id": "46",
+      "reward": 1.0,
+      "action_passed": 4,
+      "action_total": 7,
+      "review_file": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\success_audit_reviews\\task_46_success_review.txt"
+    },
+    {
+      "task_id": "16",
+      "reward": 1.0,
+      "action_passed": 8,
+      "action_total": 9,
+      "review_file": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\success_audit_reviews\\task_16_success_review.txt"
+    },
+    {
+      "task_id": "21",
+      "reward": 1.0,
+      "action_passed": 11,
+      "action_total": 12,
+      "review_file": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\success_audit_reviews\\task_21_success_review.txt"
+    },
+    {
+      "task_id": "28",
+      "reward": 1.0,
+      "action_passed": 10,
+      "action_total": 11,
+      "review_file": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\success_audit_reviews\\task_28_success_review.txt"
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+[
+  {
+    "action": {
+      "action_id": "46_0",
+      "requestor": "assistant",
+      "name": "find_user_id_by_name_zip",
+      "arguments": {
+        "first_name": "Daiki",
+        "last_name": "Johnson",
+        "zip": "80273"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "46_1",
+      "requestor": "assistant",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#9502126"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": false,
+    "action_reward": 0.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "46_2",
+      "requestor": "assistant",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#9502127"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": false,
+    "action_reward": 0.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "46_3",
+      "requestor": "assistant",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#W9502127"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "46_4",
+      "requestor": "assistant",
+      "name": "calculate",
+      "arguments": {
+        "expression": "652.61 + 473.43"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "generic"
+  },
+  {
+    "action": {
+      "action_id": "46_5",
+      "requestor": "assistant",
+      "name": "return_delivered_order_items",
+      "arguments": {
+        "order_id": "#W9502127",
+        "item_ids": [
+          "6259501109",
+          "9534205511"
+        ],
+        "payment_method_id": "paypal_2433177"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "write"
+  },
+  {
+    "action": {
+      "action_id": "46_6",
+      "requestor": "assistant",
+      "name": "calculate",
+      "arguments": {
+        "expression": "2623.69 - 1126.04"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": false,
+    "action_reward": 0.0,
+    "tool_type": "generic"
+  }
+]

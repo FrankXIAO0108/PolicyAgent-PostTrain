@@ -1,0 +1,15 @@
+{
+  "source_run": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "failure_task_ids": [
+    "59",
+    "98",
+    "95",
+    "107"
+  ],
+  "generated_files": [
+    "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\failure_reviews\\task_59_review.txt",
+    "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\failure_reviews\\task_98_review.txt",
+    "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\failure_reviews\\task_95_review.txt",
+    "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\failure_reviews\\task_107_review.txt"
+  ]
+}

@@ -1,0 +1,423 @@
+{
+  "name": "retail_baseline_20_v1",
+  "created_at": "2026-07-21T15:08:50.911078",
+  "status": "FROZEN",
+  "purpose": "Fixed development baseline for PolicyAgent-PostTrain. Selected exclusively from the official Retail train split. The official test split is reserved as a later holdout set.",
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+  },
+  "source_data": {
+    "domain": "retail",
+    "source_split": "train",
+    "train_count": 74,
+    "test_count": 40,
+    "tasks_json_sha256": "f44563d8f36362e2dc58282bb02cfb85010d22f27d9439808758d3e9b2bc16d2",
+    "split_tasks_json_sha256": "5f9949b833e6b99584b87e84ef22f9d81789ea67a52e534c6f7aa91eff08adc7"
+  },
+  "selection_policy": {
+    "strategy": "business-stratified development baseline",
+    "excluded_manually_debugged_tasks": [
+      "0",
+      "2"
+    ],
+    "test_split_policy": "Do not use official test tasks for prompt tuning, trajectory selection, SFT, verifier development, preference construction, or RL training.",
+    "categories_are_official_tau2_taxonomy": false,
+    "category_counts": {
+      "cancel": 4,
+      "exchange": 5,
+      "modify_update": 5,
+      "query_handoff": 2,
+      "return": 4
+    }
+  },
+  "task_ids": [
+    "16",
+    "59",
+    "76",
+    "98",
+    "1",
+    "29",
+    "52",
+    "95",
+    "107",
+    "21",
+    "37",
+    "43",
+    "72",
+    "109",
+    "24",
+    "50",
+    "19",
+    "28",
+    "46",
+    "89"
+  ],
+  "tasks_by_category": {
+    "cancel": [
+      "16",
+      "59",
+      "76",
+      "98"
+    ],
+    "exchange": [
+      "1",
+      "29",
+      "52",
+      "95",
+      "107"
+    ],
+    "modify_update": [
+      "21",
+      "37",
+      "43",
+      "72",
+      "109"
+    ],
+    "query_handoff": [
+      "24",
+      "50"
+    ],
+    "return": [
+      "19",
+      "28",
+      "46",
+      "89"
+    ]
+  },
+  "task_metadata": [
+    {
+      "task_id": "16",
+      "business_stratum": "cancel",
+      "num_expected_actions": 9,
+      "num_nl_assertions": 1,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "get_order_details",
+        "get_order_details",
+        "get_order_details",
+        "calculate",
+        "cancel_pending_order",
+        "cancel_pending_order",
+        "return_delivered_order_items"
+      ]
+    },
+    {
+      "task_id": "59",
+      "business_stratum": "cancel",
+      "num_expected_actions": 5,
+      "num_nl_assertions": 2,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_order_details",
+        "get_order_details",
+        "cancel_pending_order",
+        "modify_pending_order_address"
+      ]
+    },
+    {
+      "task_id": "76",
+      "business_stratum": "cancel",
+      "num_expected_actions": 2,
+      "num_nl_assertions": 1,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "cancel_pending_order",
+        "cancel_pending_order"
+      ]
+    },
+    {
+      "task_id": "98",
+      "business_stratum": "cancel",
+      "num_expected_actions": 3,
+      "num_nl_assertions": 0,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "exchange_delivered_order_items",
+        "exchange_delivered_order_items",
+        "cancel_pending_order"
+      ]
+    },
+    {
+      "task_id": "1",
+      "business_stratum": "exchange",
+      "num_expected_actions": 5,
+      "num_nl_assertions": 0,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_order_details",
+        "get_product_details",
+        "get_product_details",
+        "exchange_delivered_order_items"
+      ]
+    },
+    {
+      "task_id": "29",
+      "business_stratum": "exchange",
+      "num_expected_actions": 6,
+      "num_nl_assertions": 1,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "get_order_details",
+        "get_product_details",
+        "exchange_delivered_order_items",
+        "exchange_delivered_order_items"
+      ]
+    },
+    {
+      "task_id": "52",
+      "business_stratum": "exchange",
+      "num_expected_actions": 5,
+      "num_nl_assertions": 0,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "get_order_details",
+        "get_product_details",
+        "exchange_delivered_order_items"
+      ]
+    },
+    {
+      "task_id": "95",
+      "business_stratum": "exchange",
+      "num_expected_actions": 2,
+      "num_nl_assertions": 3,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "exchange_delivered_order_items",
+        "exchange_delivered_order_items"
+      ]
+    },
+    {
+      "task_id": "107",
+      "business_stratum": "exchange",
+      "num_expected_actions": 2,
+      "num_nl_assertions": 1,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "exchange_delivered_order_items",
+        "exchange_delivered_order_items"
+      ]
+    },
+    {
+      "task_id": "21",
+      "business_stratum": "modify_update",
+      "num_expected_actions": 12,
+      "num_nl_assertions": 1,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "get_order_details",
+        "get_order_details",
+        "get_order_details",
+        "get_item_details",
+        "get_item_details",
+        "get_product_details",
+        "get_item_details",
+        "get_product_details",
+        "calculate",
+        "modify_pending_order_items"
+      ]
+    },
+    {
+      "task_id": "37",
+      "business_stratum": "modify_update",
+      "num_expected_actions": 4,
+      "num_nl_assertions": 2,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_email",
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "modify_pending_order_items"
+      ]
+    },
+    {
+      "task_id": "43",
+      "business_stratum": "modify_update",
+      "num_expected_actions": 5,
+      "num_nl_assertions": 3,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "get_order_details",
+        "get_order_details",
+        "modify_user_address"
+      ]
+    },
+    {
+      "task_id": "72",
+      "business_stratum": "modify_update",
+      "num_expected_actions": 2,
+      "num_nl_assertions": 0,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "modify_pending_order_address",
+        "modify_pending_order_items"
+      ]
+    },
+    {
+      "task_id": "109",
+      "business_stratum": "modify_update",
+      "num_expected_actions": 3,
+      "num_nl_assertions": 2,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "modify_pending_order_address",
+        "modify_user_address",
+        "modify_pending_order_items"
+      ]
+    },
+    {
+      "task_id": "24",
+      "business_stratum": "query_handoff",
+      "num_expected_actions": 0,
+      "num_nl_assertions": 1,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": []
+    },
+    {
+      "task_id": "50",
+      "business_stratum": "query_handoff",
+      "num_expected_actions": 1,
+      "num_nl_assertions": 0,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "transfer_to_human_agents"
+      ]
+    },
+    {
+      "task_id": "19",
+      "business_stratum": "return",
+      "num_expected_actions": 7,
+      "num_nl_assertions": 2,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "get_order_details",
+        "get_order_details",
+        "get_product_details",
+        "get_product_details",
+        "return_delivered_order_items"
+      ]
+    },
+    {
+      "task_id": "28",
+      "business_stratum": "return",
+      "num_expected_actions": 11,
+      "num_nl_assertions": 1,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_user_details",
+        "get_order_details",
+        "get_order_details",
+        "get_order_details",
+        "get_order_details",
+        "return_delivered_order_items",
+        "return_delivered_order_items",
+        "return_delivered_order_items",
+        "get_order_details",
+        "calculate"
+      ]
+    },
+    {
+      "task_id": "46",
+      "business_stratum": "return",
+      "num_expected_actions": 7,
+      "num_nl_assertions": 2,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "find_user_id_by_name_zip",
+        "get_order_details",
+        "get_order_details",
+        "get_order_details",
+        "calculate",
+        "return_delivered_order_items",
+        "calculate"
+      ]
+    },
+    {
+      "task_id": "89",
+      "business_stratum": "return",
+      "num_expected_actions": 1,
+      "num_nl_assertions": 4,
+      "reward_basis": [
+        "DB",
+        "NL_ASSERTION"
+      ],
+      "expected_action_names": [
+        "return_delivered_order_items"
+      ]
+    }
+  ],
+  "selected_tasks_canonical_sha256": "10dd3f77eaeea0916355e0f5170a00b7ca076af3f5d28490d6c27189124cee63",
+  "baseline_config_sha256": "f287807479c37f8fe3fe2ff60c1bc2dc7d357055f5a03d9c76bd4b03f9087a80"
+}

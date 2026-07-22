@@ -1,0 +1,12 @@
+[
+  {
+    "nl_assertion": "Agent should make changes to address on order and user profile",
+    "met": true,
+    "justification": "The agent updated the user's default address to 592 Elm Avenue, Suite 978, Houston, TX 77242, USA and changed the shipping address on order #W1603792 to the same address, as confirmed by the tool outputs and the agent's summary."
+  },
+  {
+    "nl_assertion": "Agent should modify the pending order.",
+    "met": true,
+    "justification": "The agent successfully modified order #W1603792 by replacing the tablet (item #6501071631) with the cheapest available tablet (item #2106335193) and processed a refund of $114.73 to the customer's Mastercard, as shown in the tool output and the agent's final summary."
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "action": {
+      "action_id": "96_0",
+      "requestor": "assistant",
+      "name": "exchange_delivered_order_items",
+      "arguments": {
+        "order_id": "#W2905754",
+        "item_ids": [
+          "3478699712"
+        ],
+        "new_item_ids": [
+          "9844888101"
+        ],
+        "payment_method_id": "credit_card_3677959"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": false,
+    "action_reward": 0.0,
+    "tool_type": "write"
+  },
+  {
+    "action": {
+      "action_id": "96_1",
+      "requestor": "assistant",
+      "name": "exchange_delivered_order_items",
+      "arguments": {
+        "order_id": "#W4073673",
+        "item_ids": [
+          "2216662955"
+        ],
+        "new_item_ids": [
+          "9844888101"
+        ],
+        "payment_method_id": "credit_card_3677959"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": false,
+    "action_reward": 0.0,
+    "tool_type": "write"
+  }
+]

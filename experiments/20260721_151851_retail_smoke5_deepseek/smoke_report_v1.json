@@ -1,0 +1,78 @@
+{
+  "report_name": "retail_smoke5_engineering_report_v1",
+  "status": "COMPLETED",
+  "scope": {
+    "task_ids": [
+      "59",
+      "29",
+      "72",
+      "50",
+      "28"
+    ],
+    "purpose": "Risk-stratified engineering smoke before the frozen 20-task development baseline.",
+    "warning": "The observed 3/5 success fraction is NOT the 20-task baseline success rate."
+  },
+  "observed_results": {
+    "success_count": 3,
+    "failure_count": 2,
+    "reward_mean": 0.6,
+    "task_rewards": {
+      "59": 0.0,
+      "29": 1.0,
+      "72": 1.0,
+      "50": 1.0,
+      "28": 0.0
+    }
+  },
+  "cost": {
+    "agent_usd": 0.0067856824,
+    "user_usd": 0.001770132,
+    "judge_usd": 0.0023282,
+    "total_agent_user_judge_usd": 0.0108840144,
+    "judge_cost_by_task_usd": {
+      "59": 0.00048734,
+      "29": 0.00100128,
+      "72": 0.0,
+      "50": 0.0,
+      "28": 0.00083958
+    }
+  },
+  "baseline_20_budget_estimate": {
+    "projected_agent_user_usd": 0.0342232576,
+    "projected_judge_usd": 0.011640999999999999,
+    "projected_total_usd": 0.0458642576,
+    "recommended_budget_range_usd": [
+      0.05,
+      0.07
+    ],
+    "projected_runtime_minutes": "approximately 8.5-9.5 at concurrency=1",
+    "warning": "Engineering estimate only. Token usage and trajectory length vary across tasks."
+  },
+  "engineering_findings": {
+    "29": {
+      "status": "clean_success_candidate",
+      "finding": "All expected actions matched, including both write operations; DB and NL evaluation both passed."
+    },
+    "72": {
+      "status": "success_dynamic_intent",
+      "finding": "The run correctly handled revised user intent and executed the final authorized write operations.",
+      "industrial_risk": "stale intent execution / authorization drift"
+    },
+    "50": {
+      "status": "success_handoff",
+      "finding": "The agent respected its capability boundary and transferred the case to a human.",
+      "unverified_hypothesis": "Whether the evaluator would still award success if the required handoff were omitted remains unverified."
+    },
+    "28": {
+      "status": "agent_failure",
+      "failure_type": "long-horizon task incompleteness / subtask omission",
+      "finding": "All expected reads passed, but only 2/3 expected writes succeeded; the refund calculation and final communication were incomplete."
+    },
+    "59": {
+      "status": "agent_failure_and_evaluator_suspect",
+      "finding": "Both expected write actions failed. Separately, the DeepSeek NL Judge identified a possible inconsistency between the expected NL assertion and the observed task semantics.",
+      "warning": "Do not label this as a benchmark bug until task, policy, trajectory, DB state, golden actions and assertion are manually reconciled."
+    }
+  },
+  "next_gate": "Before full 20-task baseline execution, fix the reusable runner reward extraction and preserve these smoke findings. Then run the frozen baseline without changing task IDs."
+}

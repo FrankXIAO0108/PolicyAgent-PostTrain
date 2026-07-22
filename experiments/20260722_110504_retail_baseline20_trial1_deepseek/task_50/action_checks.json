@@ -1,0 +1,17 @@
+[
+  {
+    "action": {
+      "action_id": "50_0",
+      "requestor": "assistant",
+      "name": "transfer_to_human_agents",
+      "arguments": {
+        "summary": "The user urgently needs to undo a cancellation of an order and insists on receiving the items from the initial order as soon as possible. The user acknowledges the policy but requests exceptional measures due to the urgency of the situation."
+      },
+      "info": null,
+      "compare_args": []
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "generic"
+  }
+]

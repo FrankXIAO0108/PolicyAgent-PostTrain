@@ -1,0 +1,38 @@
+{
+  "id": "24",
+  "description": {
+    "purpose": null,
+    "relevant_policies": null,
+    "notes": null
+  },
+  "user_scenario": {
+    "persona": null,
+    "instructions": {
+      "domain": "retail",
+      "reason_for_call": "You want to cancel the grill, but if the agent asks you to confirm, you regret and want to keep it. You then want to ask which two t-shirts you have ordered in another order, and what materials are they.",
+      "known_info": "You are Sofia Hernandez, and you live in Seattle, WA, 98193.",
+      "unknown_info": "You do not remember your email address",
+      "task_instructions": "Make everything sound very natural and make up reasons."
+    }
+  },
+  "ticket": null,
+  "initial_state": null,
+  "evaluation_criteria": {
+    "actions": [],
+    "env_assertions": null,
+    "communicate_info": [
+      "polyester",
+      "cotton"
+    ],
+    "nl_assertions": [
+      "Agent should tell the user the materials of the two t-shirts are polyester and cotton."
+    ],
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ]
+  },
+  "issues": null,
+  "required_documents": null,
+  "user_tools": null
+}

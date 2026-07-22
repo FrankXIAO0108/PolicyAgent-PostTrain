@@ -1,0 +1,12 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user the most expensive item in the order is the camera.",
+    "met": true,
+    "justification": "The agent explicitly stated 'The most expensive item is the Action Camera' in response to the user's question."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the camera costs $481.50.",
+    "met": true,
+    "justification": "The agent said 'The most expensive item is the Action Camera (item ID: 6117189161) at $481.50', providing the exact price."
+  }
+]

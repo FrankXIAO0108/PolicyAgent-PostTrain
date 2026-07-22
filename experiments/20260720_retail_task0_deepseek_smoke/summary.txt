@@ -1,0 +1,24 @@
+PolicyAgent-PostTrain Retail Task 0 Engineering Smoke
+
+Date: 2026-07-20
+Upstream: tau2-bench
+Task: retail / 0
+
+Agent LLM: deepseek/deepseek-chat
+User Simulator LLM: deepseek/deepseek-chat
+NL Assertion Judge: deepseek/deepseek-chat
+
+temperature: 0
+seed: 300
+max_steps: 200
+num_trials: 1
+max_concurrency: 1
+
+Termination: TerminationReason.USER_STOP
+Reward: 1.0
+
+NOTE:
+NL Assertion Judge was runtime-overridden from the upstream
+default GPT-4.1 evaluator to DeepSeek.
+This run is an engineering smoke and is NOT claimed as an
+official GPT-4.1-judge-comparable leaderboard baseline.

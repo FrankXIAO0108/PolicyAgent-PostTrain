@@ -1,0 +1,75 @@
+[
+  {
+    "action": {
+      "action_id": "37_0",
+      "requestor": "assistant",
+      "name": "find_user_id_by_email",
+      "arguments": {
+        "email": "daikisanchez1479@example.com"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "37_1",
+      "requestor": "assistant",
+      "name": "find_user_id_by_name_zip",
+      "arguments": {
+        "first_name": "Daiki",
+        "last_name": "Sanchez",
+        "zip": "46236"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "37_2",
+      "requestor": "assistant",
+      "name": "get_user_details",
+      "arguments": {
+        "user_id": "daiki_sanchez_3253"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "read"
+  },
+  {
+    "action": {
+      "action_id": "37_9",
+      "requestor": "assistant",
+      "name": "modify_pending_order_items",
+      "arguments": {
+        "order_id": "#W9348897",
+        "item_ids": [
+          "6117189161",
+          "7453605304",
+          "3799046073"
+        ],
+        "new_item_ids": [
+          "6700049080",
+          "5320792178",
+          "3234800602"
+        ],
+        "payment_method_id": "credit_card_8853416"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "write"
+  }
+]

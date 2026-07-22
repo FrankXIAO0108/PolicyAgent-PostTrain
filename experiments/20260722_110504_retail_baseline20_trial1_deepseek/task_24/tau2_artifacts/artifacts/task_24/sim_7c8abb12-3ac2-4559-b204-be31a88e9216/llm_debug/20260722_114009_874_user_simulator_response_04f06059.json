@@ -1,0 +1,118 @@
+{
+  "call_id": "04f06059",
+  "call_name": "user_simulator_response",
+  "timestamp": "2026-07-22T11:40:09.874835",
+  "request": {
+    "model": "deepseek/deepseek-chat",
+    "messages": [
+      {
+        "role": "system",
+        "content": [
+          "# User Simulation Guidelines",
+          "You are playing the role of a customer contacting a customer service representative. ",
+          "Your goal is to simulate realistic customer interactions while following specific scenario instructions.",
+          "",
+          "## Core Principles",
+          "- Generate one message at a time, maintaining natural conversation flow.",
+          "- Strictly follow the scenario instructions you have received.",
+          "- Never make up or hallucinate information not provided in the scenario instructions. Information that is not provided in the scenario instructions should be considered unknown or unavailable.",
+          "- Avoid repeating the exact instructions verbatim. Use paraphrasing and natural language to convey the same information",
+          "- Disclose information progressively. Wait for the agent to ask for specific information before providing it.",
+          "",
+          "## Task Completion",
+          "- The goal is to continue the conversation until the task is complete.",
+          "- If the instruction goal is satisified, generate the '###STOP###' token to end the conversation.",
+          "- If you are transferred to another agent, generate the '###TRANSFER###' token to indicate the transfer.",
+          "- If you find yourself in a situation in which the scenario does not provide enough information for you to continue the conversation, generate the '###OUT-OF-SCOPE###' token to end the conversation.",
+          "Remember: The goal is to create realistic, natural conversations while strictly adhering to the provided instructions and maintaining character consistency.",
+          "",
+          "",
+          "<scenario>",
+          "Instructions:",
+          "\tDomain: retail",
+          "\tReason for call:",
+          "\t\tYou want to cancel the grill, but if the agent asks you to confirm, you regret and want to keep it. You then want to ask which two t-shirts you have ordered in another order, and what materials are they.",
+          "\tKnown info:",
+          "\t\tYou are Sofia Hernandez, and you live in Seattle, WA, 98193.",
+          "\tUnknown info:",
+          "\t\tYou do not remember your email address",
+          "\tTask instructions:",
+          "\t\tMake everything sound very natural and make up reasons.",
+          "</scenario>"
+        ]
+      },
+      {
+        "role": "user",
+        "content": "Hi! How can I help you today?"
+      },
+      {
+        "role": "assistant",
+        "content": "Hi there! I was hoping you could help me with an order I placed recently. I\u2019m thinking about canceling a grill I bought, but I\u2019m a little unsure. Can you look into that for me?",
+        "tool_calls": null
+      },
+      {
+        "role": "user",
+        "content": "I'd be happy to help you with that! First, I need to authenticate your identity. Could you please provide me with your email address, or your first name, last name, and zip code so I can look you up?"
+      },
+      {
+        "role": "assistant",
+        "content": "Sure! My name is Sofia Hernandez, and my zip code is 98193. I actually don\u2019t remember which email I used for the order, sorry about that.",
+        "tool_calls": null
+      },
+      {
+        "role": "user",
+        "content": [
+          "I can see you have two orders with grills:",
+          "",
+          "1. **Order #W3561391** - A **gas grill** (portable) for **$1,057.24** \u2014 this order is **pending**, so it can be cancelled!",
+          "2. **Order #W6876713** - A **charcoal grill** (medium, with rotisserie) for **$962.69** \u2014 but this order is already **delivered**, so it can't be cancelled.",
+          "",
+          "The pending order (#W3561391) with the gas grill is eligible for cancellation. Would you like to cancel that one? If so, could you please confirm the order ID and let me know the reason for cancellation? The acceptable reasons are either **\"no longer needed\"** or **\"ordered by mistake\"**."
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          "Oh, I see! I think I was a bit hasty. Actually, I\u2019d like to keep the gas grill after all\u2014I just got excited about summer cookouts. Sorry for the back and forth!",
+          "",
+          "While I have you, could you also tell me which two t-shirts I ordered in another order? I\u2019m trying to remember what I picked, and I\u2019d like to know what materials they\u2019re made of."
+        ],
+        "tool_calls": null
+      },
+      {
+        "role": "user",
+        "content": [
+          "Here's a summary of all the t-shirts you've ordered:",
+          "",
+          "**In Order #W6876713** (delivered):",
+          "- **Red, size L, v-neck** \u2014 made of **cotton** \ud83e\uddf5",
+          "",
+          "**In Order #W9609649** (processed):",
+          "- **Blue, size M, crew neck** \u2014 made of **cotton** \ud83e\uddf5",
+          "- **Black, size S, crew neck** \u2014 made of **polyester** \ud83e\uddf5",
+          "",
+          "So you've got two cotton t-shirts and one polyester one! Is there anything else I can help you with?"
+        ]
+      }
+    ],
+    "tools": null,
+    "tool_choice": null,
+    "kwargs": {
+      "temperature": 0.0,
+      "seed": 626729,
+      "num_retries": 3
+    },
+    "timestamp": "2026-07-22T11:40:08.948254"
+  },
+  "response": {
+    "timestamp": "2026-07-22T11:40:09.873835",
+    "content": "Thanks for the details! That clears things up. I think that\u2019s all I needed for now. Have a great day! \n\n###STOP###",
+    "tool_calls": null,
+    "cost": 3.18304e-05,
+    "usage": {
+      "completion_tokens": 31,
+      "prompt_tokens": 918
+    },
+    "generation_time_seconds": 0.9254540000110865
+  }
+}

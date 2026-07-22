@@ -1,0 +1,21 @@
+[
+  {
+    "action": {
+      "action_id": "89_0",
+      "requestor": "assistant",
+      "name": "return_delivered_order_items",
+      "arguments": {
+        "order_id": "#W4680753",
+        "item_ids": [
+          "9690244451"
+        ],
+        "payment_method_id": "paypal_2417743"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "write"
+  }
+]

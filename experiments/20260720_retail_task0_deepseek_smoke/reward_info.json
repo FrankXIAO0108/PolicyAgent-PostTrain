@@ -1,0 +1,116 @@
+{
+  "reward": 1.0,
+  "db_check": {
+    "db_match": true,
+    "db_reward": 1.0
+  },
+  "env_assertions": [],
+  "action_checks": [
+    {
+      "action": {
+        "action_id": "0_0",
+        "requestor": "assistant",
+        "name": "find_user_id_by_name_zip",
+        "arguments": {
+          "first_name": "Yusuf",
+          "last_name": "Rossi",
+          "zip": "19122"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      "action_match": true,
+      "action_reward": 1.0,
+      "tool_type": "read"
+    },
+    {
+      "action": {
+        "action_id": "0_1",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W2378156"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      "action_match": true,
+      "action_reward": 1.0,
+      "tool_type": "read"
+    },
+    {
+      "action": {
+        "action_id": "0_2",
+        "requestor": "assistant",
+        "name": "get_product_details",
+        "arguments": {
+          "product_id": "1656367028"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      "action_match": true,
+      "action_reward": 1.0,
+      "tool_type": "read"
+    },
+    {
+      "action": {
+        "action_id": "0_3",
+        "requestor": "assistant",
+        "name": "get_product_details",
+        "arguments": {
+          "product_id": "4896585277"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      "action_match": true,
+      "action_reward": 1.0,
+      "tool_type": "read"
+    },
+    {
+      "action": {
+        "action_id": "0_4",
+        "requestor": "assistant",
+        "name": "exchange_delivered_order_items",
+        "arguments": {
+          "order_id": "#W2378156",
+          "item_ids": [
+            "1151293680",
+            "4983901480"
+          ],
+          "new_item_ids": [
+            "7706410293",
+            "7747408585"
+          ],
+          "payment_method_id": "credit_card_9513926"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      "action_match": true,
+      "action_reward": 1.0,
+      "tool_type": "write"
+    }
+  ],
+  "nl_assertions": [],
+  "communicate_checks": null,
+  "reward_basis": [
+    "DB",
+    "NL_ASSERTION"
+  ],
+  "reward_breakdown": {
+    "DB": 1.0,
+    "NL_ASSERTION": 1.0
+  },
+  "info": {
+    "env": null,
+    "nl": {
+      "note": "No nl_assertions to evaluate"
+    },
+    "communicate": {
+      "note": "No communicate_info to evaluate"
+    },
+    "action": null
+  }
+}

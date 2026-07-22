@@ -1,0 +1,22 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user the cheapest mechanical keyboard costs $226.11.",
+    "met": true,
+    "justification": "The agent explicitly stated 'The cheapest available mechanical keyboard is item #3616838507 at $226.11' in the conversation."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the keyboard switch type is tactile.",
+    "met": true,
+    "justification": "The agent stated that the cheapest keyboard has 'tactile switches' in the summary."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the keyboard backlight is white.",
+    "met": true,
+    "justification": "The agent mentioned 'white backlighting' for the cheapest keyboard."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the keyboard size is full.",
+    "met": true,
+    "justification": "The agent said the cheapest keyboard is a 'full-size' keyboard."
+  }
+]

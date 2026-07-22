@@ -1,0 +1,34 @@
+[
+  {
+    "action": {
+      "action_id": "76_0",
+      "requestor": "assistant",
+      "name": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W8367380",
+        "reason": "ordered by mistake"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "write"
+  },
+  {
+    "action": {
+      "action_id": "76_1",
+      "requestor": "assistant",
+      "name": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W1242543",
+        "reason": "no longer needed"
+      },
+      "info": null,
+      "compare_args": null
+    },
+    "action_match": true,
+    "action_reward": 1.0,
+    "tool_type": "write"
+  }
+]

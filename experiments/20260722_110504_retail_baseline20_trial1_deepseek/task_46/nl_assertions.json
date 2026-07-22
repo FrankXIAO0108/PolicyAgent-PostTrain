@@ -1,0 +1,12 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user the total refund amount is $1,126.04.",
+    "met": true,
+    "justification": "The agent explicitly stated the total refund amount as $1,126.04 when summarizing the return details."
+  },
+  {
+    "nl_assertion": "Agent should tell the user the total paid for remaining items is $1,497.65.",
+    "met": true,
+    "justification": "The agent calculated and stated the total for remaining items as $1,497.65 after processing the return."
+  }
+]

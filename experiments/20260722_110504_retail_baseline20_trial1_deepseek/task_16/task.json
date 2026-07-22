@@ -1,0 +1,136 @@
+{
+  "id": "16",
+  "description": {
+    "purpose": null,
+    "relevant_policies": null,
+    "notes": null
+  },
+  "user_scenario": {
+    "persona": null,
+    "instructions": {
+      "domain": "retail",
+      "reason_for_call": "You want to cancel all pending orders (since they are no longer needed) and return the watch you have received (but nothing else), and you want to know the total amount you can get back.",
+      "known_info": "You are Fatima Johnson in zipcode 78712.",
+      "unknown_info": "You do not remember your email address",
+      "task_instructions": "You are a private person that does not want to reveal much about yourself."
+    }
+  },
+  "ticket": null,
+  "initial_state": null,
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "16_0",
+        "requestor": "assistant",
+        "name": "find_user_id_by_name_zip",
+        "arguments": {
+          "first_name": "Fatima",
+          "last_name": "Johnson",
+          "zip": "78712"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_1",
+        "requestor": "assistant",
+        "name": "get_user_details",
+        "arguments": {
+          "user_id": "fatima_johnson_7581"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_2",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W5199551"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_3",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W8665881"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_4",
+        "requestor": "assistant",
+        "name": "get_order_details",
+        "arguments": {
+          "order_id": "#W9389413"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_5",
+        "requestor": "assistant",
+        "name": "calculate",
+        "arguments": {
+          "expression": "3131.1 + 4777.75 + 367.38"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_6",
+        "requestor": "assistant",
+        "name": "cancel_pending_order",
+        "arguments": {
+          "order_id": "#W5199551",
+          "reason": "no longer needed"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_7",
+        "requestor": "assistant",
+        "name": "cancel_pending_order",
+        "arguments": {
+          "order_id": "#W8665881",
+          "reason": "no longer needed"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "16_8",
+        "requestor": "assistant",
+        "name": "return_delivered_order_items",
+        "arguments": {
+          "order_id": "#W9389413",
+          "item_ids": [
+            "2554056026"
+          ],
+          "payment_method_id": "paypal_5364164"
+        },
+        "info": null,
+        "compare_args": null
+      }
+    ],
+    "env_assertions": null,
+    "communicate_info": [
+      "8276.23"
+    ],
+    "nl_assertions": [
+      "Agent should tell the user the total refund amount is $8,276.23."
+    ],
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ]
+  },
+  "issues": null,
+  "required_documents": null,
+  "user_tools": null
+}

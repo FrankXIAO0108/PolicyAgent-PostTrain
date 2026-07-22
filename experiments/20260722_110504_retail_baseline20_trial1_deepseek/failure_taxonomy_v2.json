@@ -1,0 +1,181 @@
+{
+  "version": "v2",
+  "artifact_name": "Failure Taxonomy and Training Data Eligibility Matrix",
+  "baseline": {
+    "experiment_role": "Prompt Base / Trial-1",
+    "domain": "retail",
+    "task_count": 20,
+    "business_success_count": 16,
+    "business_failure_count": 4,
+    "raw_success_rate": 0.8,
+    "raw_failure_task_ids": [
+      "59",
+      "98",
+      "95",
+      "107"
+    ],
+    "raw_metric_policy": "Human audit must not retroactively modify the frozen raw benchmark result."
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "frozen_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "retail_policy_source": "D:\\tau2-bench\\data\\tau2\\domains\\retail\\policy.md",
+    "retail_tools_source": "D:\\tau2-bench\\src\\tau2\\domains\\retail\\tools.py"
+  },
+  "version_change": {
+    "changed_task_ids": [
+      "107"
+    ],
+    "reason": "Task 107 Policy and Tool semantics were verified against the frozen upstream source code."
+  },
+  "audit_policy": {
+    "raw_reward_is_not_training_label": true,
+    "raw_baseline_must_not_be_retroactively_modified": true,
+    "benchmark_alignment_cases_must_be_excluded_from_raw_negative_pool": true,
+    "mixed_badcases_require_segment_level_relabeling": true,
+    "policy_grounding_failures_are_valid_training_candidates": true
+  },
+  "failures": [
+    {
+      "task_id": "59",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 0.0,
+      "human_audit_category": "BENCHMARK_ALIGNMENT_FAILURE",
+      "primary_label": "USER_SIMULATOR_GOLD_MISMATCH",
+      "secondary_labels": [
+        "STATIC_GOLD_FINAL_INTENT_MISMATCH",
+        "EVALUATOR_SPECIFICATION_ALIGNMENT_ISSUE"
+      ],
+      "real_agent_failure": false,
+      "benchmark_suspect": true,
+      "evaluator_suspect": true,
+      "tool_enforcement_gap": false,
+      "claim_action_consistency": "PASS",
+      "summary": "The User Simulator explicitly authorized cancellation of #W2702727 and no change to #W8268610, while Static Golden expected cancellation of #W8268610 and modification of #W2702727. The Agent followed the final explicit user intent.",
+      "first_divergence_point": "The generated user trajectory diverged from Static Golden before the Agent made the disputed write action.",
+      "negative_sft_eligibility": "EXCLUDE",
+      "corrected_sft_eligibility": "POSSIBLE_AFTER_ADJUDICATION",
+      "preference_eligibility": "EXCLUDE_AS_RAW_PAIR",
+      "verifier_eligibility": "YES",
+      "rl_eligibility": "NO",
+      "training_status": "EXCLUDE_FROM_RAW_NEGATIVE_POOL",
+      "training_priority": "AUDIT_ONLY",
+      "recommended_use": [
+        "Benchmark audit",
+        "User Simulator / Golden consistency checking",
+        "Final authorized intent tracking",
+        "Reward-label-noise detection"
+      ]
+    },
+    {
+      "task_id": "98",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 1.0,
+      "human_audit_category": "MIXED_BADCASE",
+      "primary_label": "CLAIM_ACTION_INCONSISTENCY",
+      "secondary_labels": [
+        "DYNAMIC_INTENT_STATIC_GOLD_MISMATCH",
+        "ACTION_SCOPE_CONFIRMATION_FAILURE",
+        "EVALUATOR_COVERAGE_GAP"
+      ],
+      "real_agent_failure": true,
+      "benchmark_suspect": true,
+      "evaluator_suspect": true,
+      "tool_enforcement_gap": false,
+      "claim_action_consistency": "FAIL_ON_CANCELLATION",
+      "summary": "All three write tools executed successfully. Two exchange actions mismatched Static Golden because the Agent used the payment method explicitly confirmed by the user. Separately, the Agent made a real production-risk error: the cancellation tool cancelled the entire order and refunded $1058.79, but the Agent described it as cancelling only the skateboard with a $202.13 refund.",
+      "first_divergence_point": "Benchmark divergence begins at payment-method confirmation. The first genuine Agent failure occurs after the cancellation Tool result, when the Agent misstates the actual action scope and refund amount.",
+      "negative_sft_eligibility": "SEGMENT_ONLY",
+      "corrected_sft_eligibility": "YES_AFTER_SEGMENTATION",
+      "preference_eligibility": "YES_AFTER_RELABELING",
+      "verifier_eligibility": "YES_HIGH_VALUE",
+      "rl_eligibility": "NOT_YET",
+      "training_status": "SEGMENT_AND_RELABEL",
+      "training_priority": "HIGH",
+      "recommended_use": [
+        "Action-scope verifier",
+        "Post-tool state grounding",
+        "Claim-action consistency verifier",
+        "Final authorized intent tracking"
+      ]
+    },
+    {
+      "task_id": "95",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 0.0,
+      "human_audit_category": "VALID_AGENT_FAILURE",
+      "primary_label": "ENVIRONMENT_STATE_SEMANTICS_MISUNDERSTANDING",
+      "secondary_labels": [
+        "FALSE_CAPABILITY_BOUNDARY_DETECTION",
+        "PREMATURE_ESCALATION",
+        "INCOMPLETE_MULTI_GOAL_EXECUTION"
+      ],
+      "real_agent_failure": true,
+      "benchmark_suspect": false,
+      "evaluator_suspect": false,
+      "tool_enforcement_gap": false,
+      "claim_action_consistency": "FALSE_CAPABILITY_CLAIM",
+      "summary": "The Agent correctly found target Variant 9844888101 but misinterpreted one matching Variant as one physical inventory unit. It incorrectly concluded that only one of two laptops could use that Variant and prematurely escalated to a human.",
+      "first_divergence_point": "After observing item_id=9844888101 with available=true, the Agent incorrectly inferred that only one physical unit was available.",
+      "negative_sft_eligibility": "YES_WITH_CORRECTED_TARGET",
+      "corrected_sft_eligibility": "YES",
+      "preference_eligibility": "YES",
+      "verifier_eligibility": "YES_HIGH_VALUE",
+      "rl_eligibility": "NOT_YET",
+      "training_status": "ELIGIBLE_AFTER_CORRECTION",
+      "training_priority": "VERY_HIGH",
+      "recommended_use": [
+        "SFT badcase correction",
+        "Environment schema grounding",
+        "Premature-escalation verifier",
+        "Multi-goal completeness verifier",
+        "Preference pair construction"
+      ]
+    },
+    {
+      "task_id": "107",
+      "raw_reward": 0.0,
+      "raw_db_reward": 0.0,
+      "raw_nl_reward": 1.0,
+      "human_audit_category": "VALID_AGENT_FAILURE",
+      "primary_label": "POLICY_GROUNDING_FAILURE",
+      "secondary_labels": [
+        "POLICY_TOOL_ENFORCEMENT_GAP",
+        "INVALID_ACTION_ALLOWED_BY_TOOL",
+        "NL_EVALUATOR_COVERAGE_GAP"
+      ],
+      "real_agent_failure": true,
+      "benchmark_suspect": false,
+      "evaluator_suspect": "PARTIAL_COVERAGE_GAP",
+      "tool_enforcement_gap": true,
+      "claim_action_consistency": "TOOL_PASS_POLICY_FAIL",
+      "summary": "The Agent incorrectly treated same-variant exchange 1615379700 -> 1615379700 as Policy-compliant. Retail Policy requires exchange to a different product option. The Tool nevertheless accepted the invalid same-item exchange, revealing a Policy-Tool Enforcement Gap.",
+      "first_divergence_point": "The Agent states that because the same Hiking Boots Variant is available, it can exchange the item for the same item. This violates the Retail exchange Policy requirement that the replacement use a different product option.",
+      "source_verified": true,
+      "source_verification": {
+        "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+        "policy_evidence": "Retail exchange Policy requires a replacement item from the same product but with different product options.",
+        "tool_evidence": "exchange_delivered_order_items does not enforce old_item_id != new_item_id, while another related pending-order modification path explicitly contains same-item validation.",
+        "policy_source": "D:\\tau2-bench\\data\\tau2\\domains\\retail\\policy.md",
+        "tool_source": "D:\\tau2-bench\\src\\tau2\\domains\\retail\\tools.py"
+      },
+      "negative_sft_eligibility": "YES",
+      "corrected_sft_eligibility": "YES",
+      "preference_eligibility": "YES",
+      "verifier_eligibility": "YES_VERY_HIGH_VALUE",
+      "rl_eligibility": "NOT_YET",
+      "training_status": "ELIGIBLE_AFTER_CORRECTION",
+      "training_priority": "VERY_HIGH",
+      "recommended_use": [
+        "Policy-grounding SFT",
+        "Policy-aware preference pair",
+        "Pre-tool Policy verifier",
+        "Policy-Tool consistency testing",
+        "Tool guardrail regression test"
+      ]
+    }
+  ]
+}

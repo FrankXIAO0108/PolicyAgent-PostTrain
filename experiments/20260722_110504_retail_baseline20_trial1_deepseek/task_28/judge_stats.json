@@ -1,0 +1,19 @@
+{
+  "judge_call_count": 1,
+  "judge_log_file_count": 1,
+  "judge_cost_usd": 0.0007299600000000001,
+  "judge_prompt_tokens": 5072,
+  "judge_completion_tokens": 71,
+  "judge_calls": [
+    {
+      "file": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_28\\tau2_artifacts\\artifacts\\task_28\\sim_cd0d00e5-c567-4a13-b008-5898b6760419\\llm_debug\\20260722_114121_770_nl_assertions_eval_aa421c6b.json",
+      "call_id": "aa421c6b",
+      "call_name": "nl_assertions_eval",
+      "timestamp": "2026-07-22T11:41:21.770488",
+      "model": "deepseek/deepseek-chat",
+      "cost_usd": 0.0007299600000000001,
+      "prompt_tokens": 5072,
+      "completion_tokens": 71
+    }
+  ]
+}

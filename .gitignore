@@ -1,0 +1,35 @@
+﻿# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary local audit files
+precommit_audit.txt
+precommit_audit_small.txt
+
+# Temporary files
+*.tmp
+*.temp
+~$*

@@ -1,0 +1,2 @@
+{"timestamp": "2026-07-21T14:04:13.984039", "event": "NL_JUDGE_CALL_STARTED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}
+{"timestamp": "2026-07-21T14:04:15.479778", "event": "NL_JUDGE_CALL_SUCCEEDED", "model": "deepseek/deepseek-chat", "call_name": "nl_assertions_eval"}

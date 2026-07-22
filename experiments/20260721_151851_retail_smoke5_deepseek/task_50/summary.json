@@ -1,0 +1,15 @@
+{
+  "task_id": "50",
+  "status": "COMPLETED",
+  "wall_clock_seconds": 12.808,
+  "error_type": null,
+  "error_message": null,
+  "simulation_count": 1,
+  "reward": null,
+  "termination_reason": "TerminationReason.USER_STOP",
+  "reward_breakdown": {
+    "DB": 1.0,
+    "NL_ASSERTION": 1.0
+  },
+  "nl_assertions": []
+}

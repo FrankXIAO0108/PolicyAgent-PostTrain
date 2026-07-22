@@ -1,0 +1,414 @@
+====================================================================================================
+TASK 95 FAILURE TRAJECTORY REVIEW
+====================================================================================================
+
+=== BASELINE RESULT ===
+
+Reward = 0.0
+DB = 0.0
+NL = 0.0
+Action = 0/2
+Read = 0/0
+Write = 0/2
+Generic = 0/0
+Termination Reason = user_stop
+Duration Seconds = 24.75409450000734
+Total Model Cost USD = 0.0024090583999999996
+
+=== TASK DEFINITION ===
+
+{
+  "id": "95",
+  "description": {
+    "purpose": null,
+    "relevant_policies": null,
+    "notes": null
+  },
+  "user_scenario": {
+    "persona": null,
+    "instructions": {
+      "domain": "retail",
+      "reason_for_call": "You received a laptop and you want to exchange it to i7 processor, 8GB, 1TB SSD. If the agent asks for which laptop, it is 15-inch, and it is actually two laptops that you want to exchange. You want to know how much you need to pay today in total.",
+      "known_info": "You name is Lei Wilson and your zip code is 32255.",
+      "unknown_info": "You do not remember your email address.",
+      "task_instructions": "You are confident, organized, creative, impatient."
+    }
+  },
+  "ticket": null,
+  "initial_state": null,
+  "evaluation_criteria": {
+    "actions": [
+      {
+        "action_id": "96_0",
+        "requestor": "assistant",
+        "name": "exchange_delivered_order_items",
+        "arguments": {
+          "order_id": "#W2905754",
+          "item_ids": [
+            "3478699712"
+          ],
+          "new_item_ids": [
+            "9844888101"
+          ],
+          "payment_method_id": "credit_card_3677959"
+        },
+        "info": null,
+        "compare_args": null
+      },
+      {
+        "action_id": "96_1",
+        "requestor": "assistant",
+        "name": "exchange_delivered_order_items",
+        "arguments": {
+          "order_id": "#W4073673",
+          "item_ids": [
+            "2216662955"
+          ],
+          "new_item_ids": [
+            "9844888101"
+          ],
+          "payment_method_id": "credit_card_3677959"
+        },
+        "info": null,
+        "compare_args": null
+      }
+    ],
+    "env_assertions": null,
+    "communicate_info": [
+      "167.87",
+      "60.78",
+      "107.09"
+    ],
+    "nl_assertions": [
+      "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+      "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+      "Agent should tell the user the total amount to pay today is $107.09."
+    ],
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ]
+  },
+  "issues": null,
+  "required_documents": null,
+  "user_tools": null
+}
+
+=== EXPECTED / GOLDEN ACTIONS ===
+
+[0] name=exchange_delivered_order_items | type=write | reward=0.0 | match=False
+ARGS:
+{
+  "order_id": "#W2905754",
+  "item_ids": [
+    "3478699712"
+  ],
+  "new_item_ids": [
+    "9844888101"
+  ],
+  "payment_method_id": "credit_card_3677959"
+}
+
+[1] name=exchange_delivered_order_items | type=write | reward=0.0 | match=False
+ARGS:
+{
+  "order_id": "#W4073673",
+  "item_ids": [
+    "2216662955"
+  ],
+  "new_item_ids": [
+    "9844888101"
+  ],
+  "payment_method_id": "credit_card_3677959"
+}
+
+=== ACTUAL TRAJECTORY ===
+
+------------------------------------------------------------------------------------------
+[0] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Hi! How can I help you today?
+
+------------------------------------------------------------------------------------------
+[1] USER | role=user | sender=None | recipient=None
+CONTENT:
+Hi, I need to exchange a couple of laptops I just received. I want to swap them for ones with an i7 processor, 8GB RAM, and a 1TB SSD. Can you tell me what I’d need to pay today to get that done?
+
+------------------------------------------------------------------------------------------
+[2] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+I'd be happy to help you with an exchange! First, I need to authenticate your identity. Could you please provide me with your email address, or your name and zip code so I can look you up?
+
+------------------------------------------------------------------------------------------
+[3] USER | role=user | sender=None | recipient=None
+CONTENT:
+I don’t remember the email I used, but my name is Lei Wilson and my zip code is 32255. Can you check with that?
+
+------------------------------------------------------------------------------------------
+[4] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Sure, let me look you up!
+TOOL CALL:
+{
+  "id": "call_00_9fN5rHBQMe50pxthKp2t1323",
+  "name": "find_user_id_by_name_zip",
+  "arguments": {
+    "first_name": "Lei",
+    "last_name": "Wilson",
+    "zip": "32255"
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[5] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+lei_wilson_4541
+
+------------------------------------------------------------------------------------------
+[6] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Great, I found you! Let me get your details and see your orders.
+TOOL CALL:
+{
+  "id": "call_00_mDErnB0Q5HnqPcgfUJya9546",
+  "name": "get_user_details",
+  "arguments": {
+    "user_id": "lei_wilson_4541"
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[7] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"user_id": "lei_wilson_4541", "name": {"first_name": "Lei", "last_name": "Wilson"}, "address": {"address1": "119 Elm Avenue", "address2": "Suite 999", "city": "Jacksonville", "country": "USA", "state": "FL", "zip": "32255"}, "email": "lei.wilson1253@example.com", "payment_methods": {"credit_card_3677959": {"source": "credit_card", "id": "credit_card_3677959", "brand": "mastercard", "last_four": "1531"}}, "orders": ["#W3826449", "#W2905754", "#W4073673"]}
+
+------------------------------------------------------------------------------------------
+[8] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+I can see you have a few orders. Let me check the details of your orders to find the delivered ones with laptops.
+TOOL CALL:
+{
+  "id": "call_00_PpVMDzT4gXPw7Bv2oxMB0072",
+  "name": "get_order_details",
+  "arguments": {
+    "order_id": "#W3826449"
+  },
+  "requestor": "assistant"
+}
+{
+  "id": "call_01_YSpeMk72BnccABr2fU6q5341",
+  "name": "get_order_details",
+  "arguments": {
+    "order_id": "#W2905754"
+  },
+  "requestor": "assistant"
+}
+{
+  "id": "call_02_oJwwYtOeTLoOBCVpTJVr5860",
+  "name": "get_order_details",
+  "arguments": {
+    "order_id": "#W4073673"
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[9] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"order_id": "#W3826449", "user_id": "lei_wilson_4541", "address": {"address1": "119 Elm Avenue", "address2": "Suite 999", "city": "Jacksonville", "country": "USA", "state": "FL", "zip": "32255"}, "items": [{"name": "Wireless Earbuds", "product_id": "9924732112", "item_id": "5565631513", "price": 267.9, "options": {"color": "black", "battery life": "6 hours", "water resistance": "IPX7"}}, {"name": "Espresso Machine", "product_id": "4354588079", "item_id": "3951031513", "price": 3289.46, "options": {"pressure": "19 bar", "capacity": "1.5L", "type": "automatic"}}, {"name": "Headphones", "product_id": "6992792935", "item_id": "2231112417", "price": 364.22, "options": {"type": "over-ear", "connectivity": "wired", "color": "red"}}, {"name": "Smartphone", "product_id": "1801728040", "item_id": "9929635042", "price": 1261.14, "options": {"color": "gold", "storage": "128GB", "RAM": "4GB", "screen size": "5.8-inch"}}, {"name": "Tablet", "product_id": "8024098596", "item_id": "3788616824", "price": 951.21, "options": {"screen size": "10-inch", "storage": "128GB", "color": "black"}}], "status": "pending", "fulfillments": [], "payment_history": [{"transaction_type": "payment", "amount": 6133.93, "payment_method_id": "credit_card_3677959"}], "cancel_reason": null, "exchange_items": null, "exchange_new_items": null, "exchange_payment_method_id": null, "exchange_price_difference": null, "return_items": null, "return_payment_method_id": null}
+
+------------------------------------------------------------------------------------------
+[10] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"order_id": "#W2905754", "user_id": "lei_wilson_4541", "address": {"address1": "119 Elm Avenue", "address2": "Suite 999", "city": "Jacksonville", "country": "USA", "state": "FL", "zip": "32255"}, "items": [{"name": "Garden Hose", "product_id": "6679515468", "item_id": "5206946487", "price": 95.08, "options": {"length": "50ft", "material": "vinyl", "color": "black"}}, {"name": "Digital Camera", "product_id": "8940227892", "item_id": "9973034634", "price": 2850.32, "options": {"resolution": "20MP", "zoom": "3x", "storage": "CF card"}}, {"name": "Laptop", "product_id": "4760268021", "item_id": "3478699712", "price": 2291.87, "options": {"screen size": "15-inch", "processor": "i5", "ram": "16GB", "storage": "512GB SSD", "color": "space grey"}}, {"name": "Sunglasses", "product_id": "7314138884", "item_id": "4329558751", "price": 297.33, "options": {"frame color": "silver", "lens color": "blue", "lens type": "non-polarized", "frame material": "plastic"}}, {"name": "Portable Charger", "product_id": "6942297802", "item_id": "7903094618", "price": 90.32, "options": {"capacity": "5000mAh", "output": "USB-A", "color": "white"}}], "status": "delivered", "fulfillments": [{"tracking_id": ["232257628569"], "item_ids": ["5206946487", "9973034634", "3478699712", "4329558751", "7903094618"]}], "payment_history": [{"transaction_type": "payment", "amount": 5624.92, "payment_method_id": "credit_card_3677959"}], "cancel_reason": null, "exchange_items": null, "exchange_new_items": null, "exchange_payment_method_id": null, "exchange_price_difference": null, "return_items": null, "return_payment_method_id": null}
+
+------------------------------------------------------------------------------------------
+[11] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"order_id": "#W4073673", "user_id": "lei_wilson_4541", "address": {"address1": "119 Elm Avenue", "address2": "Suite 999", "city": "Jacksonville", "country": "USA", "state": "FL", "zip": "32255"}, "items": [{"name": "Running Shoes", "product_id": "6938111410", "item_id": "1775591963", "price": 154.75, "options": {"size": "10", "color": "white", "material": "leather", "sole": "EVA"}}, {"name": "Laptop", "product_id": "4760268021", "item_id": "2216662955", "price": 2520.52, "options": {"screen size": "15-inch", "processor": "i5", "ram": "32GB", "storage": "256GB SSD", "color": "space grey"}}, {"name": "Jigsaw Puzzle", "product_id": "1808611083", "item_id": "3112842858", "price": 49.1, "options": {"pieces": "1000", "theme": "fantasy", "difficulty level": "intermediate"}}, {"name": "Office Chair", "product_id": "4794339885", "item_id": "1793929609", "price": 514.34, "options": {"material": "fabric", "color": "black", "armrest": "none", "backrest height": "high-back"}}], "status": "delivered", "fulfillments": [{"tracking_id": ["926268675514"], "item_ids": ["1775591963", "2216662955", "3112842858", "1793929609"]}], "payment_history": [{"transaction_type": "payment", "amount": 3238.71, "payment_method_id": "credit_card_3677959"}], "cancel_reason": null, "exchange_items": null, "exchange_new_items": null, "exchange_payment_method_id": null, "exchange_price_difference": null, "return_items": null, "return_payment_method_id": null}
+
+------------------------------------------------------------------------------------------
+[12] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+I can see you have two delivered orders with laptops:
+
+1. **Order #W2905754** - Laptop (item ID: 3478699712) - i5 processor, 16GB RAM, 512GB SSD - $2,291.87
+2. **Order #W4073673** - Laptop (item ID: 2216662955) - i5 processor, 32GB RAM, 256GB SSD - $2,520.52
+
+You mentioned you want to exchange them for laptops with an i7 processor, 8GB RAM, and 1TB SSD. Let me look up the product details for laptops to see what options are available.
+TOOL CALL:
+{
+  "id": "call_00_CR2N2Kpt5vK5x9nUA40Y6726",
+  "name": "get_product_details",
+  "arguments": {
+    "product_id": "4760268021"
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[13] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+{"name": "Laptop", "product_id": "4760268021", "variants": {"8997785118": {"item_id": "8997785118", "options": {"screen size": "13-inch", "processor": "i7", "ram": "32GB", "storage": "256GB SSD", "color": "space grey"}, "available": false, "price": 2674.4}, "2216662955": {"item_id": "2216662955", "options": {"screen size": "15-inch", "processor": "i5", "ram": "32GB", "storage": "256GB SSD", "color": "space grey"}, "available": true, "price": 2520.52}, "2768401027": {"item_id": "2768401027", "options": {"screen size": "13-inch", "processor": "i7", "ram": "32GB", "storage": "256GB SSD", "color": "silver"}, "available": false, "price": 2346.49}, "1684786391": {"item_id": "1684786391", "options": {"screen size": "17-inch", "processor": "i7", "ram": "32GB", "storage": "1TB SSD", "color": "black"}, "available": true, "price": 2508.06}, "3778566150": {"item_id": "3778566150", "options": {"screen size": "13-inch", "processor": "i5", "ram": "32GB", "storage": "256GB SSD", "color": "silver"}, "available": false, "price": 2372.97}, "8193934556": {"item_id": "8193934556", "options": {"screen size": "13-inch", "processor": "i9", "ram": "8GB", "storage": "1TB SSD", "color": "space grey"}, "available": false, "price": 2548.73}, "2913673670": {"item_id": "2913673670", "options": {"screen size": "15-inch", "processor": "i9", "ram": "32GB", "storage": "512GB SSD", "color": "black"}, "available": true, "price": 2701.89}, "3478699712": {"item_id": "3478699712", "options": {"screen size": "15-inch", "processor": "i5", "ram": "16GB", "storage": "512GB SSD", "color": "space grey"}, "available": false, "price": 2291.87}, "6056040996": {"item_id": "6056040996", "options": {"screen size": "13-inch", "processor": "i5", "ram": "16GB", "storage": "512GB SSD", "color": "space grey"}, "available": true, "price": 2609.37}, "6017636844": {"item_id": "6017636844", "options": {"screen size": "15-inch", "processor": "i7", "ram": "32GB", "storage": "1TB SSD", "color": "space grey"}, "available": true, "price": 2292.37}, "1657832319": {"item_id": "1657832319", "options": {"screen size": "13-inch", "processor": "i7", "ram": "32GB", "storage": "512GB SSD", "color": "black"}, "available": true, "price": 2729.32}, "5052031638": {"item_id": "5052031638", "options": {"screen size": "13-inch", "processor": "i5", "ram": "16GB", "storage": "1TB SSD", "color": "silver"}, "available": true, "price": 2621.77}, "3265035808": {"item_id": "3265035808", "options": {"screen size": "17-inch", "processor": "i9", "ram": "8GB", "storage": "256GB SSD", "color": "silver"}, "available": true, "price": 2530.72}, "3334537816": {"item_id": "3334537816", "options": {"screen size": "17-inch", "processor": "i5", "ram": "8GB", "storage": "1TB SSD", "color": "space grey"}, "available": false, "price": 2749.56}, "9844888101": {"item_id": "9844888101", "options": {"screen size": "15-inch", "processor": "i7", "ram": "8GB", "storage": "1TB SSD", "color": "black"}, "available": true, "price": 2459.74}, "4241599783": {"item_id": "4241599783", "options": {"screen size": "15-inch", "processor": "i7", "ram": "16GB", "storage": "1TB SSD", "color": "black"}, "available": false, "price": 2324.61}, "2611676054": {"item_id": "2611676054", "options": {"screen size": "15-inch", "processor": "i7", "ram": "16GB", "storage": "256GB SSD", "color": "silver"}, "available": false, "price": 2743.08}}}
+
+------------------------------------------------------------------------------------------
+[14] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Let me look at the available laptops that match your criteria (i7 processor, 8GB RAM, 1TB SSD). I can see one that fits:
+
+- **Item ID: 9844888101** - 15-inch, i7, 8GB RAM, 1TB SSD, black - **$2,459.74** (available)
+
+Now, let me check the details of your current laptops to compare prices:
+
+**Order #W2905754** - Laptop (item 3478699712): i5, 16GB RAM, 512GB SSD - $2,291.87
+**Order #W4073673** - Laptop (item 2216662955): i5, 32GB RAM, 256GB SSD - $2,520.52
+
+However, I notice that the item you currently have (3478699712) is no longer available, and the other (2216662955) is available. Let me check if there are any other i7, 8GB, 1TB SSD options available.
+
+Looking at the available items, the closest match to what you described (i7, 8GB RAM, 1TB SSD) is:
+
+- **Item 9844888101** - 15-inch, i7, 8GB RAM, 1TB SSD, black - $2,459.74 ✅ Available
+
+But you mentioned you have **two laptops** to exchange. Let me check if there's another suitable option. Unfortunately, the only available item matching i7 + 8GB RAM + 1TB SSD is item 9844888101.
+
+Could you clarify - do you want both laptops exchanged to the same configuration? Also, the specs you mentioned (i7, 8GB RAM, 1TB SSD) - the closest available option is item **9844888101** (15-inch, i7, 8GB RAM, 1TB SSD, black) at $2,459.74. 
+
+However, there's also item **6017636844** (15-inch, i7, 32GB RAM, 1TB SSD, space grey) at $2,292.37 which is available and has i7 + 1TB SSD but with 32GB RAM instead of 8GB.
+
+Could you let me know which configuration you'd prefer? And also, do you want to exchange both laptops?
+
+------------------------------------------------------------------------------------------
+[15] USER | role=user | sender=None | recipient=None
+CONTENT:
+Yes, I want to exchange both laptops for the same configuration: i7, 8GB RAM, 1TB SSD. I’m not interested in the 32GB option—just the 8GB one. So, if you only have one available that matches, what are my options for the second laptop? And more importantly, what’s the total I’d need to pay today for both exchanges?
+
+------------------------------------------------------------------------------------------
+[16] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+Let me check the available laptops more carefully. The only available item matching i7, 8GB RAM, 1TB SSD is item **9844888101** (15-inch, i7, 8GB RAM, 1TB SSD, black) at $2,459.74.
+
+Unfortunately, there's only one available item that matches your exact specs. Let me look at other available i7 laptops with 1TB SSD to see if there's another option for the second laptop.
+
+Available i7 laptops with 1TB SSD:
+- **Item 9844888101** - 15-inch, i7, 8GB RAM, 1TB SSD, black - $2,459.74 ✅
+- **Item 6017636844** - 15-inch, i7, 32GB RAM, 1TB SSD, space grey - $2,292.37 ✅ (but you said no to 32GB)
+
+Other available i7 laptops:
+- **Item 1684786391** - 17-inch, i7, 32GB RAM, 1TB SSD, black - $2,508.06 ✅
+- **Item 1657832319** - 13-inch, i7, 32GB RAM, 512GB SSD, black - $2,729.32 ✅
+
+So it seems the only available laptop with i7, 8GB RAM, and 1TB SSD is item **9844888101**. For the second laptop, there isn't another identical option available.
+
+Let me calculate the price differences for the one we can do:
+
+**For Order #W2905754** - Laptop (item 3478699712 - $2,291.87) → Exchange to item 9844888101 ($2,459.74)
+- Price difference: $2,459.74 - $2,291.87 = **$167.87** (you'd pay)
+
+**For Order #W4073673** - Laptop (item 2216662955 - $2,520.52) → We'd need another matching item.
+
+Since we only have one matching item available, would you like to consider a different option for the second laptop? For example, there's item **6017636844** (15-inch, i7, 32GB RAM, 1TB SSD, space grey) at $2,292.37 which has i7 and 1TB SSD but with 32GB RAM instead of 8GB. Or item **1684786391** (17-inch, i7, 32GB RAM, 1TB SSD, black) at $2,508.06.
+
+Alternatively, if none of these work for you, I may need to transfer you to a human agent for further assistance. What do you think?
+
+------------------------------------------------------------------------------------------
+[17] USER | role=user | sender=None | recipient=None
+CONTENT:
+I really need both laptops to have the same specs—i7, 8GB RAM, 1TB SSD. If you only have one available, can you check if there’s a way to order another one or get a rain check? I don’t want to settle for different specs on the second laptop. Also, if you can’t do that, please transfer me to someone who can sort this out. I want to know the total I’d pay today for both exchanges, including any fees.
+
+------------------------------------------------------------------------------------------
+[18] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+I understand you want both laptops to have the exact same specs. Unfortunately, I can only work with what's currently available in our inventory, and there's only one item (item 9844888101) matching i7, 8GB RAM, 1TB SSD. I don't have the ability to order new stock or issue rain checks within my system.
+
+Let me transfer you to a human agent who can look into this further for you.
+TOOL CALL:
+{
+  "id": "call_00_rds95M6CfbeMFQOetXSQ2098",
+  "name": "transfer_to_human_agents",
+  "arguments": {
+    "summary": "Customer Lei Wilson (lei_wilson_4541) wants to exchange two laptops from delivered orders #W2905754 (item 3478699712 - i5, 16GB, 512GB SSD, $2,291.87) and #W4073673 (item 2216662955 - i5, 32GB, 256GB SSD, $2,520.52) for two laptops with identical specs: i7, 8GB RAM, 1TB SSD. Only one matching item is available (item 9844888101 - 15-inch, i7, 8GB, 1TB SSD, black, $2,459.74). Customer wants both laptops to have the same specs and is asking about ordering another or a rain check. Needs human agent to handle this."
+  },
+  "requestor": "assistant"
+}
+
+------------------------------------------------------------------------------------------
+[19] TOOL | role=tool | sender=None | recipient=None
+CONTENT:
+Transfer successful
+
+------------------------------------------------------------------------------------------
+[20] AGENT | role=assistant | sender=None | recipient=None
+CONTENT:
+YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.
+
+A human agent will be able to look into options for getting a second matching laptop for you. Just to note, if you were to exchange just the one laptop (item 3478699712 from order #W2905754) for item 9844888101, the price difference would be **$167.87** that you'd need to pay. But the human agent can discuss the full details with you. Thank you for your patience!
+
+------------------------------------------------------------------------------------------
+[21] USER | role=user | sender=None | recipient=None
+CONTENT:
+###TRANSFER###
+
+=== NL ASSERTIONS ===
+
+[0]
+{
+  "nl_assertion": "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+  "met": true,
+  "justification": "The agent correctly calculated the price difference for exchanging the laptop from order #W2905754 (item 3478699712, $2,291.87) to the matching item 9844888101 ($2,459.74) as $167.87, and communicated this to the user."
+}
+
+[1]
+{
+  "nl_assertion": "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+  "met": false,
+  "justification": "The agent did not calculate or mention a price difference of $60.78 for the second laptop exchange. The agent noted that only one matching item was available and did not proceed with a calculation for the second laptop, so this expectation was not met."
+}
+
+[2]
+{
+  "nl_assertion": "Agent should tell the user the total amount to pay today is $107.09.",
+  "met": false,
+  "justification": "The agent did not provide a total amount of $107.09. Instead, the agent only mentioned the $167.87 difference for one laptop and did not combine any figures to give a total, as the second exchange could not be completed due to lack of inventory."
+}
+
+=== MANUAL ROOT-CAUSE ANALYSIS ===
+
+Task ID: 95
+
+1. User Final Intent:
+
+
+2. Expected Critical Actions:
+
+
+3. Actual Critical Actions:
+
+
+4. First Divergence Point:
+
+
+5. Failure Type:
+
+
+6. Root Cause:
+
+
+7. Policy Issue:
+
+
+8. Tool / Environment Issue:
+
+
+9. Evaluator Issue:
+
+
+10. Claim-Action Consistency:
+
+
+11. Training Value:
+
+
+12. Candidate Intervention:
+

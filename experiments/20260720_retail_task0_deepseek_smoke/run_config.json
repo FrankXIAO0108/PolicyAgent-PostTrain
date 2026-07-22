@@ -1,0 +1,39 @@
+{
+  "domain": "retail",
+  "task_set_name": "retail",
+  "task_split_name": "base",
+  "task_ids": [
+    "0"
+  ],
+  "num_tasks": 1,
+  "llm_user": "deepseek/deepseek-chat",
+  "llm_args_user": {
+    "temperature": 0
+  },
+  "num_trials": 1,
+  "max_errors": 10,
+  "timeout": null,
+  "save_to": "20260720_retail_task0_deepseek_smoke",
+  "max_concurrency": 1,
+  "seed": 300,
+  "log_level": "ERROR",
+  "verbose_logs": true,
+  "max_retries": 0,
+  "retry_delay": 1.0,
+  "auto_resume": false,
+  "auto_review": false,
+  "review_mode": "full",
+  "hallucination_retries": 0,
+  "is_remote": false,
+  "retrieval_config": null,
+  "retrieval_config_kwargs": null,
+  "agent": "llm_agent",
+  "llm_agent": "deepseek/deepseek-chat",
+  "llm_args_agent": {
+    "temperature": 0
+  },
+  "user": "user_simulator",
+  "max_steps": 200,
+  "enforce_communication_protocol": false,
+  "text_streaming_config": null
+}

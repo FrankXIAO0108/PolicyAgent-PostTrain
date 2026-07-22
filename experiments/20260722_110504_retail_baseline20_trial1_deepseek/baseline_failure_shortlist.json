@@ -1,0 +1,435 @@
+{
+  "source_run": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "baseline_success_rate": 0.8,
+  "failure_count": 4,
+  "failure_task_ids": [
+    "59",
+    "98",
+    "95",
+    "107"
+  ],
+  "failures": [
+    {
+      "task_id": "59",
+      "reward": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 0.0,
+      "action_passed": 3,
+      "action_total": 5,
+      "read_passed": 3,
+      "read_total": 3,
+      "write_passed": 0,
+      "write_total": 2,
+      "generic_passed": 0,
+      "generic_total": 0,
+      "termination_reason": "user_stop",
+      "simulation_duration_seconds": 18.26862859999528,
+      "total_model_cost_usd": 0.0014824152,
+      "task_snapshot_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_59\\task.json",
+      "returned_results_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_59\\returned_results.json",
+      "task_snapshot": {
+        "id": "59",
+        "description": {
+          "purpose": null,
+          "relevant_policies": null,
+          "notes": null
+        },
+        "user_scenario": {
+          "persona": null,
+          "instructions": {
+            "domain": "retail",
+            "reason_for_call": "You recently placed two orders, and now you would like to make several changes and checks. You'll first inquire about the status difference between your two orders, #W2702727 and #W8268610, since both are \"pending,\" but one was placed much earlier in the year. You are considering cancelling the older order as you find the wait time unreasonable. If the agent cannot guarantee the older order will be processed within 5 days, you want to cancel it. You also want to confirm the total price of the refund. \n\n    For order #W2702727, you intend to switch the shipping address to your new home in a different city because you plan to move prior to its delivery next month. Your new address is 1234 Elm St, Springfield, IL, 62701. You want the agent to confirm the change and ensure the order will be delivered to the new address. You also want to confirm the total price of the order after the address change.",
+            "known_info": "You are Yusuf Taylor from San Jose, CA, 95154.",
+            "unknown_info": "You do not remember your email address.",
+            "task_instructions": "Your approach will be firm, as you are unhappy with the pending status's duration but try to make all requests in one go and ask for them to be resolved efficiently and correctly in context with each other."
+          }
+        },
+        "ticket": null,
+        "initial_state": null,
+        "evaluation_criteria": {
+          "actions": [
+            {
+              "action_id": "59_0",
+              "requestor": "assistant",
+              "name": "find_user_id_by_name_zip",
+              "arguments": {
+                "first_name": "Yusuf",
+                "last_name": "Taylor",
+                "zip": "95154"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "59_1",
+              "requestor": "assistant",
+              "name": "get_order_details",
+              "arguments": {
+                "order_id": "#W2702727"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "59_2",
+              "requestor": "assistant",
+              "name": "get_order_details",
+              "arguments": {
+                "order_id": "#W8268610"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "59_3",
+              "requestor": "assistant",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W8268610",
+                "reason": "no longer needed"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "59_4",
+              "requestor": "assistant",
+              "name": "modify_pending_order_address",
+              "arguments": {
+                "order_id": "#W2702727",
+                "address1": "1234 Elm St",
+                "address2": "",
+                "city": "Springfield",
+                "state": "IL",
+                "country": "USA",
+                "zip": "62701"
+              },
+              "info": null,
+              "compare_args": null
+            }
+          ],
+          "env_assertions": null,
+          "communicate_info": [
+            "164.28",
+            "625.60"
+          ],
+          "nl_assertions": [
+            "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+            "Agent should tell the user the total price of order #W2702727 is $625.60."
+          ],
+          "reward_basis": [
+            "DB",
+            "NL_ASSERTION"
+          ]
+        },
+        "issues": null,
+        "required_documents": null,
+        "user_tools": null
+      },
+      "manual_review_status": "PENDING",
+      "failure_type": null,
+      "root_cause": null,
+      "evaluator_suspect": null,
+      "training_value": null
+    },
+    {
+      "task_id": "98",
+      "reward": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 1.0,
+      "action_passed": 1,
+      "action_total": 3,
+      "read_passed": 0,
+      "read_total": 0,
+      "write_passed": 1,
+      "write_total": 3,
+      "generic_passed": 0,
+      "generic_total": 0,
+      "termination_reason": "user_stop",
+      "simulation_duration_seconds": 36.76352829998359,
+      "total_model_cost_usd": 0.0029703072000000002,
+      "task_snapshot_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_98\\task.json",
+      "returned_results_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_98\\returned_results.json",
+      "task_snapshot": {
+        "id": "98",
+        "description": {
+          "purpose": null,
+          "relevant_policies": null,
+          "notes": null
+        },
+        "user_scenario": {
+          "persona": null,
+          "instructions": {
+            "domain": "retail",
+            "reason_for_call": "You want to exchange your Bicycle for one with a larger frame size for your kid (you are okay with having a mountain bike instead of a road bike). Jigsaw Puzzle in the same order also needs to be exchanged, you want the same difficulty, but 1000 more pieces, and you prefer animal than art theme if both are available. Make sure you mention these at the same time.  You also want to exchange your camera to a slightly lower resolution, without changing the other options. If the agent asks for confirmation, mention that you'd prefer the other card as payment or refund method. Lastly, you want to cancel the skateboard in your other order.",
+            "known_info": "You name is Sofia Li and your zip code is 78260.",
+            "unknown_info": "You do not remember your email address",
+            "task_instructions": "You are outgoing, organized, cautious, pessimistic.   If you cannot cancel one single item, you are okay with cancelling the whole order, with the reason of no longer needed."
+          }
+        },
+        "ticket": null,
+        "initial_state": null,
+        "evaluation_criteria": {
+          "actions": [
+            {
+              "action_id": "99_0",
+              "requestor": "assistant",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W4689314",
+                "item_ids": [
+                  "5996159312"
+                ],
+                "new_item_ids": [
+                  "8363011723"
+                ],
+                "payment_method_id": "credit_card_8105988"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "99_1",
+              "requestor": "assistant",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W3916020",
+                "item_ids": [
+                  "7758198585",
+                  "4068787148"
+                ],
+                "new_item_ids": [
+                  "5606522780",
+                  "6245746168"
+                ],
+                "payment_method_id": "credit_card_8105988"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "99_2",
+              "requestor": "assistant",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W8855135",
+                "reason": "no longer needed"
+              },
+              "info": null,
+              "compare_args": null
+            }
+          ],
+          "env_assertions": null,
+          "communicate_info": [],
+          "nl_assertions": null,
+          "reward_basis": [
+            "DB",
+            "NL_ASSERTION"
+          ]
+        },
+        "issues": null,
+        "required_documents": null,
+        "user_tools": null
+      },
+      "manual_review_status": "PENDING",
+      "failure_type": null,
+      "root_cause": null,
+      "evaluator_suspect": null,
+      "training_value": null
+    },
+    {
+      "task_id": "95",
+      "reward": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 0.0,
+      "action_passed": 0,
+      "action_total": 2,
+      "read_passed": 0,
+      "read_total": 0,
+      "write_passed": 0,
+      "write_total": 2,
+      "generic_passed": 0,
+      "generic_total": 0,
+      "termination_reason": "user_stop",
+      "simulation_duration_seconds": 24.75409450000734,
+      "total_model_cost_usd": 0.0024090583999999996,
+      "task_snapshot_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_95\\task.json",
+      "returned_results_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_95\\returned_results.json",
+      "task_snapshot": {
+        "id": "95",
+        "description": {
+          "purpose": null,
+          "relevant_policies": null,
+          "notes": null
+        },
+        "user_scenario": {
+          "persona": null,
+          "instructions": {
+            "domain": "retail",
+            "reason_for_call": "You received a laptop and you want to exchange it to i7 processor, 8GB, 1TB SSD. If the agent asks for which laptop, it is 15-inch, and it is actually two laptops that you want to exchange. You want to know how much you need to pay today in total.",
+            "known_info": "You name is Lei Wilson and your zip code is 32255.",
+            "unknown_info": "You do not remember your email address.",
+            "task_instructions": "You are confident, organized, creative, impatient."
+          }
+        },
+        "ticket": null,
+        "initial_state": null,
+        "evaluation_criteria": {
+          "actions": [
+            {
+              "action_id": "96_0",
+              "requestor": "assistant",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W2905754",
+                "item_ids": [
+                  "3478699712"
+                ],
+                "new_item_ids": [
+                  "9844888101"
+                ],
+                "payment_method_id": "credit_card_3677959"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "96_1",
+              "requestor": "assistant",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W4073673",
+                "item_ids": [
+                  "2216662955"
+                ],
+                "new_item_ids": [
+                  "9844888101"
+                ],
+                "payment_method_id": "credit_card_3677959"
+              },
+              "info": null,
+              "compare_args": null
+            }
+          ],
+          "env_assertions": null,
+          "communicate_info": [
+            "167.87",
+            "60.78",
+            "107.09"
+          ],
+          "nl_assertions": [
+            "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+            "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+            "Agent should tell the user the total amount to pay today is $107.09."
+          ],
+          "reward_basis": [
+            "DB",
+            "NL_ASSERTION"
+          ]
+        },
+        "issues": null,
+        "required_documents": null,
+        "user_tools": null
+      },
+      "manual_review_status": "PENDING",
+      "failure_type": null,
+      "root_cause": null,
+      "evaluator_suspect": null,
+      "training_value": null
+    },
+    {
+      "task_id": "107",
+      "reward": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 1.0,
+      "action_passed": 1,
+      "action_total": 2,
+      "read_passed": 0,
+      "read_total": 0,
+      "write_passed": 1,
+      "write_total": 2,
+      "generic_passed": 0,
+      "generic_total": 0,
+      "termination_reason": "user_stop",
+      "simulation_duration_seconds": 24.79900389999966,
+      "total_model_cost_usd": 0.0026985840000000004,
+      "task_snapshot_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_107\\task.json",
+      "returned_results_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_107\\returned_results.json",
+      "task_snapshot": {
+        "id": "107",
+        "description": {
+          "purpose": null,
+          "relevant_policies": null,
+          "notes": null
+        },
+        "user_scenario": {
+          "persona": null,
+          "instructions": {
+            "domain": "retail",
+            "reason_for_call": "You received hiking boots that seem like they were already worn, you are unhappy about it and want to ask for a new pair with the same specs. If the agent doesn't allow the exchange, get the hiking boots with a size 9 but made of leather, they also need to be waterproof. You also want to exchange your jigsaw to a more fancy theme, with 500 pieces less. But you want to keep the same difficulty level.",
+            "known_info": "You name is Yara Ito and your zip code is 75284.",
+            "unknown_info": "You do not remember your email address",
+            "task_instructions": "You are happy but messy."
+          }
+        },
+        "ticket": null,
+        "initial_state": null,
+        "evaluation_criteria": {
+          "actions": [
+            {
+              "action_id": "108_0",
+              "requestor": "assistant",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W1304208",
+                "item_ids": [
+                  "1615379700"
+                ],
+                "new_item_ids": [
+                  "8106223139"
+                ],
+                "payment_method_id": "paypal_1679017"
+              },
+              "info": null,
+              "compare_args": null
+            },
+            {
+              "action_id": "108_1",
+              "requestor": "assistant",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W8353027",
+                "item_ids": [
+                  "6245746168"
+                ],
+                "new_item_ids": [
+                  "3112842858"
+                ],
+                "payment_method_id": "paypal_1679017"
+              },
+              "info": null,
+              "compare_args": null
+            }
+          ],
+          "env_assertions": null,
+          "communicate_info": [],
+          "nl_assertions": [
+            "Agent should exchange items in both orders."
+          ],
+          "reward_basis": [
+            "DB",
+            "NL_ASSERTION"
+          ]
+        },
+        "issues": null,
+        "required_documents": null,
+        "user_tools": null
+      },
+      "manual_review_status": "PENDING",
+      "failure_type": null,
+      "root_cause": null,
+      "evaluator_suspect": null,
+      "training_value": null
+    }
+  ]
+}

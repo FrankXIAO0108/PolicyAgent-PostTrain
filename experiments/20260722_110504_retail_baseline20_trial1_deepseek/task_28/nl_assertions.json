@@ -1,0 +1,7 @@
+[
+  {
+    "nl_assertion": "Agent should tell the user the total refund amount is $918.43.",
+    "met": true,
+    "justification": "The agent explicitly states 'Total refund: $918.43' in the final summary after processing all returns."
+  }
+]

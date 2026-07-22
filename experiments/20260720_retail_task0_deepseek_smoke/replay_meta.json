@@ -1,0 +1,11 @@
+{
+  "task_id": "0",
+  "simulation_id": "fb89725d-87d0-4eb8-aeed-931e9c09e4bd",
+  "termination_reason": "TerminationReason.USER_STOP",
+  "message_count": 22,
+  "reward": 1.0,
+  "db_hash_before": "b25c9cb211f5efcaee5dd646054a73c4a9f43f4f5acc32c10713cd9f9ac20e9c",
+  "db_hash_after": "a109be174767fde0ebb50fe3be37cdb2f1ce017fefd7bd29ea3e4d38bd3ac25a",
+  "db_changed": true,
+  "replay_source": "simulation.json"
+}
