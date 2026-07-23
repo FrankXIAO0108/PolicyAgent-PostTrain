@@ -1,0 +1,69 @@
+{
+  "version": "v2",
+  "source_run": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "audit_role": "Reward=1 trajectory quality audit",
+  "supersedes": "success_audit_manifest.json",
+  "audited_reward_1_task_ids": [
+    "46",
+    "16",
+    "21",
+    "28",
+    "1"
+  ],
+  "remaining_unreviewed_success_task_ids": [
+    "19",
+    "24",
+    "29",
+    "37",
+    "43",
+    "50",
+    "52",
+    "72",
+    "76",
+    "89",
+    "109"
+  ],
+  "counts": {
+    "raw_reward_1": 16,
+    "audited_reward_1": 5,
+    "remaining_unreviewed_success": 11
+  },
+  "tasks": [
+    {
+      "task_id": "46",
+      "reward": 1.0,
+      "action_match": "4/7",
+      "quality_bucket": "SILVER",
+      "review_file": "success_audit_reviews/task_46_success_review.txt"
+    },
+    {
+      "task_id": "16",
+      "reward": 1.0,
+      "action_match": "8/9",
+      "quality_bucket": "GOLD",
+      "review_file": "success_audit_reviews/task_16_success_review.txt"
+    },
+    {
+      "task_id": "21",
+      "reward": 1.0,
+      "action_match": "11/12",
+      "quality_bucket": "SUSPECT",
+      "review_file": "success_audit_reviews/task_21_success_review.txt"
+    },
+    {
+      "task_id": "28",
+      "reward": 1.0,
+      "action_match": "10/11",
+      "quality_bucket": "GOLD",
+      "review_file": "success_audit_reviews/task_28_success_review.txt"
+    },
+    {
+      "task_id": "1",
+      "reward": 1.0,
+      "action_match": "5/5",
+      "quality_bucket": "SILVER",
+      "review_file": "success_audit_reviews/task_1_success_review.txt"
+    }
+  ]
+}
+

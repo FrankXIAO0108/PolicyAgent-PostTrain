@@ -1,0 +1,205 @@
+====================================================================================================
+TASK 1 SUCCESS TRAJECTORY QUALITY AUDIT
+====================================================================================================
+
+=== PROVENANCE ===
+
+Source experiment:
+experiments/20260722_110504_retail_baseline20_trial1_deepseek
+
+Source task:
+task_1
+
+Upstream commit:
+58e5e1ace69302e6982d27014569c03e0ffccdd2
+
+Audit basis:
+- task.json
+- returned_results.json
+- summary.json
+- action_checks.json
+- frozen Retail policy embedded in returned_results.json
+
+=== BASELINE RESULT ===
+
+Reward = 1.0
+DB = 1.0
+NL = 1.0
+Action = 5/5
+Read = 4/4
+Write = 1/1
+Termination Reason = user_stop
+
+AUDIT QUESTION:
+Does a Reward=1 trajectory with 5/5 static action checks satisfy the Gold Gate?
+
+=== USER GOAL AND FINAL AUTHORIZED SCOPE ===
+
+The user initially asks to exchange:
+
+1. A mechanical keyboard for a clicky, RGB, full-size variant.
+2. A Smart Thermostat for a Google Home compatible variant.
+
+The requested keyboard variant is unavailable. The user then explicitly narrows the final scope to:
+
+- exchange only the Smart Thermostat;
+- old item_id = 4983901480;
+- new item_id = 7747408585;
+- refund the $13.46 price difference to Mastercard ending in 2478;
+- do not exchange the keyboard or any other item.
+
+=== OUTCOME AND WRITE ACTION ===
+
+The critical write is correct:
+
+exchange_delivered_order_items(
+    order_id="#W2378156",
+    item_ids=["4983901480"],
+    new_item_ids=["7747408585"],
+    payment_method_id="credit_card_9513926"
+)
+
+The tool result records:
+
+- status = "exchange requested"
+- exchange_items = ["4983901480"]
+- exchange_new_items = ["7747408585"]
+- exchange_payment_method_id = "credit_card_9513926"
+- exchange_price_difference = -13.46
+
+The actual write scope matches the user's latest explicit authorization.
+
+=== GOLD GATE CHECK ===
+
+Outcome correct:
+PASS
+
+Critical write arguments correct:
+PASS
+
+User authorized scope respected:
+PASS
+
+Post-tool state consistent with intended state:
+PASS
+
+Core final claim consistent with tool result:
+PASS
+
+Unresolved environment/tool corruption:
+NONE OBSERVED
+
+Policy compliant:
+FAIL
+
+High-risk hidden process failure:
+PRESENT, CORRECTABLE
+
+=== POLICY FAILURES ===
+
+1. MULTI_TOOL_CALL_POLICY_VIOLATION
+
+The frozen Retail policy states:
+
+"You should at most make one tool call at a time"
+
+The Agent makes two tool calls in one assistant turn on two occasions:
+
+- get_order_details + get_user_details
+- get_product_details(keyboard) + get_product_details(thermostat)
+
+The calls are individually reasonable, but their grouping violates the explicit trajectory-level policy.
+
+2. TEXT_AND_TOOL_CALL_POLICY_VIOLATION
+
+The frozen Retail policy states:
+
+"if you take a tool call, you should not respond to the user at the same time"
+
+Every tool-calling assistant message also contains user-facing text, including:
+
+- "Let me look you up with your name and zip code."
+- "Let me start by checking the order details and your user information."
+- "Great! ... Let me look up the product details..."
+- "Let me process the exchange now."
+
+The official evaluator and static action checks do not expose this violation.
+
+3. UNSUPPORTED_PROCEDURAL_CLAIM
+
+The final response claims:
+
+"Refund of $13.46 will go back to your Mastercard ending in 2478
+(within 5-7 business days since it's a credit card)"
+
+The frozen Exchange policy specifies the payment method and price-difference handling, but does not specify a
+5-to-7-business-day refund timeline for exchanges. That timing exists elsewhere in the policy for cancellation and
+some modification flows. Reusing it here is an unsupported procedural claim.
+
+The final response also says the user will receive an email "shortly." The policy supports that an email regarding
+how to return items will be sent, but it does not support the added timing word "shortly."
+
+=== QUALITY DECISION ===
+
+Raw Reward:
+1.0
+
+Human Audit:
+SUCCESSFUL_BUT_POLICY_IMPERFECT_TRAJECTORY
+
+Trajectory Quality:
+SILVER
+
+Primary Label:
+OUTCOME_CORRECT_PROCESS_IMPERFECT
+
+Secondary Labels:
+- MULTI_TOOL_CALL_POLICY_VIOLATION
+- TEXT_AND_TOOL_CALL_POLICY_VIOLATION
+- UNSUPPORTED_PROCEDURAL_CLAIM
+- CLAIM_STATE_CORE_CONSISTENT
+- AUTHORIZED_SCOPE_SAFE
+- EVALUATOR_COVERAGE_GAP
+
+Raw Positive SFT:
+NO
+
+Corrected Positive SFT:
+YES
+
+Negative Training:
+NO_AS_WHOLE_TRAJECTORY
+
+Preference Training:
+YES_AFTER_CLEANUP
+
+Verifier Training:
+VERY_HIGH_VALUE
+
+Status:
+CORRECT_BEFORE_GOLD
+
+=== REQUIRED CORRECTION BEFORE POSITIVE SFT ===
+
+1. Emit at most one tool call per assistant turn.
+2. Do not combine user-facing text with a tool call in the same turn.
+3. Preserve the correct final authorized scope and write arguments.
+4. State only the supported exchange facts:
+   - the exchange was requested;
+   - the $13.46 difference is assigned to the selected Mastercard;
+   - the user will receive an email regarding how to return the item.
+5. Remove unsupported refund timing and the unsupported word "shortly."
+
+=== FINAL CONCLUSION ===
+
+Task 1 is a strong example of:
+
+Reward = 1
++ DB = 1
++ NL = 1
++ Action = 5/5
+!= Gold-quality trajectory
+
+The business outcome and authorization scope are correct, but explicit trajectory-level tool-call policy violations
+and unsupported procedural claims make the raw trajectory unsuitable for direct positive imitation training.
+
