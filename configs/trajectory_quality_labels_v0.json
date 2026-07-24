@@ -1,0 +1,132 @@
+{
+  "schema_version": "0.1.0",
+  "dataset_name": "retail_failure4_two_sample_audit_v0",
+  "created_at": "2026-07-24",
+  "scope": {
+    "domain": "retail",
+    "task_ids": ["59", "98", "95", "107"],
+    "sample_count": 8,
+    "trial1_run": "20260722_110504_retail_baseline20_trial1_deepseek",
+    "trial2_run": "20260724_111341_retail_failure4_trial2_deepseek"
+  },
+  "principles": [
+    "Raw reward is preserved and never rewritten by human audit.",
+    "Reward 1 does not automatically imply SFT Gold.",
+    "Reward 0 does not automatically imply valid negative.",
+    "Training eligibility depends on policy compliance, authorization, action correctness, final state, and final claim consistency."
+  ],
+  "eligibility_labels": {
+    "SFT_GOLD_CANDIDATE": "Correct trajectory requiring at most minor non-semantic cleanup.",
+    "POSITIVE_NOT_GOLD": "Successful final result with a material process defect.",
+    "VALID_NEGATIVE": "Audited agent failure suitable for negative or preference training.",
+    "MIXED_BADCASE": "Contains both agent defects and benchmark/evaluation ambiguity.",
+    "EXCLUDED": "Unsafe for direct training because the reward or gold path conflicts with authorized user intent."
+  },
+  "records": [
+    {
+      "record_id": "retail_59_trial1",
+      "task_id": "59",
+      "trial": 1,
+      "reward": 0.0,
+      "transition": "REWARD_STABLE_0",
+      "audit_label": "BENCHMARK_ALIGNMENT_FAILURE",
+      "training_eligibility": "EXCLUDED",
+      "primary_issue": "LATEST_EXPLICIT_AUTHORIZED_INTENT_VS_STATIC_GOLD",
+      "notes": "Agent followed the user's latest explicit authorized intent, while the static golden path expected a different order operation."
+    },
+    {
+      "record_id": "retail_59_trial2",
+      "task_id": "59",
+      "trial": 2,
+      "reward": 0.0,
+      "transition": "REWARD_STABLE_0",
+      "audit_label": "BENCHMARK_ALIGNMENT_SENSITIVE",
+      "training_eligibility": "EXCLUDED",
+      "primary_issue": "LATEST_EXPLICIT_AUTHORIZED_INTENT_VS_STATIC_GOLD",
+      "notes": "Repeated reward failure is not sufficient evidence of a clean agent failure."
+    },
+    {
+      "record_id": "retail_98_trial1",
+      "task_id": "98",
+      "trial": 1,
+      "reward": 0.0,
+      "transition": "REWARD_STABLE_0",
+      "audit_label": "MIXED_BADCASE",
+      "training_eligibility": "MIXED_BADCASE",
+      "primary_issue": "AUTHORIZATION_SCOPE_AND_FINAL_CLAIM",
+      "notes": "Contains genuine trajectory defects together with benchmark-alignment complications."
+    },
+    {
+      "record_id": "retail_98_trial2",
+      "task_id": "98",
+      "trial": 2,
+      "reward": 0.0,
+      "transition": "REWARD_STABLE_0",
+      "audit_label": "MIXED_BADCASE",
+      "training_eligibility": "MIXED_BADCASE",
+      "primary_issue": "ACTION_SCOPE_AND_PAYMENT_METHOD",
+      "notes": "Final exchange used an unexpected payment method; the task remains unsuitable as an undifferentiated negative."
+    },
+    {
+      "record_id": "retail_95_trial1",
+      "task_id": "95",
+      "trial": 1,
+      "reward": 0.0,
+      "transition": "FAIL_TO_SUCCESS",
+      "audit_label": "VALID_AGENT_FAILURE",
+      "training_eligibility": "VALID_NEGATIVE",
+      "primary_issue": "MULTI_GOAL_COMPLETENESS",
+      "notes": "Audited failure trajectory; Trial-2 success shows the failure is sampling-sensitive rather than deterministic."
+    },
+    {
+      "record_id": "retail_95_trial2",
+      "task_id": "95",
+      "trial": 2,
+      "reward": 1.0,
+      "transition": "FAIL_TO_SUCCESS",
+      "audit_label": "GOLD_CANDIDATE_WITH_MINOR_CLEANUP",
+      "training_eligibility": "SFT_GOLD_CANDIDATE",
+      "primary_issue": "MINOR_REDUNDANCY_AND_UNGROUNDED_LOGISTICS_CLAIM",
+      "cleanup_required": [
+        "Remove duplicated confirmation.",
+        "Remove the unsupported claim about when the replacement will ship."
+      ],
+      "notes": "Authorization, tool arguments, payment calculations, final state, and final response are otherwise correct."
+    },
+    {
+      "record_id": "retail_107_trial1",
+      "task_id": "107",
+      "trial": 1,
+      "reward": 0.0,
+      "transition": "FAIL_TO_SUCCESS",
+      "audit_label": "POLICY_GROUNDING_FAILURE",
+      "training_eligibility": "VALID_NEGATIVE",
+      "primary_issue": "POLICY_GROUNDING",
+      "notes": "Useful negative example for reasoning about exchange-option constraints."
+    },
+    {
+      "record_id": "retail_107_trial2",
+      "task_id": "107",
+      "trial": 2,
+      "reward": 1.0,
+      "transition": "FAIL_TO_SUCCESS",
+      "audit_label": "RESULT_SUCCESS_WITH_PROCESS_POLICY_FLAW",
+      "training_eligibility": "POSITIVE_NOT_GOLD",
+      "primary_issue": "POLICY_GROUNDING",
+      "material_defect": "The agent proposed exchanging an item for the identical product variant, which violates the different-option exchange rule.",
+      "notes": "The user simulator corrected the path before execution; correct DB reward does not erase the earlier policy error."
+    }
+  ],
+  "inventory_summary": {
+    "SFT_GOLD_CANDIDATE": 1,
+    "POSITIVE_NOT_GOLD": 1,
+    "VALID_NEGATIVE": 2,
+    "MIXED_BADCASE": 2,
+    "EXCLUDED": 2
+  },
+  "verifier_priorities": [
+    "POLICY_GROUNDING",
+    "AUTHORIZATION_SCOPE",
+    "CLAIM_ACTION_STATE_CONSISTENCY"
+  ]
+}
