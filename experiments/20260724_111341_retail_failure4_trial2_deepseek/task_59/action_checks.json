@@ -1,0 +1,86 @@
+[
+  {
+    "action_id": "59_0",
+    "tool_name": "find_user_id_by_name_zip",
+    "tool_type": "read",
+    "expected_arguments": {
+      "first_name": "Yusuf",
+      "last_name": "Taylor",
+      "zip": "95154"
+    },
+    "matched_actual_call": {
+      "id": "call_00_HJoPxr8QdDlkFMOIsVOY5672",
+      "name": "find_user_id_by_name_zip",
+      "arguments": {
+        "first_name": "Yusuf",
+        "last_name": "Taylor",
+        "zip": "95154"
+      }
+    },
+    "action_reward": 1.0,
+    "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+  },
+  {
+    "action_id": "59_1",
+    "tool_name": "get_order_details",
+    "tool_type": "read",
+    "expected_arguments": {
+      "order_id": "#W2702727"
+    },
+    "matched_actual_call": {
+      "id": "call_01_2uLyDtdoEvn084PAFaRp6539",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#W2702727"
+      }
+    },
+    "action_reward": 1.0,
+    "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+  },
+  {
+    "action_id": "59_2",
+    "tool_name": "get_order_details",
+    "tool_type": "read",
+    "expected_arguments": {
+      "order_id": "#W8268610"
+    },
+    "matched_actual_call": {
+      "id": "call_02_bA0bbCyiWhI6YpHnxwxn1390",
+      "name": "get_order_details",
+      "arguments": {
+        "order_id": "#W8268610"
+      }
+    },
+    "action_reward": 1.0,
+    "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+  },
+  {
+    "action_id": "59_3",
+    "tool_name": "cancel_pending_order",
+    "tool_type": "write",
+    "expected_arguments": {
+      "order_id": "#W8268610",
+      "reason": "no longer needed"
+    },
+    "matched_actual_call": null,
+    "action_reward": 0.0,
+    "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+  },
+  {
+    "action_id": "59_4",
+    "tool_name": "modify_pending_order_address",
+    "tool_type": "write",
+    "expected_arguments": {
+      "order_id": "#W2702727",
+      "address1": "1234 Elm St",
+      "address2": "",
+      "city": "Springfield",
+      "state": "IL",
+      "country": "USA",
+      "zip": "62701"
+    },
+    "matched_actual_call": null,
+    "action_reward": 0.0,
+    "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+  }
+]

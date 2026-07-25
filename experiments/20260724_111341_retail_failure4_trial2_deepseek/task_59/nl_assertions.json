@@ -1,0 +1,12 @@
+[
+  {
+    "expectedOutcome": "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+    "reasoning": "The user cancelled order #W2702727 (bookshelf and yoga mat), not the desk lamp order (#W8268610). The desk lamp order was not cancelled, so no refund was mentioned for it. The agent correctly refunded $625.60 for the cancelled order.",
+    "metExpectation": false
+  },
+  {
+    "expectedOutcome": "Agent should tell the user the total price of order #W2702727 is $625.60.",
+    "reasoning": "The agent explicitly stated the total price of order #W2702727 as $625.60 in the summary and cancellation confirmation.",
+    "metExpectation": true
+  }
+]

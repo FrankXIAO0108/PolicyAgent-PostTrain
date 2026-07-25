@@ -1,0 +1,199 @@
+{
+  "timestamp": "2026-07-24T11:30:48.311567",
+  "info": {
+    "recovery_status": "RECOVERED_FROM_COMPLETED_TAU2_ARTIFACTS",
+    "recovery_reason": "tau2 completed evaluation, then Windows GBK rendering raised UnicodeEncodeError while printing the result.",
+    "no_model_or_evaluator_calls": true,
+    "source_task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_95\\tau2_artifacts\\artifacts\\task_95\\sim_bc448958-7caf-4108-9e68-5434479c1495\\task.log",
+    "limitations": [
+      "The original in-memory Simulation object was not persisted because the wrapper exception occurred before return.",
+      "Action checks were reconstructed by exact expected/actual tool name and JSON-argument matching.",
+      "Agent and user costs are lower bounds from available debug records; full costs are not recoverable."
+    ]
+  },
+  "tasks": [
+    {
+      "id": "95",
+      "description": {
+        "purpose": null,
+        "relevant_policies": null,
+        "notes": null
+      },
+      "user_scenario": {
+        "persona": null,
+        "instructions": {
+          "domain": "retail",
+          "reason_for_call": "You received a laptop and you want to exchange it to i7 processor, 8GB, 1TB SSD. If the agent asks for which laptop, it is 15-inch, and it is actually two laptops that you want to exchange. You want to know how much you need to pay today in total.",
+          "known_info": "You name is Lei Wilson and your zip code is 32255.",
+          "unknown_info": "You do not remember your email address.",
+          "task_instructions": "You are confident, organized, creative, impatient."
+        }
+      },
+      "ticket": null,
+      "initial_state": null,
+      "evaluation_criteria": {
+        "actions": [
+          {
+            "action_id": "96_0",
+            "requestor": "assistant",
+            "name": "exchange_delivered_order_items",
+            "arguments": {
+              "order_id": "#W2905754",
+              "item_ids": [
+                "3478699712"
+              ],
+              "new_item_ids": [
+                "9844888101"
+              ],
+              "payment_method_id": "credit_card_3677959"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "96_1",
+            "requestor": "assistant",
+            "name": "exchange_delivered_order_items",
+            "arguments": {
+              "order_id": "#W4073673",
+              "item_ids": [
+                "2216662955"
+              ],
+              "new_item_ids": [
+                "9844888101"
+              ],
+              "payment_method_id": "credit_card_3677959"
+            },
+            "info": null,
+            "compare_args": null
+          }
+        ],
+        "env_assertions": null,
+        "communicate_info": [
+          "167.87",
+          "60.78",
+          "107.09"
+        ],
+        "nl_assertions": [
+          "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+          "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+          "Agent should tell the user the total amount to pay today is $107.09."
+        ],
+        "reward_basis": [
+          "DB",
+          "NL_ASSERTION"
+        ]
+      },
+      "issues": null,
+      "required_documents": null,
+      "user_tools": null
+    }
+  ],
+  "simulations": [
+    {
+      "id": "recovered_trial2_task_95",
+      "task_id": "95",
+      "duration": 28.157,
+      "termination_reason": "USER_STOP",
+      "agent_cost": 0.00028434000000000006,
+      "user_cost": 6.42992e-05,
+      "reward_info": {
+        "reward": 1.0,
+        "reward_breakdown": {
+          "DB": 1.0,
+          "NL_ASSERTION": 1.0
+        },
+        "action_checks": [
+          {
+            "action_id": "96_0",
+            "tool_name": "exchange_delivered_order_items",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W2905754",
+              "item_ids": [
+                "3478699712"
+              ],
+              "new_item_ids": [
+                "9844888101"
+              ],
+              "payment_method_id": "credit_card_3677959"
+            },
+            "matched_actual_call": {
+              "id": "call_00_sjGvQ8s5WqvAb8KaSwSc9339",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W2905754",
+                "item_ids": [
+                  "3478699712"
+                ],
+                "new_item_ids": [
+                  "9844888101"
+                ],
+                "payment_method_id": "credit_card_3677959"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "96_1",
+            "tool_name": "exchange_delivered_order_items",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W4073673",
+              "item_ids": [
+                "2216662955"
+              ],
+              "new_item_ids": [
+                "9844888101"
+              ],
+              "payment_method_id": "credit_card_3677959"
+            },
+            "matched_actual_call": {
+              "id": "call_01_i2kKdeOXoSVpZ7fwMXjq5777",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W4073673",
+                "item_ids": [
+                  "2216662955"
+                ],
+                "new_item_ids": [
+                  "9844888101"
+                ],
+                "payment_method_id": "credit_card_3677959"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          }
+        ],
+        "nl_assertions": [
+          {
+            "expectedOutcome": "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+            "reasoning": "The agent explicitly states that for Order #W2905754, the price difference is +$167.87 (the user pays).",
+            "metExpectation": true
+          },
+          {
+            "expectedOutcome": "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+            "reasoning": "The agent explicitly states that for Order #W4073673, the price difference is -$60.78 (the user gets a refund).",
+            "metExpectation": true
+          },
+          {
+            "expectedOutcome": "Agent should tell the user the total amount to pay today is $107.09.",
+            "reasoning": "The agent calculates and states the net total as $107.09 to be charged to the user's Mastercard.",
+            "metExpectation": true
+          }
+        ],
+        "recovery_evidence": {
+          "logged_terminal_reward": 1.0,
+          "db_evidence": "Both expected laptop exchanges are present in the final state."
+        }
+      }
+    }
+  ],
+  "simulation_index": {
+    "95": [
+      "recovered_trial2_task_95"
+    ]
+  }
+}

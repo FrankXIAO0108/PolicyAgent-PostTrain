@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-07-24T11:30:48.335581",
+  "info": {
+    "recovery_status": "RECOVERED_FROM_COMPLETED_TAU2_ARTIFACTS",
+    "recovery_reason": "tau2 completed evaluation, then Windows GBK rendering raised UnicodeEncodeError while printing the result.",
+    "no_model_or_evaluator_calls": true,
+    "source_task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_107\\tau2_artifacts\\artifacts\\task_107\\sim_e2834ad1-8d63-4d09-b4d5-47831963f849\\task.log",
+    "limitations": [
+      "The original in-memory Simulation object was not persisted because the wrapper exception occurred before return.",
+      "Action checks were reconstructed by exact expected/actual tool name and JSON-argument matching.",
+      "Agent and user costs are lower bounds from available debug records; full costs are not recoverable."
+    ]
+  },
+  "tasks": [
+    {
+      "id": "107",
+      "description": {
+        "purpose": null,
+        "relevant_policies": null,
+        "notes": null
+      },
+      "user_scenario": {
+        "persona": null,
+        "instructions": {
+          "domain": "retail",
+          "reason_for_call": "You received hiking boots that seem like they were already worn, you are unhappy about it and want to ask for a new pair with the same specs. If the agent doesn't allow the exchange, get the hiking boots with a size 9 but made of leather, they also need to be waterproof. You also want to exchange your jigsaw to a more fancy theme, with 500 pieces less. But you want to keep the same difficulty level.",
+          "known_info": "You name is Yara Ito and your zip code is 75284.",
+          "unknown_info": "You do not remember your email address",
+          "task_instructions": "You are happy but messy."
+        }
+      },
+      "ticket": null,
+      "initial_state": null,
+      "evaluation_criteria": {
+        "actions": [
+          {
+            "action_id": "108_0",
+            "requestor": "assistant",
+            "name": "exchange_delivered_order_items",
+            "arguments": {
+              "order_id": "#W1304208",
+              "item_ids": [
+                "1615379700"
+              ],
+              "new_item_ids": [
+                "8106223139"
+              ],
+              "payment_method_id": "paypal_1679017"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "108_1",
+            "requestor": "assistant",
+            "name": "exchange_delivered_order_items",
+            "arguments": {
+              "order_id": "#W8353027",
+              "item_ids": [
+                "6245746168"
+              ],
+              "new_item_ids": [
+                "3112842858"
+              ],
+              "payment_method_id": "paypal_1679017"
+            },
+            "info": null,
+            "compare_args": null
+          }
+        ],
+        "env_assertions": null,
+        "communicate_info": [],
+        "nl_assertions": [
+          "Agent should exchange items in both orders."
+        ],
+        "reward_basis": [
+          "DB",
+          "NL_ASSERTION"
+        ]
+      },
+      "issues": null,
+      "required_documents": null,
+      "user_tools": null
+    }
+  ],
+  "simulations": [
+    {
+      "id": "recovered_trial2_task_107",
+      "task_id": "107",
+      "duration": 25.482,
+      "termination_reason": "USER_STOP",
+      "agent_cost": 0.00021348880000000002,
+      "user_cost": 5.37208e-05,
+      "reward_info": {
+        "reward": 1.0,
+        "reward_breakdown": {
+          "DB": 1.0,
+          "NL_ASSERTION": 1.0
+        },
+        "action_checks": [
+          {
+            "action_id": "108_0",
+            "tool_name": "exchange_delivered_order_items",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W1304208",
+              "item_ids": [
+                "1615379700"
+              ],
+              "new_item_ids": [
+                "8106223139"
+              ],
+              "payment_method_id": "paypal_1679017"
+            },
+            "matched_actual_call": {
+              "id": "call_00_cVfAPpobYkj2P2d2lInC6085",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W1304208",
+                "item_ids": [
+                  "1615379700"
+                ],
+                "new_item_ids": [
+                  "8106223139"
+                ],
+                "payment_method_id": "paypal_1679017"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "108_1",
+            "tool_name": "exchange_delivered_order_items",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W8353027",
+              "item_ids": [
+                "6245746168"
+              ],
+              "new_item_ids": [
+                "3112842858"
+              ],
+              "payment_method_id": "paypal_1679017"
+            },
+            "matched_actual_call": {
+              "id": "call_01_rc9Xi5YMKvKKepwWPXYp8614",
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W8353027",
+                "item_ids": [
+                  "6245746168"
+                ],
+                "new_item_ids": [
+                  "3112842858"
+                ],
+                "payment_method_id": "paypal_1679017"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          }
+        ],
+        "nl_assertions": [
+          {
+            "expectedOutcome": "Agent should exchange items in both orders.",
+            "reasoning": "The agent successfully processed exchanges for both the hiking boots (order #W1304208) and the jigsaw puzzle (order #W8353027), as confirmed by the tool outputs showing 'exchange requested' status with the correct items and payment method.",
+            "metExpectation": true
+          }
+        ],
+        "recovery_evidence": {
+          "logged_terminal_reward": 1.0,
+          "db_evidence": "Both expected item exchanges are present in the final state."
+        }
+      }
+    }
+  ],
+  "simulation_index": {
+    "107": [
+      "recovered_trial2_task_107"
+    ]
+  }
+}

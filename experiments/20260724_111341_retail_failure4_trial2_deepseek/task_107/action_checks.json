@@ -1,0 +1,64 @@
+[
+  {
+    "action_id": "108_0",
+    "tool_name": "exchange_delivered_order_items",
+    "tool_type": "write",
+    "expected_arguments": {
+      "order_id": "#W1304208",
+      "item_ids": [
+        "1615379700"
+      ],
+      "new_item_ids": [
+        "8106223139"
+      ],
+      "payment_method_id": "paypal_1679017"
+    },
+    "matched_actual_call": {
+      "id": "call_00_cVfAPpobYkj2P2d2lInC6085",
+      "name": "exchange_delivered_order_items",
+      "arguments": {
+        "order_id": "#W1304208",
+        "item_ids": [
+          "1615379700"
+        ],
+        "new_item_ids": [
+          "8106223139"
+        ],
+        "payment_method_id": "paypal_1679017"
+      }
+    },
+    "action_reward": 1.0,
+    "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+  },
+  {
+    "action_id": "108_1",
+    "tool_name": "exchange_delivered_order_items",
+    "tool_type": "write",
+    "expected_arguments": {
+      "order_id": "#W8353027",
+      "item_ids": [
+        "6245746168"
+      ],
+      "new_item_ids": [
+        "3112842858"
+      ],
+      "payment_method_id": "paypal_1679017"
+    },
+    "matched_actual_call": {
+      "id": "call_01_rc9Xi5YMKvKKepwWPXYp8614",
+      "name": "exchange_delivered_order_items",
+      "arguments": {
+        "order_id": "#W8353027",
+        "item_ids": [
+          "6245746168"
+        ],
+        "new_item_ids": [
+          "3112842858"
+        ],
+        "payment_method_id": "paypal_1679017"
+      }
+    },
+    "action_reward": 1.0,
+    "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+  }
+]

@@ -99,6 +99,106 @@ def payment_aliases_before(
     return aliases
 
 
+_IDENTIFIER_KEYS = {
+    "id",
+    "item_id",
+    "product_id",
+    "order_id",
+    "payment_method_id",
+    "user_id",
+}
+_DISPLAY_KEYS = {
+    "name",
+    "title",
+    "display_name",
+    "product_name",
+    "item_name",
+    "brand",
+    "variant",
+    "color",
+    "size",
+    "material",
+    "style",
+}
+
+
+def _merge_alias(
+    aliases: dict[str, list[str]], identifier: str, values: list[str]
+) -> None:
+    bucket = aliases.setdefault(identifier, [])
+    for value in values:
+        cleaned = value.strip()
+        if cleaned and cleaned not in bucket:
+            bucket.append(cleaned)
+
+
+def _record_aliases(record: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """Extract internal identifiers and user-visible names from one record."""
+    identifiers: list[str] = []
+    visible: list[str] = []
+
+    for key, value in record.items():
+        lowered = str(key).lower()
+        if lowered in _IDENTIFIER_KEYS or lowered.endswith("_id"):
+            if isinstance(value, (str, int)) and str(value).strip():
+                identifiers.append(str(value))
+            continue
+        if lowered in _DISPLAY_KEYS:
+            visible.extend(
+                str(item)
+                for item in _flatten(value)
+                if isinstance(item, (str, int, float)) and str(item).strip()
+            )
+
+    for key in ("options", "option", "attributes", "variant_options"):
+        value = record.get(key)
+        if isinstance(value, dict):
+            option_values = [
+                str(item)
+                for item in _flatten(value)
+                if isinstance(item, (str, int, float)) and str(item).strip()
+            ]
+            visible.extend(option_values)
+            if option_values:
+                visible.append(" ".join(option_values))
+
+    if len(visible) > 1:
+        visible.append(" ".join(visible))
+    return identifiers, visible
+
+
+def entity_aliases_before(
+    events: list[MessageEvent], event_index: int
+) -> dict[str, list[str]]:
+    """Resolve internal IDs through user-visible earlier tool-result aliases.
+
+    Mapping stays local to each entity record so a name from one item cannot
+    silently authorize another item elsewhere in the same response.
+    """
+    aliases = payment_aliases_before(events, event_index)
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            identifiers, visible = _record_aliases(value)
+            for identifier in identifiers:
+                _merge_alias(aliases, identifier, visible)
+            for nested in value.values():
+                visit(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                visit(nested)
+
+    for event in events:
+        if event.index >= event_index or event.role != "tool":
+            continue
+        try:
+            payload = json.loads(event.content)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        visit(payload)
+    return aliases
+
+
 def is_write_tool(name: str) -> bool:
     lowered = name.lower()
     return lowered.startswith(("cancel_", "modify_", "return_", "exchange_"))

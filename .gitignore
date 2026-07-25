@@ -33,3 +33,15 @@ precommit_audit_small.txt
 *.tmp
 *.temp
 ~$*
+
+# Generated archives and console logs
+*.zip
+*.log
+
+# Temporary verifier workspaces
+_verifier_unpack/
+_verifier_v1/
+
+# One-off repository inspection snapshots
+/evidence_file_search*.txt
+/project_state_check.txt

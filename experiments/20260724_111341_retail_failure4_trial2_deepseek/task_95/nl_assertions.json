@@ -1,0 +1,17 @@
+[
+  {
+    "expectedOutcome": "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+    "reasoning": "The agent explicitly states that for Order #W2905754, the price difference is +$167.87 (the user pays).",
+    "metExpectation": true
+  },
+  {
+    "expectedOutcome": "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+    "reasoning": "The agent explicitly states that for Order #W4073673, the price difference is -$60.78 (the user gets a refund).",
+    "metExpectation": true
+  },
+  {
+    "expectedOutcome": "Agent should tell the user the total amount to pay today is $107.09.",
+    "reasoning": "The agent calculates and states the net total as $107.09 to be charged to the user's Mastercard.",
+    "metExpectation": true
+  }
+]

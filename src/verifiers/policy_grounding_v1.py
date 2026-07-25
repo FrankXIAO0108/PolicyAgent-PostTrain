@@ -8,8 +8,8 @@ from typing import Iterable
 from .intent_state import (
     audit_call_against_latest_intent,
     confirmation_snapshot_before,
+    entity_aliases_before,
     is_write_tool,
-    payment_aliases_before,
 )
 from .policy_grounding_v0 import (
     _benchmark_verdict,
@@ -45,7 +45,7 @@ def verify_trajectory(
         if not write_calls:
             continue
         snapshot = confirmation_snapshot_before(events, event.index)
-        value_aliases = payment_aliases_before(events, event.index)
+        value_aliases = entity_aliases_before(events, event.index)
         for call in write_calls:
             audit = audit_call_against_latest_intent(
                 call,
@@ -117,9 +117,13 @@ def verify_trajectory(
     )
     result.metrics.update(
         {
+            "verifier_version": "1.2",
             "latest_intent_audited_write_calls": len(audits),
             "latest_intent_passed_write_calls": sum(
                 audit.verdict == Verdict.PASS for audit in audits
+            ),
+            "latest_intent_failed_write_calls": sum(
+                audit.verdict == Verdict.FAIL for audit in audits
             ),
             "latest_intent_review_write_calls": sum(
                 audit.verdict == Verdict.REVIEW for audit in audits
@@ -127,10 +131,13 @@ def verify_trajectory(
         }
     )
     result.notes = [
-        "V1 freezes the latest assistant action summary when the next user turn "
+        "V1.2 freezes the latest assistant action summary when the next user turn "
         "explicitly confirms it, then compares material write-tool arguments "
         "against that frozen state.",
+        "Internal entity IDs may be grounded through user-visible names and "
+        "variant aliases observed in earlier tool results.",
         "A later confirmed summary supersedes earlier user constraints.",
+        "Major findings produce FAIL; minor-only findings produce REVIEW.",
         "Benchmark reward remains independent from policy-grounding dimensions.",
     ]
     return result

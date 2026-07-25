@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-07-24T11:30:48.287213",
+  "info": {
+    "recovery_status": "RECOVERED_FROM_COMPLETED_TAU2_ARTIFACTS",
+    "recovery_reason": "tau2 completed evaluation, then Windows GBK rendering raised UnicodeEncodeError while printing the result.",
+    "no_model_or_evaluator_calls": true,
+    "source_task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_98\\tau2_artifacts\\artifacts\\task_98\\sim_a95d2f3e-dced-4952-981c-88922a2fcdbc\\task.log",
+    "limitations": [
+      "The original in-memory Simulation object was not persisted because the wrapper exception occurred before return.",
+      "Action checks were reconstructed by exact expected/actual tool name and JSON-argument matching.",
+      "Agent and user costs are lower bounds from available debug records; full costs are not recoverable."
+    ]
+  },
+  "tasks": [
+    {
+      "id": "98",
+      "description": {
+        "purpose": null,
+        "relevant_policies": null,
+        "notes": null
+      },
+      "user_scenario": {
+        "persona": null,
+        "instructions": {
+          "domain": "retail",
+          "reason_for_call": "You want to exchange your Bicycle for one with a larger frame size for your kid (you are okay with having a mountain bike instead of a road bike). Jigsaw Puzzle in the same order also needs to be exchanged, you want the same difficulty, but 1000 more pieces, and you prefer animal than art theme if both are available. Make sure you mention these at the same time.  You also want to exchange your camera to a slightly lower resolution, without changing the other options. If the agent asks for confirmation, mention that you'd prefer the other card as payment or refund method. Lastly, you want to cancel the skateboard in your other order.",
+          "known_info": "You name is Sofia Li and your zip code is 78260.",
+          "unknown_info": "You do not remember your email address",
+          "task_instructions": "You are outgoing, organized, cautious, pessimistic.   If you cannot cancel one single item, you are okay with cancelling the whole order, with the reason of no longer needed."
+        }
+      },
+      "ticket": null,
+      "initial_state": null,
+      "evaluation_criteria": {
+        "actions": [
+          {
+            "action_id": "99_0",
+            "requestor": "assistant",
+            "name": "exchange_delivered_order_items",
+            "arguments": {
+              "order_id": "#W4689314",
+              "item_ids": [
+                "5996159312"
+              ],
+              "new_item_ids": [
+                "8363011723"
+              ],
+              "payment_method_id": "credit_card_8105988"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "99_1",
+            "requestor": "assistant",
+            "name": "exchange_delivered_order_items",
+            "arguments": {
+              "order_id": "#W3916020",
+              "item_ids": [
+                "7758198585",
+                "4068787148"
+              ],
+              "new_item_ids": [
+                "5606522780",
+                "6245746168"
+              ],
+              "payment_method_id": "credit_card_8105988"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "99_2",
+            "requestor": "assistant",
+            "name": "cancel_pending_order",
+            "arguments": {
+              "order_id": "#W8855135",
+              "reason": "no longer needed"
+            },
+            "info": null,
+            "compare_args": null
+          }
+        ],
+        "env_assertions": null,
+        "communicate_info": [],
+        "nl_assertions": null,
+        "reward_basis": [
+          "DB",
+          "NL_ASSERTION"
+        ]
+      },
+      "issues": null,
+      "required_documents": null,
+      "user_tools": null
+    }
+  ],
+  "simulations": [
+    {
+      "id": "recovered_trial2_task_98",
+      "task_id": "98",
+      "duration": 30.485,
+      "termination_reason": "USER_STOP",
+      "agent_cost": 0.00030593920000000004,
+      "user_cost": 5.51096e-05,
+      "reward_info": {
+        "reward": 0.0,
+        "reward_breakdown": {
+          "DB": 0.0,
+          "NL_ASSERTION": 1.0
+        },
+        "action_checks": [
+          {
+            "action_id": "99_0",
+            "tool_name": "exchange_delivered_order_items",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W4689314",
+              "item_ids": [
+                "5996159312"
+              ],
+              "new_item_ids": [
+                "8363011723"
+              ],
+              "payment_method_id": "credit_card_8105988"
+            },
+            "matched_actual_call": null,
+            "action_reward": 0.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "99_1",
+            "tool_name": "exchange_delivered_order_items",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W3916020",
+              "item_ids": [
+                "7758198585",
+                "4068787148"
+              ],
+              "new_item_ids": [
+                "5606522780",
+                "6245746168"
+              ],
+              "payment_method_id": "credit_card_8105988"
+            },
+            "matched_actual_call": null,
+            "action_reward": 0.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "99_2",
+            "tool_name": "cancel_pending_order",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W8855135",
+              "reason": "no longer needed"
+            },
+            "matched_actual_call": {
+              "id": "call_00_gFBv7OHeywKKTLc6ayIy8338",
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W8855135",
+                "reason": "no longer needed"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          }
+        ],
+        "nl_assertions": [],
+        "recovery_evidence": {
+          "logged_terminal_reward": 0.0,
+          "db_evidence": "Final exchange state used credit_card_3951670, while the expected exchange payment method was credit_card_8105988."
+        }
+      }
+    }
+  ],
+  "simulation_index": {
+    "98": [
+      "recovered_trial2_task_98"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+﻿task_id,status,execution_source,reward,db_reward,nl_assertion_reward,action_passed,action_total,read_passed,read_total,write_passed,write_total,generic_passed,generic_total,simulation_duration_seconds,wall_clock_seconds,termination_reason,agent_cost_usd,user_cost_usd,judge_cost_usd,total_model_cost_usd,judge_call_count,judge_prompt_tokens,judge_completion_tokens,error_type,error_message
+59,SYSTEM_FAILED,SYSTEM_FAILED,,,,0,0,0,0,0,0,0,0,,19.038,,0.0,0.0,0.0,0.0,0,0,0,UnicodeEncodeError,'gbk' codec can't encode character '\u274c' in position 0: illegal multibyte sequence
+98,SYSTEM_FAILED,SYSTEM_FAILED,,,,0,0,0,0,0,0,0,0,,30.572,,0.0,0.0,0.0,0.0,0,0,0,UnicodeEncodeError,'gbk' codec can't encode character '\u274c' in position 0: illegal multibyte sequence
+95,SYSTEM_FAILED,SYSTEM_FAILED,,,,0,0,0,0,0,0,0,0,,28.247,,0.0,0.0,0.0,0.0,0,0,0,UnicodeEncodeError,'gbk' codec can't encode character '\u2705' in position 0: illegal multibyte sequence
+107,SYSTEM_FAILED,SYSTEM_FAILED,,,,0,0,0,0,0,0,0,0,,25.56,,0.0,0.0,0.0,0.0,0,0,0,UnicodeEncodeError,'gbk' codec can't encode character '\u2705' in position 0: illegal multibyte sequence

@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-07-24T11:47:31.705543",
+  "analysis": "retail_failure4_trial1_trial2_stability",
+  "not_official_leaderboard_score": true,
+  "no_model_or_evaluator_calls": true,
+  "trial1_run_dir": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "trial2_run_dir": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek",
+  "trial2_recovery_report": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\trial2_recovery_report.json",
+  "selection_warning": "Trial-2 contains only the four tasks that failed Trial-1. Its aggregate reward must not be compared directly with the full 20-task Trial-1 baseline.",
+  "rows": [
+    {
+      "task_id": "59",
+      "trial1_reward": 0.0,
+      "trial2_reward": 0.0,
+      "successes_across_two_samples": 0,
+      "empirical_success_fraction": 0.0,
+      "transition": "REWARD_STABLE_0",
+      "audit_label": "BENCHMARK_ALIGNMENT_FAILURE",
+      "trajectory_tier_trial1": "EXCLUDED",
+      "interpretation": "Repeated raw reward failure, but the existing audit found a dynamic user-intent versus static-gold mismatch. This must not be treated as a clean negative training example.",
+      "trial1_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_59\\summary.json",
+      "trial2_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_59\\summary.json"
+    },
+    {
+      "task_id": "98",
+      "trial1_reward": 0.0,
+      "trial2_reward": 0.0,
+      "successes_across_two_samples": 0,
+      "empirical_success_fraction": 0.0,
+      "transition": "REWARD_STABLE_0",
+      "audit_label": "MIXED_BADCASE",
+      "trajectory_tier_trial1": "MIXED",
+      "interpretation": "Repeated raw reward failure. Existing audit found both benchmark alignment issues and genuine trajectory defects, including action scope and final-claim consistency problems.",
+      "trial1_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_98\\summary.json",
+      "trial2_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_98\\summary.json"
+    },
+    {
+      "task_id": "95",
+      "trial1_reward": 0.0,
+      "trial2_reward": 1.0,
+      "successes_across_two_samples": 1,
+      "empirical_success_fraction": 0.5,
+      "transition": "FAIL_TO_SUCCESS",
+      "audit_label": "VALID_AGENT_FAILURE_IN_TRIAL1",
+      "trajectory_tier_trial1": "VALID_NEGATIVE",
+      "interpretation": "Trial-1 failed but Trial-2 succeeded. The task is sampling-sensitive: the Trial-1 failure remains a useful audited negative trajectory, while the Trial-2 success requires its own quality audit before it can be used as positive training data.",
+      "trial1_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_95\\summary.json",
+      "trial2_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_95\\summary.json"
+    },
+    {
+      "task_id": "107",
+      "trial1_reward": 0.0,
+      "trial2_reward": 1.0,
+      "successes_across_two_samples": 1,
+      "empirical_success_fraction": 0.5,
+      "transition": "FAIL_TO_SUCCESS",
+      "audit_label": "POLICY_GROUNDING_FAILURE_IN_TRIAL1",
+      "trajectory_tier_trial1": "VALID_NEGATIVE",
+      "interpretation": "Trial-1 failed but Trial-2 succeeded. The observed policy-grounding failure is not deterministic. The Trial-2 success must still pass policy, authorization, state, and final-claim verification.",
+      "trial1_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_107\\summary.json",
+      "trial2_summary_path": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_107\\summary.json"
+    }
+  ],
+  "aggregate": {
+    "task_count": 4,
+    "stable_reward_zero_count": 2,
+    "fail_to_success_count": 2,
+    "successful_samples": 2,
+    "total_samples": 8,
+    "tasks_with_any_success": 2
+  }
+}

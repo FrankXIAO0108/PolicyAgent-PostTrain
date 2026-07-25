@@ -1,0 +1,65 @@
+{
+  "recovered_at": "2026-07-24T11:30:48.350731",
+  "run_dir": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek",
+  "backup_dir": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\wrapper_failure_snapshot",
+  "no_model_or_evaluator_calls": true,
+  "tasks": [
+    {
+      "task_id": "59",
+      "reward": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 0.0,
+      "action_passed": 3,
+      "action_total": 5,
+      "duration_seconds": 18.778,
+      "agent_cost_usd_lower_bound": 0.0001224552,
+      "user_cost_usd_lower_bound": 4.2240800000000004e-05,
+      "task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_59\\tau2_artifacts\\artifacts\\task_59\\sim_a857539a-a3d1-400c-a6a1-23c759d8d811\\task.log"
+    },
+    {
+      "task_id": "98",
+      "reward": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 1.0,
+      "action_passed": 1,
+      "action_total": 3,
+      "duration_seconds": 30.485,
+      "agent_cost_usd_lower_bound": 0.00030593920000000004,
+      "user_cost_usd_lower_bound": 5.51096e-05,
+      "task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_98\\tau2_artifacts\\artifacts\\task_98\\sim_a95d2f3e-dced-4952-981c-88922a2fcdbc\\task.log"
+    },
+    {
+      "task_id": "95",
+      "reward": 1.0,
+      "db_reward": 1.0,
+      "nl_assertion_reward": 1.0,
+      "action_passed": 2,
+      "action_total": 2,
+      "duration_seconds": 28.157,
+      "agent_cost_usd_lower_bound": 0.00028434000000000006,
+      "user_cost_usd_lower_bound": 6.42992e-05,
+      "task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_95\\tau2_artifacts\\artifacts\\task_95\\sim_bc448958-7caf-4108-9e68-5434479c1495\\task.log"
+    },
+    {
+      "task_id": "107",
+      "reward": 1.0,
+      "db_reward": 1.0,
+      "nl_assertion_reward": 1.0,
+      "action_passed": 2,
+      "action_total": 2,
+      "duration_seconds": 25.482,
+      "agent_cost_usd_lower_bound": 0.00021348880000000002,
+      "user_cost_usd_lower_bound": 5.37208e-05,
+      "task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_107\\tau2_artifacts\\artifacts\\task_107\\sim_e2834ad1-8d63-4d09-b4d5-47831963f849\\task.log"
+    }
+  ],
+  "aggregate": {
+    "completed_count": 4,
+    "system_failed_count": 0,
+    "result_parse_failed_count": 0,
+    "valid_reward_count": 4,
+    "business_success_count": 2,
+    "business_failure_count": 2,
+    "mean_reward": 0.5
+  }
+}

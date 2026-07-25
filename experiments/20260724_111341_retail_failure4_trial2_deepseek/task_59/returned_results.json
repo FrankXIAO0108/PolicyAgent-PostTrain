@@ -1,0 +1,239 @@
+{
+  "timestamp": "2026-07-24T11:30:48.256291",
+  "info": {
+    "recovery_status": "RECOVERED_FROM_COMPLETED_TAU2_ARTIFACTS",
+    "recovery_reason": "tau2 completed evaluation, then Windows GBK rendering raised UnicodeEncodeError while printing the result.",
+    "no_model_or_evaluator_calls": true,
+    "source_task_log": "D:\\PolicyAgent-PostTrain\\experiments\\20260724_111341_retail_failure4_trial2_deepseek\\task_59\\tau2_artifacts\\artifacts\\task_59\\sim_a857539a-a3d1-400c-a6a1-23c759d8d811\\task.log",
+    "limitations": [
+      "The original in-memory Simulation object was not persisted because the wrapper exception occurred before return.",
+      "Action checks were reconstructed by exact expected/actual tool name and JSON-argument matching.",
+      "Agent and user costs are lower bounds from available debug records; full costs are not recoverable."
+    ]
+  },
+  "tasks": [
+    {
+      "id": "59",
+      "description": {
+        "purpose": null,
+        "relevant_policies": null,
+        "notes": null
+      },
+      "user_scenario": {
+        "persona": null,
+        "instructions": {
+          "domain": "retail",
+          "reason_for_call": "You recently placed two orders, and now you would like to make several changes and checks. You'll first inquire about the status difference between your two orders, #W2702727 and #W8268610, since both are \"pending,\" but one was placed much earlier in the year. You are considering cancelling the older order as you find the wait time unreasonable. If the agent cannot guarantee the older order will be processed within 5 days, you want to cancel it. You also want to confirm the total price of the refund. \n\n    For order #W2702727, you intend to switch the shipping address to your new home in a different city because you plan to move prior to its delivery next month. Your new address is 1234 Elm St, Springfield, IL, 62701. You want the agent to confirm the change and ensure the order will be delivered to the new address. You also want to confirm the total price of the order after the address change.",
+          "known_info": "You are Yusuf Taylor from San Jose, CA, 95154.",
+          "unknown_info": "You do not remember your email address.",
+          "task_instructions": "Your approach will be firm, as you are unhappy with the pending status's duration but try to make all requests in one go and ask for them to be resolved efficiently and correctly in context with each other."
+        }
+      },
+      "ticket": null,
+      "initial_state": null,
+      "evaluation_criteria": {
+        "actions": [
+          {
+            "action_id": "59_0",
+            "requestor": "assistant",
+            "name": "find_user_id_by_name_zip",
+            "arguments": {
+              "first_name": "Yusuf",
+              "last_name": "Taylor",
+              "zip": "95154"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "59_1",
+            "requestor": "assistant",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W2702727"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "59_2",
+            "requestor": "assistant",
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W8268610"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "59_3",
+            "requestor": "assistant",
+            "name": "cancel_pending_order",
+            "arguments": {
+              "order_id": "#W8268610",
+              "reason": "no longer needed"
+            },
+            "info": null,
+            "compare_args": null
+          },
+          {
+            "action_id": "59_4",
+            "requestor": "assistant",
+            "name": "modify_pending_order_address",
+            "arguments": {
+              "order_id": "#W2702727",
+              "address1": "1234 Elm St",
+              "address2": "",
+              "city": "Springfield",
+              "state": "IL",
+              "country": "USA",
+              "zip": "62701"
+            },
+            "info": null,
+            "compare_args": null
+          }
+        ],
+        "env_assertions": null,
+        "communicate_info": [
+          "164.28",
+          "625.60"
+        ],
+        "nl_assertions": [
+          "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+          "Agent should tell the user the total price of order #W2702727 is $625.60."
+        ],
+        "reward_basis": [
+          "DB",
+          "NL_ASSERTION"
+        ]
+      },
+      "issues": null,
+      "required_documents": null,
+      "user_tools": null
+    }
+  ],
+  "simulations": [
+    {
+      "id": "recovered_trial2_task_59",
+      "task_id": "59",
+      "duration": 18.778,
+      "termination_reason": "USER_STOP",
+      "agent_cost": 0.0001224552,
+      "user_cost": 4.2240800000000004e-05,
+      "reward_info": {
+        "reward": 0.0,
+        "reward_breakdown": {
+          "DB": 0.0,
+          "NL_ASSERTION": 0.0
+        },
+        "action_checks": [
+          {
+            "action_id": "59_0",
+            "tool_name": "find_user_id_by_name_zip",
+            "tool_type": "read",
+            "expected_arguments": {
+              "first_name": "Yusuf",
+              "last_name": "Taylor",
+              "zip": "95154"
+            },
+            "matched_actual_call": {
+              "id": "call_00_HJoPxr8QdDlkFMOIsVOY5672",
+              "name": "find_user_id_by_name_zip",
+              "arguments": {
+                "first_name": "Yusuf",
+                "last_name": "Taylor",
+                "zip": "95154"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "59_1",
+            "tool_name": "get_order_details",
+            "tool_type": "read",
+            "expected_arguments": {
+              "order_id": "#W2702727"
+            },
+            "matched_actual_call": {
+              "id": "call_01_2uLyDtdoEvn084PAFaRp6539",
+              "name": "get_order_details",
+              "arguments": {
+                "order_id": "#W2702727"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "59_2",
+            "tool_name": "get_order_details",
+            "tool_type": "read",
+            "expected_arguments": {
+              "order_id": "#W8268610"
+            },
+            "matched_actual_call": {
+              "id": "call_02_bA0bbCyiWhI6YpHnxwxn1390",
+              "name": "get_order_details",
+              "arguments": {
+                "order_id": "#W8268610"
+              }
+            },
+            "action_reward": 1.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "59_3",
+            "tool_name": "cancel_pending_order",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W8268610",
+              "reason": "no longer needed"
+            },
+            "matched_actual_call": null,
+            "action_reward": 0.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          },
+          {
+            "action_id": "59_4",
+            "tool_name": "modify_pending_order_address",
+            "tool_type": "write",
+            "expected_arguments": {
+              "order_id": "#W2702727",
+              "address1": "1234 Elm St",
+              "address2": "",
+              "city": "Springfield",
+              "state": "IL",
+              "country": "USA",
+              "zip": "62701"
+            },
+            "matched_actual_call": null,
+            "action_reward": 0.0,
+            "recovery_method": "EXACT_TOOL_NAME_AND_ARGUMENTS_MATCHED_FROM_TASK_LOG"
+          }
+        ],
+        "nl_assertions": [
+          {
+            "expectedOutcome": "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+            "reasoning": "The user cancelled order #W2702727 (bookshelf and yoga mat), not the desk lamp order (#W8268610). The desk lamp order was not cancelled, so no refund was mentioned for it. The agent correctly refunded $625.60 for the cancelled order.",
+            "metExpectation": false
+          },
+          {
+            "expectedOutcome": "Agent should tell the user the total price of order #W2702727 is $625.60.",
+            "reasoning": "The agent explicitly stated the total price of order #W2702727 as $625.60 in the summary and cancellation confirmation.",
+            "metExpectation": true
+          }
+        ],
+        "recovery_evidence": {
+          "logged_terminal_reward": 0.0,
+          "db_evidence": "Final state cancelled #W2702727, while the task expected cancellation of #W8268610 and an address update for #W2702727."
+        }
+      }
+    }
+  ],
+  "simulation_index": {
+    "59": [
+      "recovered_trial2_task_59"
+    ]
+  }
+}

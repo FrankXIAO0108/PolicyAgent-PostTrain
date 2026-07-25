@@ -1,0 +1,2 @@
+{"timestamp": "2026-07-24T11:13:41.162283", "event": "EXECUTION_STARTED", "task_id": "59"}
+{"timestamp": "2026-07-24T11:14:00.200068", "event": "SYSTEM_FAILURE", "task_id": "59", "error_type": "UnicodeEncodeError", "error_message": "'gbk' codec can't encode character '\\u274c' in position 0: illegal multibyte sequence"}
