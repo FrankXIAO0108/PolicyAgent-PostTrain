@@ -1,0 +1,42 @@
+[
+  {
+    "task_id": "59",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 0.0
+    },
+    "message_count": 12,
+    "tool_calls": 5
+  },
+  {
+    "task_id": "95",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 0.0
+    },
+    "message_count": 14,
+    "tool_calls": 7
+  },
+  {
+    "task_id": "98",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 1.0
+    },
+    "message_count": 19,
+    "tool_calls": 14
+  },
+  {
+    "task_id": "107",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 1.0
+    },
+    "message_count": 14,
+    "tool_calls": 10
+  }
+]

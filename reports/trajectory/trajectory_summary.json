@@ -1,0 +1,35 @@
+{
+  "total_trajectories": 20,
+  "success": {
+    "count": 16,
+    "rate": 0.8
+  },
+  "failure": {
+    "count": 4,
+    "rate": 0.2
+  },
+  "message_statistics": {
+    "avg": 16.35,
+    "max": 23,
+    "min": 11
+  },
+  "tool_statistics": {
+    "avg_tool_calls": 9.2,
+    "max_tool_calls": 15,
+    "tool_frequency": {
+      "get_order_details": 59,
+      "get_user_details": 21,
+      "get_product_details": 29,
+      "get_item_details": 16,
+      "cancel_pending_order": 6,
+      "list_all_product_types": 3,
+      "find_user_id_by_email": 2,
+      "calculate": 3,
+      "transfer_to_human_agents": 3
+    }
+  },
+  "reward_distribution": {
+    "1.0": 16,
+    "0.0": 4
+  }
+}

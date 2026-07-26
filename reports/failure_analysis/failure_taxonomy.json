@@ -1,0 +1,62 @@
+[
+  {
+    "task_id": "59",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 0.0
+    },
+    "message_count": 12,
+    "tool_calls": 5,
+    "taxonomy": {
+      "category": "golden_user_mismatch",
+      "description": "User intent and evaluation golden mismatch. Agent behavior should be analyzed separately.",
+      "severity": "medium"
+    }
+  },
+  {
+    "task_id": "95",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 0.0
+    },
+    "message_count": 14,
+    "tool_calls": 7,
+    "taxonomy": {
+      "category": "variant_understanding_failure",
+      "description": "Agent misunderstood product variant constraints and selected incorrect exchange option.",
+      "severity": "high"
+    }
+  },
+  {
+    "task_id": "98",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 1.0
+    },
+    "message_count": 19,
+    "tool_calls": 14,
+    "taxonomy": {
+      "category": "scope_confirmation_failure",
+      "description": "Agent failed to preserve user's requested scope and performed broader action than requested.",
+      "severity": "high"
+    }
+  },
+  {
+    "task_id": "107",
+    "reward": {
+      "overall": 0.0,
+      "db_reward": 0.0,
+      "nl_assertion_reward": 1.0
+    },
+    "message_count": 14,
+    "tool_calls": 10,
+    "taxonomy": {
+      "category": "policy_violation",
+      "description": "Agent action violates business policy even though tool execution succeeded.",
+      "severity": "high"
+    }
+  }
+]
