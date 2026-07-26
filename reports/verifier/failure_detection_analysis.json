@@ -1,0 +1,42 @@
+{
+  "confusion_matrix": {
+    "true_positive": 1,
+    "false_positive": 0,
+    "false_negative": 3,
+    "true_negative": 16
+  },
+  "failure_detection": {
+    "precision": 1.0,
+    "recall": 0.25
+  },
+  "failure_cases": [
+    {
+      "task_id": "59",
+      "gold_failure_type": "golden_mismatch",
+      "prediction_failure_type": "variant_understanding_failure",
+      "prediction_correct": false,
+      "reason": "The agent did not address the user's conditional request regarding the guarantee of processing within 5 days for order #W2702727, nor did it handle the requested shipping address change or total price update. The agent proceeded with cancellation without first confirming whether the guarantee could be met, resulting in an incomplete understanding of the user's intent."
+    },
+    {
+      "task_id": "95",
+      "gold_failure_type": "variant_understanding_failure",
+      "prediction_failure_type": "none",
+      "prediction_correct": true,
+      "reason": "The agent correctly understood the user's request, identified that only one matching laptop was available, and appropriately transferred the conversation to a human agent as requested by the user when the full exchange could not be completed."
+    },
+    {
+      "task_id": "98",
+      "gold_failure_type": "scope_confirmation_failure",
+      "prediction_failure_type": "none",
+      "prediction_correct": true,
+      "reason": "The agent correctly understood all user requests, identified the appropriate orders and items, suggested suitable exchange options, processed the skateboard cancellation, and handled exchanges with refunds to the specified payment method. No errors or policy violations occurred."
+    },
+    {
+      "task_id": "107",
+      "gold_failure_type": "policy_violation",
+      "prediction_failure_type": "none",
+      "prediction_correct": true,
+      "reason": ""
+    }
+  ]
+}

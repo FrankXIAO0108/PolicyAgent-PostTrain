@@ -1,0 +1,152 @@
+{
+  "total_samples": 20,
+  "accuracy": 1.0,
+  "failure_distribution": {
+    "golden_mismatch": 1,
+    "variant_understanding_failure": 1,
+    "scope_confirmation_failure": 1,
+    "policy_violation": 1
+  },
+  "results": [
+    {
+      "task_id": "1",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "16",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "19",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "21",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "24",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "28",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "29",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "37",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "43",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "46",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "50",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "52",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "72",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "76",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "89",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "109",
+      "gold_label": 1,
+      "prediction": 1,
+      "failure_type": "none",
+      "reason": "The trajectory passed benchmark evaluation."
+    },
+    {
+      "task_id": "59",
+      "gold_label": 0,
+      "prediction": 0,
+      "failure_type": "golden_mismatch",
+      "reason": "Agent behavior differs from benchmark golden trajectory."
+    },
+    {
+      "task_id": "95",
+      "gold_label": 0,
+      "prediction": 0,
+      "failure_type": "variant_understanding_failure",
+      "reason": "Agent selected or misunderstood product variant incorrectly."
+    },
+    {
+      "task_id": "98",
+      "gold_label": 0,
+      "prediction": 0,
+      "failure_type": "scope_confirmation_failure",
+      "reason": "Agent cancelled or modified more items than requested."
+    },
+    {
+      "task_id": "107",
+      "gold_label": 0,
+      "prediction": 0,
+      "failure_type": "policy_violation",
+      "reason": "Agent action violates policy although tool execution succeeded."
+    }
+  ]
+}

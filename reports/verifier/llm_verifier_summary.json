@@ -1,0 +1,16 @@
+{
+  "total": 20,
+  "overall_accuracy": {
+    "correct": 19,
+    "wrong": 1,
+    "accuracy": 0.95
+  },
+  "failure_type_accuracy": {
+    "correct": 16,
+    "accuracy": 0.8
+  },
+  "failure_statistics": {
+    "gold_failure_cases": 4,
+    "predicted_failure_cases": 1
+  }
+}
