@@ -1,0 +1,23 @@
+{
+  "59": [
+    "dataset_alignment_error",
+    "missing_action",
+    "communication_error",
+    "policy_error"
+  ],
+  "95": [
+    "variant_error",
+    "missing_action",
+    "communication_error",
+    "policy_error"
+  ],
+  "98": [
+    "payment_error",
+    "scope_error",
+    "policy_error"
+  ],
+  "107": [
+    "variant_error",
+    "policy_error"
+  ]
+}

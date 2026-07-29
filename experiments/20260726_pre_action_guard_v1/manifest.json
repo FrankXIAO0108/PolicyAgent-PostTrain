@@ -1,0 +1,23 @@
+{
+  "experiment": "deterministic_pre_action_guard_v1",
+  "date": "2026-07-26",
+  "input": "frozen Retail baseline20 development trajectories",
+  "modes": {
+    "runtime_safe": "policy, observed state, and user-scope checks without gold",
+    "reference_diagnostic": "optional frozen-gold comparison for benchmark analysis only"
+  },
+  "quarantined_task_ids": [
+    "59"
+  ],
+  "new_llm_calls": 0,
+  "live_recovery": {
+    "guard_max_retries": 1,
+    "additional_call_policy": "only after a deterministic blocking finding",
+    "status": "runner prepared; paid live run not executed"
+  },
+  "limitations": [
+    "Counterfactual offline interception does not regenerate trajectories.",
+    "Reference diagnostic is invalid for deployment.",
+    "Live A/B evaluation is required to measure recovery rate and utility cost."
+  ]
+}

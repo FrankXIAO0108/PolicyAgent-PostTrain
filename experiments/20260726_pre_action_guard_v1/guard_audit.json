@@ -1,0 +1,2315 @@
+{
+  "schema_version": "pre-action-guard-v1.0.0",
+  "generated_at": "2026-07-26T13:37:05.409231+00:00",
+  "experiment": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "summary": {
+    "task_count": 20,
+    "official_failure_count": 4,
+    "official_success_count": 16,
+    "runtime_blocked_failure_count": 3,
+    "runtime_blocked_success_count": 4,
+    "non_quarantined_failure_count": 3,
+    "combined_non_quarantined_failure_coverage": 3,
+    "blocking_category_counts": {
+      "payment_error": 2,
+      "policy_error": 7,
+      "reference_mismatch": 1,
+      "scope_error": 1,
+      "variant_error": 2
+    },
+    "runtime_decision_counts": {
+      "BLOCK": 1,
+      "REGENERATE": 6,
+      "REQUIRE_CONFIRMATION": 1
+    },
+    "new_llm_calls": 0
+  },
+  "validity_notes": [
+    "Task 59 is quarantined because latest user intent conflicts with static gold.",
+    "Reference diagnostics use gold actions and are forbidden in deployment mode.",
+    "Offline interception does not prove that a regenerated trajectory succeeds."
+  ],
+  "tasks": [
+    {
+      "task_id": "1",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_user_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 11,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 11,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 20,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_1\\returned_results.json"
+    },
+    {
+      "task_id": "16",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 21,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "cancel_pending_order",
+              "cancel_pending_order",
+              "return_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_item_details",
+                "get_item_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 21,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "cancel_pending_order",
+                "cancel_pending_order",
+                "return_delivered_order_items"
+              ],
+              "write_count": 3
+            }
+          },
+          {
+            "message_index": 21,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [
+          {
+            "message_index": 21,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "cancel_pending_order",
+              "cancel_pending_order",
+              "return_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_16\\returned_results.json"
+    },
+    {
+      "task_id": "19",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 11,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 11,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 14,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_19\\returned_results.json"
+    },
+    {
+      "task_id": "21",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 10,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 10,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 14,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_item_details",
+                "get_item_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 14,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 17,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 21,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_item_details",
+                "get_item_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 21,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 24,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 28,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 30,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_21\\returned_results.json"
+    },
+    {
+      "task_id": "24",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_24\\returned_results.json"
+    },
+    {
+      "task_id": "28",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_item_details",
+                "get_item_details",
+                "get_item_details",
+                "get_item_details",
+                "get_item_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 23,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 25,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 27,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_28\\returned_results.json"
+    },
+    {
+      "task_id": "29",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 28,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "exchange_delivered_order_items",
+              "exchange_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_user_details",
+                "list_all_product_types"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 9,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 9,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 19,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_item_details",
+                "get_item_details",
+                "get_item_details",
+                "get_item_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 19,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 28,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "exchange_delivered_order_items",
+                "exchange_delivered_order_items"
+              ],
+              "write_count": 2
+            }
+          },
+          {
+            "message_index": 28,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [
+          {
+            "message_index": 28,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "exchange_delivered_order_items",
+              "exchange_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_29\\returned_results.json"
+    },
+    {
+      "task_id": "37",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 10,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 18,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details",
+                "get_product_details",
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 18,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 24,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_37\\returned_results.json"
+    },
+    {
+      "task_id": "43",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_43\\returned_results.json"
+    },
+    {
+      "task_id": "46",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 14,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 18,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 20,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_46\\returned_results.json"
+    },
+    {
+      "task_id": "50",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_50\\returned_results.json"
+    },
+    {
+      "task_id": "52",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 13,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 21,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 23,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_52\\returned_results.json"
+    },
+    {
+      "task_id": "59",
+      "official_reward": 0.0,
+      "official_failure": true,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_user_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 14,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 14,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "cancel_pending_order"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 14,
+            "rule_id": "reference.unexpected_action",
+            "category": "reference_mismatch",
+            "severity": "major",
+            "blocking": true,
+            "message": "The proposed write action has no matching reference action.",
+            "evidence": {
+              "proposal": {
+                "name": "cancel_pending_order",
+                "arguments": {
+                  "order_id": "#W2702727",
+                  "reason": "no longer needed"
+                },
+                "id": "call_00_0mL838VLhAdmKhbSuyKK3754"
+              }
+            }
+          }
+        ]
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_59\\returned_results.json"
+    },
+    {
+      "task_id": "72",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 10,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 10,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 17,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 17,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 28,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 30,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_72\\returned_results.json"
+    },
+    {
+      "task_id": "76",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 20,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "cancel_pending_order",
+              "cancel_pending_order"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 2,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 13,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 13,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 20,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "cancel_pending_order",
+                "cancel_pending_order"
+              ],
+              "write_count": 2
+            }
+          },
+          {
+            "message_index": 20,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [
+          {
+            "message_index": 20,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "cancel_pending_order",
+              "cancel_pending_order"
+            ]
+          }
+        ],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_76\\returned_results.json"
+    },
+    {
+      "task_id": "89",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": false,
+        "decisions": [],
+        "findings": [
+          {
+            "message_index": 2,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 10,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 19,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_89\\returned_results.json"
+    },
+    {
+      "task_id": "95",
+      "official_reward": 0.0,
+      "official_failure": true,
+      "runtime_guard": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 18,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "transfer_to_human_agents"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 12,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 18,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 18,
+            "rule_id": "goal.transfer_with_actionable_variant",
+            "category": "variant_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Transfer is premature: an available variant can satisfy the requested product attributes, and availability is boolean rather than a one-unit inventory count.",
+            "evidence": {
+              "product": "Laptop",
+              "requested_quantity": 2,
+              "candidate_item_ids": [
+                "9844888101"
+              ],
+              "matching_owned_item_count": 2
+            }
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [
+          {
+            "message_index": 18,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "transfer_to_human_agents"
+            ]
+          }
+        ],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_95\\returned_results.json"
+    },
+    {
+      "task_id": "98",
+      "official_reward": 0.0,
+      "official_failure": true,
+      "runtime_guard": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 27,
+            "decision": "REQUIRE_CONFIRMATION",
+            "tool_names": [
+              "cancel_pending_order"
+            ]
+          },
+          {
+            "message_index": 29,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "exchange_delivered_order_items",
+              "exchange_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 13,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 19,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 27,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 27,
+            "rule_id": "scope.item_request_would_cancel_whole_order",
+            "category": "scope_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "The user named only item(s), but this tool cancels the whole order. Explicit whole-order confirmation is required.",
+            "evidence": {
+              "order_id": "#W8855135",
+              "mentioned_item_ids": [
+                "3098764622"
+              ],
+              "all_order_item_ids": [
+                "4035304400",
+                "1437889264",
+                "3098764622",
+                "2733768059"
+              ]
+            }
+          },
+          {
+            "message_index": 29,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "exchange_delivered_order_items",
+                "exchange_delivered_order_items"
+              ],
+              "write_count": 2
+            }
+          },
+          {
+            "message_index": 29,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 27,
+            "decision": "REQUIRE_CONFIRMATION",
+            "tool_names": [
+              "cancel_pending_order"
+            ]
+          },
+          {
+            "message_index": 29,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "exchange_delivered_order_items",
+              "exchange_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 29,
+            "rule_id": "reference.argument_mismatch",
+            "category": "payment_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "The proposed write arguments differ from the frozen reference.",
+            "evidence": {
+              "proposal": {
+                "name": "exchange_delivered_order_items",
+                "arguments": {
+                  "order_id": "#W3916020",
+                  "item_ids": [
+                    "7758198585",
+                    "4068787148"
+                  ],
+                  "new_item_ids": [
+                    "5606522780",
+                    "6245746168"
+                  ],
+                  "payment_method_id": "credit_card_3951670"
+                },
+                "id": "call_00_H6xQoMlnhgR4PDlmhxGQ5946"
+              },
+              "reference_candidates": [
+                {
+                  "name": "exchange_delivered_order_items",
+                  "arguments": {
+                    "order_id": "#W3916020",
+                    "item_ids": [
+                      "7758198585",
+                      "4068787148"
+                    ],
+                    "new_item_ids": [
+                      "5606522780",
+                      "6245746168"
+                    ],
+                    "payment_method_id": "credit_card_8105988"
+                  },
+                  "id": ""
+                }
+              ],
+              "differing_keys": [
+                "payment_method_id"
+              ]
+            }
+          },
+          {
+            "message_index": 29,
+            "rule_id": "reference.argument_mismatch",
+            "category": "payment_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "The proposed write arguments differ from the frozen reference.",
+            "evidence": {
+              "proposal": {
+                "name": "exchange_delivered_order_items",
+                "arguments": {
+                  "order_id": "#W4689314",
+                  "item_ids": [
+                    "5996159312"
+                  ],
+                  "new_item_ids": [
+                    "8363011723"
+                  ],
+                  "payment_method_id": "credit_card_3951670"
+                },
+                "id": "call_01_hhZjhA7CdSj35lJyqbSq8222"
+              },
+              "reference_candidates": [
+                {
+                  "name": "exchange_delivered_order_items",
+                  "arguments": {
+                    "order_id": "#W4689314",
+                    "item_ids": [
+                      "5996159312"
+                    ],
+                    "new_item_ids": [
+                      "8363011723"
+                    ],
+                    "payment_method_id": "credit_card_8105988"
+                  },
+                  "id": ""
+                }
+              ],
+              "differing_keys": [
+                "payment_method_id"
+              ]
+            }
+          }
+        ]
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_98\\returned_results.json"
+    },
+    {
+      "task_id": "107",
+      "official_reward": 0.0,
+      "official_failure": true,
+      "runtime_guard": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 20,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "exchange_delivered_order_items",
+              "exchange_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details",
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 13,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_product_details",
+                "get_product_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 13,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 20,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "exchange_delivered_order_items",
+                "exchange_delivered_order_items"
+              ],
+              "write_count": 2
+            }
+          },
+          {
+            "message_index": 20,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 20,
+            "rule_id": "policy.exchange_requires_different_option",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "An exchange must select a different product option.",
+            "evidence": {
+              "item_ids": [
+                "1615379700"
+              ],
+              "new_item_ids": [
+                "1615379700"
+              ]
+            }
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 20,
+            "decision": "REGENERATE",
+            "tool_names": [
+              "exchange_delivered_order_items",
+              "exchange_delivered_order_items"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 20,
+            "rule_id": "reference.argument_mismatch",
+            "category": "variant_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "The proposed write arguments differ from the frozen reference.",
+            "evidence": {
+              "proposal": {
+                "name": "exchange_delivered_order_items",
+                "arguments": {
+                  "order_id": "#W1304208",
+                  "item_ids": [
+                    "1615379700"
+                  ],
+                  "new_item_ids": [
+                    "1615379700"
+                  ],
+                  "payment_method_id": "paypal_1679017"
+                },
+                "id": "call_00_Sba2LLImQJCp2OibB3Nu6289"
+              },
+              "reference_candidates": [
+                {
+                  "name": "exchange_delivered_order_items",
+                  "arguments": {
+                    "order_id": "#W1304208",
+                    "item_ids": [
+                      "1615379700"
+                    ],
+                    "new_item_ids": [
+                      "8106223139"
+                    ],
+                    "payment_method_id": "paypal_1679017"
+                  },
+                  "id": ""
+                }
+              ],
+              "differing_keys": [
+                "new_item_ids"
+              ]
+            }
+          }
+        ]
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_107\\returned_results.json"
+    },
+    {
+      "task_id": "109",
+      "official_reward": 1.0,
+      "official_failure": false,
+      "runtime_guard": {
+        "would_block": true,
+        "decisions": [
+          {
+            "message_index": 24,
+            "decision": "BLOCK",
+            "tool_names": [
+              "modify_pending_order_items"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "message_index": 4,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 6,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_order_details"
+              ],
+              "write_count": 0
+            }
+          },
+          {
+            "message_index": 8,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "modify_user_address",
+                "modify_pending_order_address"
+              ],
+              "write_count": 1
+            }
+          },
+          {
+            "message_index": 15,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 18,
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          },
+          {
+            "message_index": 24,
+            "rule_id": "policy.one_shot_order_mutation",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Exchange/modify tools can only be called once per order.",
+            "evidence": {
+              "order_id": "#W1603792",
+              "previous_tools": [
+                "modify_pending_order_address"
+              ]
+            }
+          }
+        ]
+      },
+      "reference_diagnostic": {
+        "would_block": false,
+        "decisions": [
+          {
+            "message_index": 24,
+            "decision": "BLOCK",
+            "tool_names": [
+              "modify_pending_order_items"
+            ]
+          }
+        ],
+        "findings": []
+      },
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_109\\returned_results.json"
+    }
+  ]
+}

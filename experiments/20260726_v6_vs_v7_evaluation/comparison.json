@@ -1,0 +1,124 @@
+{
+  "schema_version": "v7-comparison-1.0.0",
+  "generated_at": "2026-07-26T13:00:52.475211+00:00",
+  "inputs": {
+    "v6_raw_predictions": "D:\\PolicyAgent-PostTrain\\reports\\verifier\\v6_verifier_result.jsonl",
+    "v7_report": "D:\\PolicyAgent-PostTrain\\reports\\evaluation\\final_report.json",
+    "expected_failure_taxonomy": "D:\\PolicyAgent-PostTrain\\experiments\\20260726_v6_vs_v7_evaluation\\expected_failure_taxonomy.json"
+  },
+  "outcome_detection": {
+    "v6_llm_pipeline": {
+      "task_count": 20,
+      "confusion_matrix": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 4,
+        "tn": 15
+      },
+      "accuracy": 0.75,
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9375,
+      "f1": 0.0,
+      "false_positive_task_ids": [
+        "24"
+      ],
+      "false_negative_task_ids": [
+        "59",
+        "95",
+        "98",
+        "107"
+      ]
+    },
+    "v7_replay_pipeline": {
+      "task_count": 20,
+      "confusion_matrix": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 16
+      },
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "specificity": 1.0,
+      "f1": 1.0,
+      "false_positive_task_ids": [],
+      "false_negative_task_ids": []
+    }
+  },
+  "root_cause_audit": {
+    "expected": {
+      "59": [
+        "dataset_alignment_error",
+        "missing_action",
+        "communication_error",
+        "policy_error"
+      ],
+      "95": [
+        "variant_error",
+        "missing_action",
+        "communication_error",
+        "policy_error"
+      ],
+      "98": [
+        "payment_error",
+        "scope_error",
+        "policy_error"
+      ],
+      "107": [
+        "variant_error",
+        "policy_error"
+      ]
+    },
+    "actual": {
+      "59": [
+        "dataset_alignment_error",
+        "missing_action",
+        "communication_error",
+        "policy_error"
+      ],
+      "95": [
+        "variant_error",
+        "missing_action",
+        "communication_error",
+        "policy_error"
+      ],
+      "98": [
+        "payment_error",
+        "scope_error",
+        "policy_error"
+      ],
+      "107": [
+        "variant_error",
+        "policy_error"
+      ]
+    },
+    "v7": {
+      "audit_task_count": 4,
+      "exact_match_task_count": 4,
+      "micro_precision": 1.0,
+      "micro_recall": 1.0,
+      "expected_pairs": 13,
+      "predicted_pairs": 13,
+      "matched_pairs": 13,
+      "scope": "frozen_failure4_diagnostic_audit_not_held_out_generalization"
+    }
+  },
+  "v7_replay_inconsistency_count": 0,
+  "cost_profile": {
+    "v6_new_llm_calls": 40,
+    "v6_call_basis": "one evidence extraction plus one classification call per task",
+    "v7_new_llm_calls": 0,
+    "v7_call_basis": "deterministic replay and reuse of frozen official NL results",
+    "token_cost_usd": null,
+    "v6_latency_seconds": null,
+    "v7_latency_seconds": 9.948605,
+    "missing_measurement_note": "Historical v6 artifacts do not record token usage or wall-clock latency; V7 latency measures the local 20-task replay loop."
+  },
+  "validity_notes": [
+    "The v6 metrics use raw predictions, not verifier_eval.json labels.",
+    "V7 outcome accuracy measures exact replay fidelity on frozen artifacts.",
+    "The four-task taxonomy audit was used during development and is not held out."
+  ]
+}

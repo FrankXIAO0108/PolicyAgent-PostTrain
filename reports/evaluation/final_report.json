@@ -1,0 +1,2649 @@
+{
+  "schema_version": "v7.1.0",
+  "generated_at": "2026-07-26T13:00:51.661244+00:00",
+  "experiment": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "provenance": {
+    "project_commit": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+    "project_worktree_dirty": true,
+    "tau2_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "nl_mode": "reuse_frozen_official_results",
+    "evaluator_source_sha256": "6b20cdc7bb67e52d1ea0fa6dcc4d860f0a47d8056845fd6f6b1bd5732a8e26ed",
+    "run_manifest_sha256": "6fdfc6dd265e825214ceced672709e65c5e29a077c78a5370e33219b83810ec4"
+  },
+  "summary": {
+    "task_count": 20,
+    "success_count": 16,
+    "failure_count": 4,
+    "replay_inconsistency_count": 0,
+    "failure_task_ids": [
+      "59",
+      "95",
+      "98",
+      "107"
+    ],
+    "evaluation_elapsed_seconds": 9.948605
+  },
+  "tasks": [
+    {
+      "task_id": "1",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "1",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "eab1dde2ca84a093a334a25db9258213e882d849bb487a966d69c056a67c2846",
+        "agent_hash": "eab1dde2ca84a093a334a25db9258213e882d849bb487a966d69c056a67c2846",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "no_assertions",
+        "assertions": [],
+        "notes": [
+          "Tau2 treats missing/empty nl_assertions as reward 1."
+        ]
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8,
+            11
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": true,
+          "evidence": [
+            "instructions:\n\tdomain: retail\n\treason for call:\n\t\tyou received your order #w2378156 and wish to exchange the mechanical keyboard for the same one but with clicky switches and the smart thermostat for one compatible with google home instead of apple homekit. if there is no keyboard that is clicky, rgb backlight, full size, you'd rather only exchange the thermostat.\n\tknown info:\n\t\tyou are yusuf rossi in zip code 19122.\n\tunknown info:\n\t\tyou do not remember your email address\n\ttask instructions:\n\t\tyou are detail-oriented and want to make sure everything is addressed in one go.",
+            "great choice! let me clarify a few things:\n\n**price difference:**\n- your current smart thermostat (apple homekit, black - item #4983901480) was **$262.47**\n- the new smart thermostat (google assistant, black - item #7747408585) is **$249.01**\n- so you'd get a refund of **$13.46** for the price difference.\n\n**exchange process:**\nthis is an exchange, not a return and repurchase. after i process it, the order status will change to \"exchange requested\" and you'll receive an email with instructions on how to return the item. there's no need to place a new order.\n\n**regarding shipping/timing:**\nunfortunately, i don't have specific details about shipping timelines for the replacement item beyond what's available to me. the email you receive after the exchange is processed should provide more information on that.\n\nnow, for the refund of the price difference ($13.46), i'll need a payment method to send that to. it can either go back to your original payment method (mastercard ending in 2478) or to an existing gift card. do you have a preference?\n\nalso, before i proceed, let me confirm the details:\n\n- **order:** #w2378156\n- **item to exchange:** smart thermostat (item #4983901480 - apple homekit, black)\n- **new item:** smart thermostat (item #7747408585 - google assistant, black)\n- **price difference refund:** $13.46\n\ncould you please confirm all this looks good and let me know which payment method you'd like the refund to go to?"
+          ],
+          "reason": "Agent action exceeded user confirmed scope."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_1\\returned_results.json",
+      "artifact_sha256": "f08b54f99c8b76cd3b8910461ef5c960ea8d3e70ce863473e5a2964e9cdb2ac6"
+    },
+    {
+      "task_id": "16",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "16",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "76488acd2c5a18ade7bd3a32bc2fc5f6fdc5039223f86bc79f9754f3b5472a50",
+        "agent_hash": "76488acd2c5a18ade7bd3a32bc2fc5f6fdc5039223f86bc79f9754f3b5472a50",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the total refund amount is $8,276.23.",
+            "met": true,
+            "justification": "The agent explicitly states the total refund amount as $8,276.23 in the final summary, breaking down the three refunds and summing them."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8,
+            12,
+            21
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_16\\returned_results.json",
+      "artifact_sha256": "1f0f69203312300d8a4ff4c60f56458a1fb193e332e9df79571e326f10608f62"
+    },
+    {
+      "task_id": "19",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "19",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "ef45b3de7b49e6bcaadd92c36aca03321e35c7ce99276c09fbf508febe36cd17",
+        "agent_hash": "ef45b3de7b49e6bcaadd92c36aca03321e35c7ce99276c09fbf508febe36cd17",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user that returning the water bottle gives a refund of $54.04.",
+            "met": true,
+            "justification": "The agent clearly states that returning the water bottle results in a refund of $54.04, both in the summary of options and when confirming the return."
+          },
+          {
+            "assertion": "Agent should tell the user that exchanging the pet bed and office chair saves $41.64 total.",
+            "met": true,
+            "justification": "The agent calculates and states that exchanging the pet bed saves $14.18 and exchanging the office chair saves $27.46, totaling $41.64."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8,
+            11
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": true,
+          "evidence": [
+            "instructions:\n\tdomain: retail\n\treason for call:\n\t\tyou want to return the water bottle, and exchange the pet bed and office chair to the cheapest version. mention the two things together and you want to get both done. if and only if you can only do one of the two things, you prefer to do whatever saves you most money. ask the agent how much money you can save in both options.\n\tknown info:\n\t\tyou are mei davis in zipcode 80217.\n\tunknown info:\n\t\tyou do not remember your email address\n\ttask instructions:\n\t\tyou are in debt and sad today, but very brief.",
+            "alright, let me summarize what i've found. all items are in **order #w2890441** which is **delivered**.\n\nhere's the situation:\n\n**1. return the water bottle** - you want to return the water bottle (item #2366567022, $54.04). since it's delivered, you can return it.\n\n**2. exchange pet bed** - your current pet bed (item #2751999929, $195.11) - the cheapest available variant is item #6942241102 (large, memory foam, beige) at **$180.93** — saving **$14.18**.\n\n**3. exchange office chair** - your current office chair (item #8069050545, $499.28) - the cheapest available variant is item #4168944673 (leather, blue, no armrest, standard back) at **$471.82** — saving **$27.46**.\n\nnow, regarding your question: **can you do both a return and an exchange?**\n\naccording to policy, for a **delivered** order, you can either **return** items or **exchange** items. these are separate actions. let me think about this...\n\nactually, looking at the policy more carefully:\n- **return delivered order**: you can return items from a delivered order.\n- **exchange delivered order**: you can exchange items in a delivered order.\n\nthese are separate tools and can be used on the same order. however, the policy says \"return or exchange can be only done once by the agent\" for a delivered order. so you could potentially do a return for the water bottle and an exchange for the pet bed and office chair... but let me re-read.\n\nactually, the exchange tool says \"for a delivered order, return or exchange can be only done once by the agent.\" this means you can only do one action (either a return or an exchange) per order, not both.\n\nso let me calculate the savings for each option:\n\n**option a: return water bottle + exchange pet bed & office chair**\n- return water bottle: refund $54.04\n- exchange pet bed: save $14.18 (from $195.11 to $180.93)\n- exchange office chair: save $27.46 (from $499.28 to $471.82)\n- total savings: $54.04 + $14.18 + $27.46 = **$95.68**\n\nbut wait - the policy says \"return or exchange can be only done once by the agent\" for a delivered order. so you can't do both a return and an exchange on the same order.\n\n**option b: just return the water bottle** → refund of **$54.04**\n\n**option c: just exchange pet bed & office chair** → savings of **$14.18 + $27.46 = $41.64**\n\nso if you can only do one action, **returning the water bottle** saves you more ($54.04) than exchanging both items ($41.64).\n\nhowever, i want to clarify - since the water bottle, pet bed, and office chair are all in the same order (#w2890441), and the policy says \"return or exchange can be only done once by the agent\" for a delivered order, you can only do one of these actions on this order.\n\nwould you like to go with **option b - return the water bottle** (saving $54.04)? or would you prefer to **exchange the pet bed and office chair** (saving $41.64)?"
+          ],
+          "reason": "Agent action exceeded user confirmed scope."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_19\\returned_results.json",
+      "artifact_sha256": "d88a79c0c0972adafdd84b35f9d4782a79a4a1a92e188660454db3e142cbcf77"
+    },
+    {
+      "task_id": "21",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "21",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "079ef03ab35d99a940e5aded4318e11a97edf61ae6738ffc347057ab43812819",
+        "agent_hash": "079ef03ab35d99a940e5aded4318e11a97edf61ae6738ffc347057ab43812819",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user their gift card balance is $44.08.",
+            "met": true,
+            "justification": "The agent explicitly states the updated gift card balance as $44.08 in the final summary."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            10,
+            14,
+            21
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_21\\returned_results.json",
+      "artifact_sha256": "0df79dfa19aefb0f42a1d2cacba432e89902a0f24684277ba5af4cc66a96bfb9"
+    },
+    {
+      "task_id": "24",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "24",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "b25c9cb211f5efcaee5dd646054a73c4a9f43f4f5acc32c10713cd9f9ac20e9c",
+        "agent_hash": "b25c9cb211f5efcaee5dd646054a73c4a9f43f4f5acc32c10713cd9f9ac20e9c",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the materials of the two t-shirts are polyester and cotton.",
+            "met": true,
+            "justification": "The user asked about the two t-shirts in another order. The agent identified that the user has t-shirts in two orders, but the user specifically asked about 'the two t-shirts I ordered in another order' (referring to Order #W9609649). In that order, there are two t-shirts: one blue cotton crew neck and one black polyester crew neck. The agent correctly stated that the blue t-shirt is cotton and the black t-shirt is polyester, thus covering both materials (polyester and cotton)."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_24\\returned_results.json",
+      "artifact_sha256": "60e02bb4038edf73d25df47b7402e1eadeb0435ef2238e7567bd380113a789e7"
+    },
+    {
+      "task_id": "28",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "28",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "977b187e0993e19ce99615318db6a38e483a760f94a9c0c6c1d430bb2d3f1a8c",
+        "agent_hash": "977b187e0993e19ce99615318db6a38e483a760f94a9c0c6c1d430bb2d3f1a8c",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the total refund amount is $918.43.",
+            "met": true,
+            "justification": "The agent explicitly states 'Total refund: $918.43' in the final summary after processing all returns."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8,
+            15
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": true,
+          "evidence": [
+            "instructions:\n\tdomain: retail\n\treason for call:\n\t\tyou want to return the skateboard, garden hose, backpack, keyboard, and bed. you also want to cancel the garden hose from the pending order you just placed (you only want to cancel that hose — if this would require cancelling the entire order, tell the agent not to do it). make sure all the items you want to return are returned: first return the skateboard, then the garden hose and backpack, then the keyboard and bed. finally, you want to know the total refund amount.\n\tknown info:\n\t\tyou are isabella johansson, and you live in zipcode 32286.\n\tunknown info:\n\t\tyou don't know your email.\n\ttask instructions:\n\t\tyou are extremely brief but patient.",
+            "let me clarify what i've found. here's a summary of your orders:\n\n**order #w2575533** (status: **pending**) - this is your latest order. it contains:\n- vacuum cleaner\n- portable charger\n- e-reader\n- **garden hose** (item id: 5206946487)\n- office chair\n\n**order #w7181492** (status: **delivered**) - contains:\n- **garden hose** (item id: 5753502325)\n- **backpack** (item id: 9851293632)\n- bookshelf\n- hiking boots\n- coffee maker\n\n**order #w3792453** (status: **delivered**) - contains:\n- **skateboard** (item id: 4293355847)\n\n**order #w5565470** (status: **delivered**) - contains:\n- electric kettle\n- mechanical keyboard (you mentioned \"keyboard\" - this is a mechanical keyboard)\n- pet bed\n\nnow, regarding your requests:\n\n1. **cancelling the garden hose** - you mentioned cancelling the garden hose from your latest order (#w2575533). however, cancellation applies to the **entire order**, not individual items. you can't cancel just one item from an order. the order is pending, so i could cancel the whole order if you'd like, but not just the hose.\n\n2. **returns** - for the items you want to return (skateboard, garden hose, backpack, keyboard, bed), i need to check which orders they're in:\n   - **skateboard** - in delivered order #w3792453 ✓\n   - **garden hose** - you have two garden hoses. the one in delivered order #w7181492? or the one in pending order #w2575533?\n   - **backpack** - in delivered order #w7181492 ✓\n   - **keyboard** - there's a \"mechanical keyboard\" in delivered order #w5565470 ✓\n   - **bed** - i don't see a \"bed\" in any of your orders. there's a \"pet bed\" in #w5565470. is that what you meant?\n\ncould you clarify a few things:\n1. which garden hose did you want to return (the one from the delivered order or the pending order)?\n2. did you mean \"pet bed\" when you said \"bed\"?\n3. for the cancellation - since you can't cancel just one item from an order, would you like to cancel the entire pending order #w2575533 instead?"
+          ],
+          "reason": "Agent action exceeded user confirmed scope."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_28\\returned_results.json",
+      "artifact_sha256": "48a673655dcf9cbb82fcaedc53e2b721a19dfcfa77ef4c62fd696a5d096330a4"
+    },
+    {
+      "task_id": "29",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "29",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "d2d7dc99ebacc7eac924d39ac313c3c7918d81de2d010e7b28c05a5df31c9d43",
+        "agent_hash": "d2d7dc99ebacc7eac924d39ac313c3c7918d81de2d010e7b28c05a5df31c9d43",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the prices of the available bamboo skateboard options: $180.10, $189.57, and $208.60.",
+            "met": true,
+            "justification": "The agent listed the three bamboo skateboard options shorter than 31 inches with their prices: $180.10 (28 inch, graphic), $189.57 (28 inch, custom), and $208.60 (28 inch, plain). This matches the expected outcome."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            6,
+            9,
+            12,
+            19,
+            28
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_29\\returned_results.json",
+      "artifact_sha256": "4ffd45b46a8a7e045b579bebbdc16d71bd68e039b4f1bdf5f54d9204a1d8d93f"
+    },
+    {
+      "task_id": "37",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "37",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "c263b7ca5913ee44ccb614b4b5fd2b672049d710741063b90239ef46a3112c3c",
+        "agent_hash": "c263b7ca5913ee44ccb614b4b5fd2b672049d710741063b90239ef46a3112c3c",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": [
+          "gold_action:37_0:find_user_id_by_email: ValueError: User not found"
+        ]
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the most expensive item in the order is the camera.",
+            "met": true,
+            "justification": "The agent explicitly stated 'The most expensive item is the Action Camera' in response to the user's question."
+          },
+          {
+            "assertion": "Agent should tell the user the camera costs $481.50.",
+            "met": true,
+            "justification": "The agent said 'The most expensive item is the Action Camera (item ID: 6117189161) at $481.50', providing the exact price."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            18
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": true,
+          "evidence": [
+            "instructions:\n\tdomain: retail\n\treason for call:\n\t\tyou just placed an order but you realize that your card has only $1150 credit left, but the order total is more than $1160. you wonder if the agent can help split the payment with another card. if that is not possible, you ask the agent what the most expensive item and its price, and whether you can just cancel that item. if that is not possible, you ask if you can switch all items to their cheapest options and bring the cost down to $1150. if that is possible, confirm and ask the agent to do it. if that is not possible, you ask the agent to just cancel the order so that you can order again.\n\tknown info:\n\t\tyour name is daiki sanchez, and you live in 46236, your email is daikisanchez1479@example.com.\n\tunknown info:\n\t\t.\n\ttask instructions:\n\t\tyou are a bit anxious and want to get things done quickly, and you speak very briefly.\n\t\tdo not end the conversation until your changes have been made.",
+            "the most expensive item is the **action camera** (item id: 6117189161) at **$481.50**. however, i'm not able to cancel just a single item from an order. i can either:\n\n1. **cancel the entire order** - if you'd like to cancel the whole order, i can do that.\n2. **modify items** - i could change the action camera to a different option of the same product type (action camera), which might be cheaper.\n\nwould you like to go with one of these options?"
+          ],
+          "reason": "Agent action exceeded user confirmed scope."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_37\\returned_results.json",
+      "artifact_sha256": "e8e82f738dd43172f91be2e6522f8c7869ea3d11eb5f73a70e65baecd4757f93"
+    },
+    {
+      "task_id": "43",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "43",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "a533bdac3eb69d9607ea2eeb31473ea5aab66c546831c46d6b2f0b912f569a09",
+        "agent_hash": "a533bdac3eb69d9607ea2eeb31473ea5aab66c546831c46d6b2f0b912f569a09",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the tracking number is 840887978435.",
+            "met": true,
+            "justification": "The agent explicitly states 'the tracking ID is 840887978435' in the conversation."
+          },
+          {
+            "assertion": "Agent should tell the user the order was shipped to 943 Maple Drive, Suite 356, Chicago, IL 60621.",
+            "met": true,
+            "justification": "The agent mentions the order was shipped to '943 Maple Drive, Suite 356, Chicago, IL 60621' when describing Order #W7895761."
+          },
+          {
+            "assertion": "Agent should tell the user the tablet storage is 64GB.",
+            "met": true,
+            "justification": "The agent lists the tablet specs including 'Storage: 64GB' in response to the user's question."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No explicit user scope found."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_43\\returned_results.json",
+      "artifact_sha256": "47b8b77947a92cb3574757c60296e7c9664c04d8de471054acfca19f5ac84f8c"
+    },
+    {
+      "task_id": "46",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "46",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "9443e4a3f3027042faa1e64846178445f9fb350fd1e30b87a935939bb0585c2d",
+        "agent_hash": "9443e4a3f3027042faa1e64846178445f9fb350fd1e30b87a935939bb0585c2d",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": [
+          "gold_action:46_1:get_order_details: ValueError: Order not found",
+          "gold_action:46_2:get_order_details: ValueError: Order not found"
+        ]
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the total refund amount is $1,126.04.",
+            "met": true,
+            "justification": "The agent explicitly stated the total refund amount as $1,126.04 when summarizing the return details."
+          },
+          {
+            "assertion": "Agent should tell the user the total paid for remaining items is $1,497.65.",
+            "met": true,
+            "justification": "The agent calculated and stated the total for remaining items as $1,497.65 after processing the return."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No explicit user scope found."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_46\\returned_results.json",
+      "artifact_sha256": "2f2d172d549d5d010d6c20fc30ba8bc911f4f691a0ec84ccb42e22ea38361ecd"
+    },
+    {
+      "task_id": "50",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [],
+        "business_impact": [],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "50",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "b25c9cb211f5efcaee5dd646054a73c4a9f43f4f5acc32c10713cd9f9ac20e9c",
+        "agent_hash": "b25c9cb211f5efcaee5dd646054a73c4a9f43f4f5acc32c10713cd9f9ac20e9c",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "no_assertions",
+        "assertions": [],
+        "notes": [
+          "Tau2 treats missing/empty nl_assertions as reward 1."
+        ]
+      },
+      "root_causes": [],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_50\\returned_results.json",
+      "artifact_sha256": "d74982ec085f7ed4911b72eb0601f59a068b37b2ee70b12f9dca790f100cd6f1"
+    },
+    {
+      "task_id": "52",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "52",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "0a993bd7f7029816e26055cbef876c8c0d62570e4c8ad16389962fff00b22dba",
+        "agent_hash": "0a993bd7f7029816e26055cbef876c8c0d62570e4c8ad16389962fff00b22dba",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "no_assertions",
+        "assertions": [],
+        "notes": [
+          "Tau2 treats missing/empty nl_assertions as reward 1."
+        ]
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_52\\returned_results.json",
+      "artifact_sha256": "23d1aec4f5bc4e14b9d02f3b54a4c1aaa72b9f45b7a4f3b471a1850337edc358"
+    },
+    {
+      "task_id": "59",
+      "task_success": false,
+      "official_signal": {
+        "recorded_reward": 0.0,
+        "recorded_db_reward": 0.0,
+        "recorded_nl_reward": 0.0,
+        "termination_reason": "user_stop",
+        "db_match": false,
+        "nl_match": false,
+        "reconstructed_reward": 0.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [
+          "db_mismatch",
+          "nl_failure"
+        ],
+        "root_cause": [
+          "dataset_alignment_error",
+          "missing_action",
+          "communication_error",
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [
+          "dataset_alignment_error",
+          "missing_action",
+          "communication_error"
+        ],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "benchmark_data_risk",
+          "policy_risk",
+          "incomplete_customer_request",
+          "incomplete_customer_communication"
+        ],
+        "quarantine_recommended": true
+      },
+      "replay": {
+        "task_id": "59",
+        "domain": "retail",
+        "db_match": false,
+        "gold_hash": "8cf194e4eca8883c044792c4441d4b83b270934e22fce04f00569f5944c6d279",
+        "agent_hash": "b30b59edbe5d104f36e07977ecbd14fc4dd000cceee3e6bf30f783ce52522c1d",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [
+          {
+            "path": "agent.orders.#W2702727.address.address1",
+            "agent": "163 Cedar Street",
+            "gold": "1234 Elm St"
+          },
+          {
+            "path": "agent.orders.#W2702727.address.address2",
+            "agent": "Suite 165",
+            "gold": ""
+          },
+          {
+            "path": "agent.orders.#W2702727.address.city",
+            "agent": "San Jose",
+            "gold": "Springfield"
+          },
+          {
+            "path": "agent.orders.#W2702727.address.state",
+            "agent": "CA",
+            "gold": "IL"
+          },
+          {
+            "path": "agent.orders.#W2702727.address.zip",
+            "agent": "95154",
+            "gold": "62701"
+          },
+          {
+            "path": "agent.orders.#W2702727.cancel_reason",
+            "agent": "no longer needed",
+            "gold": null
+          },
+          {
+            "path": "agent.orders.#W2702727.payment_history",
+            "agent": [
+              {
+                "transaction_type": "payment",
+                "amount": 625.6,
+                "payment_method_id": "credit_card_3599838"
+              },
+              {
+                "transaction_type": "refund",
+                "amount": 625.6,
+                "payment_method_id": "credit_card_3599838"
+              }
+            ],
+            "gold": [
+              {
+                "transaction_type": "payment",
+                "amount": 625.6,
+                "payment_method_id": "credit_card_3599838"
+              }
+            ]
+          },
+          {
+            "path": "agent.orders.#W2702727.status",
+            "agent": "cancelled",
+            "gold": "pending"
+          },
+          {
+            "path": "agent.orders.#W8268610.cancel_reason",
+            "agent": null,
+            "gold": "no longer needed"
+          },
+          {
+            "path": "agent.orders.#W8268610.payment_history",
+            "agent": [
+              {
+                "transaction_type": "payment",
+                "amount": 164.28,
+                "payment_method_id": "credit_card_3599838"
+              }
+            ],
+            "gold": [
+              {
+                "transaction_type": "payment",
+                "amount": 164.28,
+                "payment_method_id": "credit_card_3599838"
+              },
+              {
+                "transaction_type": "refund",
+                "amount": 164.28,
+                "payment_method_id": "credit_card_3599838"
+              }
+            ]
+          },
+          {
+            "path": "agent.orders.#W8268610.status",
+            "agent": "pending",
+            "gold": "cancelled"
+          }
+        ],
+        "order_diffs": {
+          "#W2702727": {
+            "differing_fields": {
+              "status": {
+                "agent": "cancelled",
+                "gold": "pending"
+              },
+              "address": {
+                "agent": {
+                  "address1": "163 Cedar Street",
+                  "address2": "Suite 165",
+                  "city": "San Jose",
+                  "country": "USA",
+                  "state": "CA",
+                  "zip": "95154"
+                },
+                "gold": {
+                  "address1": "1234 Elm St",
+                  "address2": "",
+                  "city": "Springfield",
+                  "country": "USA",
+                  "state": "IL",
+                  "zip": "62701"
+                }
+              },
+              "cancel_reason": {
+                "agent": "no longer needed",
+                "gold": null
+              },
+              "payment_history": {
+                "agent": [
+                  {
+                    "transaction_type": "payment",
+                    "amount": 625.6,
+                    "payment_method_id": "credit_card_3599838"
+                  },
+                  {
+                    "transaction_type": "refund",
+                    "amount": 625.6,
+                    "payment_method_id": "credit_card_3599838"
+                  }
+                ],
+                "gold": [
+                  {
+                    "transaction_type": "payment",
+                    "amount": 625.6,
+                    "payment_method_id": "credit_card_3599838"
+                  }
+                ]
+              }
+            },
+            "agent_mutations": [
+              "cancel_reason",
+              "payment_history",
+              "status"
+            ],
+            "gold_mutations": [
+              "address"
+            ]
+          },
+          "#W8268610": {
+            "differing_fields": {
+              "status": {
+                "agent": "pending",
+                "gold": "cancelled"
+              },
+              "cancel_reason": {
+                "agent": null,
+                "gold": "no longer needed"
+              },
+              "payment_history": {
+                "agent": [
+                  {
+                    "transaction_type": "payment",
+                    "amount": 164.28,
+                    "payment_method_id": "credit_card_3599838"
+                  }
+                ],
+                "gold": [
+                  {
+                    "transaction_type": "payment",
+                    "amount": 164.28,
+                    "payment_method_id": "credit_card_3599838"
+                  },
+                  {
+                    "transaction_type": "refund",
+                    "amount": 164.28,
+                    "payment_method_id": "credit_card_3599838"
+                  }
+                ]
+              }
+            },
+            "agent_mutations": [],
+            "gold_mutations": [
+              "cancel_reason",
+              "payment_history",
+              "status"
+            ]
+          }
+        },
+        "flags": {
+          "extra_cancel": true,
+          "missing_cancel": true,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": true,
+          "wrong_address": true,
+          "wrong_status": true,
+          "partial_scope": false,
+          "missing_mutation": true,
+          "extra_mutation": true
+        }
+      },
+      "nl_assertions": {
+        "nl_match": false,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+            "met": false,
+            "justification": "The user cancelled order #W2702727 (Bookshelf and Yoga Mat), not the desk lamp order (#W8268610). The refund amount for the cancelled order is $625.60, not $164.28. The agent never mentioned a refund of $164.28 for a desk lamp order."
+          },
+          {
+            "assertion": "Agent should tell the user the total price of order #W2702727 is $625.60.",
+            "met": true,
+            "justification": "The agent explicitly stated the total paid for order #W2702727 is $625.60 in the summary and confirmed the refund amount as $625.60."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "golden_mismatch",
+          "explanation": "The executed cancellation follows the simulator's explicit confirmed order, while the static gold cancels a different order.",
+          "evidence": [
+            {
+              "name": "cancel_pending_order",
+              "arguments": {
+                "order_id": "#W2702727",
+                "reason": "no longer needed"
+              },
+              "message_index": 14
+            }
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "dataset_issue",
+          "explanation": "Static gold and the latest simulated user intent are inconsistent; the trajectory should not be used as an ordinary negative.",
+          "evidence": [
+            "latest_user_confirmation_vs_gold_actions"
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            6
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        },
+        {
+          "code": "missing_action",
+          "explanation": "A gold cancellation was not reflected in final DB.",
+          "evidence": [
+            "missing_cancel"
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "communication_omission",
+          "explanation": "At least one frozen official NL assertion failed.",
+          "evidence": [
+            {
+              "assertion": "Agent should tell the user the refund for the cancelled desk lamp order is $164.28.",
+              "met": false,
+              "justification": "The user cancelled order #W2702727 (Bookshelf and Yoga Mat), not the desk lamp order (#W8268610). The refund amount for the cancelled order is $625.60, not $164.28. The agent never mentioned a refund of $164.28 for a desk lamp order."
+            }
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Reconcile latest user intent with static gold; quarantine case.",
+        "Run deterministic policy checks before write tool execution.",
+        "Track every requested goal until completed, denied, or transferred.",
+        "Generate final communication from verified tool results."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_59\\returned_results.json",
+      "artifact_sha256": "779afdf64fc14fb26d542ce95e8e5c6acbb667e082aa764f7832f8f13d4de20e"
+    },
+    {
+      "task_id": "72",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "72",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "c14be7c97f71be56b7f5bbb1bf5e1791c8f1b1f5ea9fb724eb52df49e5c02e8a",
+        "agent_hash": "c14be7c97f71be56b7f5bbb1bf5e1791c8f1b1f5ea9fb724eb52df49e5c02e8a",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "no_assertions",
+        "assertions": [],
+        "notes": [
+          "Tau2 treats missing/empty nl_assertions as reward 1."
+        ]
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            10,
+            17
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": true,
+          "evidence": [
+            "instructions:\n\tdomain: retail\n\treason for call:\n\t\tyou made some mistake and sent an order your son's address in washington dc, and you want to modify it to your default address in charlotte instead (you do not want to mention it, but it is in your user profile the agent can look up) because he is coming back home. you also want to adjust the desk lamp to be black color, and the backpack to be medium size and polyester material instead. if multiple colors are available for the backpack, you prefer grey. if the agent asks for payment method, you say gift card initially, but when the agent asks you to confirm before proceeding, you change your mind to using paypal, and also decide to only modify the backpack. make sure you briefly mention the two things at the same time at the beginning, but first mention the modification then the address.\n\tknown info:\n\t\tyou name is ivan khan and your zip code is 28243.\n\tunknown info:\n\t\tyou do not remember your email address.\n\ttask instructions:\n\t\tyou are polite, optimistic, organized.",
+            "i found it! the most recent order with a backpack and desk lamp is **#w5270061**. it's currently in **pending** status, so we can work with it.\n\nlet me summarize what i see:\n\n**order #w5270061** contains:\n1. **backpack** (navy, small, nylon, laptop compartment) - $201.95\n2. **indoor security camera** - $274.98\n3. **desk lamp** (silver, low brightness, battery) - $150.01\n\nthe order is currently being shipped to **584 sunset drive, suite 270, washington, dc 20353** (your son's address).\n\nyou mentioned you'd like to:\n1. **modify the backpack and desk lamp** items (change their options)\n2. **change the shipping address** to your usual address\n\nlet's start with the items. could you tell me what specific changes you'd like to make to the backpack and desk lamp? for example, what different options (color, size, material, etc.) would you like instead?"
+          ],
+          "reason": "Agent action exceeded user confirmed scope."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_72\\returned_results.json",
+      "artifact_sha256": "06147797da4b55fbddc8930510c2f4f2689e7a5fb5894be909adc345b9bc20dc"
+    },
+    {
+      "task_id": "76",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "76",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "790091ad9136f130e41e1160cbac1fa673c272efdbac4f4abcca7ca91e8b18cc",
+        "agent_hash": "790091ad9136f130e41e1160cbac1fa673c272efdbac4f4abcca7ca91e8b18cc",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the total price of all grills is $1,939.05.",
+            "met": true,
+            "justification": "The agent calculated the total from the two grills in order #W8668939 ($985.66 + $953.39 = $1,939.05) and communicated this to the user in the assistant message: 'Regarding Grills - From order #W8668939 (delivered), you spent $985.66 + $953.39 = $1,939.05 on grills.' The user later confirmed the total, and the agent reiterated it in the final summary."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            6,
+            13,
+            20
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_76\\returned_results.json",
+      "artifact_sha256": "bd102947feec1a1f0caac602b805c353c245e89a101f0345325e442c4af05db3"
+    },
+    {
+      "task_id": "89",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "89",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "e6d35273c62bde7441c7b580a0285fc2a2a0b63638f445b71fb37cb025fb5862",
+        "agent_hash": "e6d35273c62bde7441c7b580a0285fc2a2a0b63638f445b71fb37cb025fb5862",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the cheapest mechanical keyboard costs $226.11.",
+            "met": true,
+            "justification": "The agent explicitly stated 'The cheapest available mechanical keyboard is item #3616838507 at $226.11' in the conversation."
+          },
+          {
+            "assertion": "Agent should tell the user the keyboard switch type is tactile.",
+            "met": true,
+            "justification": "The agent stated that the cheapest keyboard has 'tactile switches' in the summary."
+          },
+          {
+            "assertion": "Agent should tell the user the keyboard backlight is white.",
+            "met": true,
+            "justification": "The agent mentioned 'white backlighting' for the cheapest keyboard."
+          },
+          {
+            "assertion": "Agent should tell the user the keyboard size is full.",
+            "met": true,
+            "justification": "The agent said the cheapest keyboard is a 'full-size' keyboard."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            12
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_89\\returned_results.json",
+      "artifact_sha256": "6d2b19a156c4dd79c349835e748851db8c04eedc663ddc73d1c904219601f5a8"
+    },
+    {
+      "task_id": "95",
+      "task_success": false,
+      "official_signal": {
+        "recorded_reward": 0.0,
+        "recorded_db_reward": 0.0,
+        "recorded_nl_reward": 0.0,
+        "termination_reason": "user_stop",
+        "db_match": false,
+        "nl_match": false,
+        "reconstructed_reward": 0.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [
+          "db_mismatch",
+          "nl_failure"
+        ],
+        "root_cause": [
+          "variant_error",
+          "missing_action",
+          "communication_error",
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [
+          "variant_error",
+          "missing_action",
+          "communication_error"
+        ],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "wrong_product_selection",
+          "policy_risk",
+          "incomplete_customer_request",
+          "incomplete_customer_communication"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "95",
+        "domain": "retail",
+        "db_match": false,
+        "gold_hash": "a0d1b0eab2e1e283dbf84607d02b637eb6bc61fc1cd4c8d3bed3d3377ecbba6b",
+        "agent_hash": "b25c9cb211f5efcaee5dd646054a73c4a9f43f4f5acc32c10713cd9f9ac20e9c",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [
+          {
+            "path": "agent.orders.#W2905754.exchange_items",
+            "agent": null,
+            "gold": [
+              "3478699712"
+            ]
+          },
+          {
+            "path": "agent.orders.#W2905754.exchange_new_items",
+            "agent": null,
+            "gold": [
+              "9844888101"
+            ]
+          },
+          {
+            "path": "agent.orders.#W2905754.exchange_payment_method_id",
+            "agent": null,
+            "gold": "credit_card_3677959"
+          },
+          {
+            "path": "agent.orders.#W2905754.exchange_price_difference",
+            "agent": null,
+            "gold": 167.87
+          },
+          {
+            "path": "agent.orders.#W2905754.status",
+            "agent": "delivered",
+            "gold": "exchange requested"
+          },
+          {
+            "path": "agent.orders.#W4073673.exchange_items",
+            "agent": null,
+            "gold": [
+              "2216662955"
+            ]
+          },
+          {
+            "path": "agent.orders.#W4073673.exchange_new_items",
+            "agent": null,
+            "gold": [
+              "9844888101"
+            ]
+          },
+          {
+            "path": "agent.orders.#W4073673.exchange_payment_method_id",
+            "agent": null,
+            "gold": "credit_card_3677959"
+          },
+          {
+            "path": "agent.orders.#W4073673.exchange_price_difference",
+            "agent": null,
+            "gold": -60.78
+          },
+          {
+            "path": "agent.orders.#W4073673.status",
+            "agent": "delivered",
+            "gold": "exchange requested"
+          }
+        ],
+        "order_diffs": {
+          "#W2905754": {
+            "differing_fields": {
+              "status": {
+                "agent": "delivered",
+                "gold": "exchange requested"
+              },
+              "exchange_items": {
+                "agent": null,
+                "gold": [
+                  "3478699712"
+                ]
+              },
+              "exchange_new_items": {
+                "agent": null,
+                "gold": [
+                  "9844888101"
+                ]
+              },
+              "exchange_payment_method_id": {
+                "agent": null,
+                "gold": "credit_card_3677959"
+              },
+              "exchange_price_difference": {
+                "agent": null,
+                "gold": 167.87
+              }
+            },
+            "agent_mutations": [],
+            "gold_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ]
+          },
+          "#W4073673": {
+            "differing_fields": {
+              "status": {
+                "agent": "delivered",
+                "gold": "exchange requested"
+              },
+              "exchange_items": {
+                "agent": null,
+                "gold": [
+                  "2216662955"
+                ]
+              },
+              "exchange_new_items": {
+                "agent": null,
+                "gold": [
+                  "9844888101"
+                ]
+              },
+              "exchange_payment_method_id": {
+                "agent": null,
+                "gold": "credit_card_3677959"
+              },
+              "exchange_price_difference": {
+                "agent": null,
+                "gold": -60.78
+              }
+            },
+            "agent_mutations": [],
+            "gold_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ]
+          }
+        },
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": true,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": true,
+          "partial_scope": false,
+          "missing_mutation": true,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": false,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should tell the user the price difference for one laptop exchange is $167.87.",
+            "met": true,
+            "justification": "The agent correctly calculated the price difference for exchanging the laptop from order #W2905754 (item 3478699712, $2,291.87) to the matching item 9844888101 ($2,459.74) as $167.87, and communicated this to the user."
+          },
+          {
+            "assertion": "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+            "met": false,
+            "justification": "The agent did not calculate or mention a price difference of $60.78 for the second laptop exchange. The agent noted that only one matching item was available and did not proceed with a calculation for the second laptop, so this expectation was not met."
+          },
+          {
+            "assertion": "Agent should tell the user the total amount to pay today is $107.09.",
+            "met": false,
+            "justification": "The agent did not provide a total amount of $107.09. Instead, the agent only mentioned the $167.87 difference for one laptop and did not combine any figures to give a total, as the second exchange could not be completed due to lack of inventory."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "variant_understanding_failure",
+          "explanation": "The agent interpreted a variant's availability boolean as a single inventory unit, although the gold reuses that variant across multiple orders.",
+          "evidence": [
+            "only one available",
+            "gold_reuses_same_new_item_id"
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        },
+        {
+          "code": "missing_action",
+          "explanation": "One or more gold exchanges were not reflected in final DB.",
+          "evidence": [
+            "#W2905754",
+            "#W4073673"
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "communication_omission",
+          "explanation": "At least one frozen official NL assertion failed.",
+          "evidence": [
+            {
+              "assertion": "Agent should tell the user the price difference for the other laptop exchange is $60.78 (a refund).",
+              "met": false,
+              "justification": "The agent did not calculate or mention a price difference of $60.78 for the second laptop exchange. The agent noted that only one matching item was available and did not proceed with a calculation for the second laptop, so this expectation was not met."
+            },
+            {
+              "assertion": "Agent should tell the user the total amount to pay today is $107.09.",
+              "met": false,
+              "justification": "The agent did not provide a total amount of $107.09. Instead, the agent only mentioned the $167.87 difference for one laptop and did not combine any figures to give a total, as the second exchange could not be completed due to lack of inventory."
+            }
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": true,
+          "evidence": [
+            {
+              "attribute": "cpu",
+              "requested": "i7",
+              "selected": "i5"
+            },
+            {
+              "attribute": "ram",
+              "requested": "8gb",
+              "selected": "16gb"
+            },
+            {
+              "attribute": "storage",
+              "requested": "1tb",
+              "selected": "512gb"
+            }
+          ],
+          "reason": "Selected product variant does not satisfy user requirements."
+        }
+      },
+      "improvement_suggestions": [
+        "Resolve variants structurally from product options and availability.",
+        "Run deterministic policy checks before write tool execution.",
+        "Track every requested goal until completed, denied, or transferred.",
+        "Generate final communication from verified tool results."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_95\\returned_results.json",
+      "artifact_sha256": "e246810bfb0500d3854ee919b9dfb85e10a2eea9ae43fafe54ef38c58c5f8954"
+    },
+    {
+      "task_id": "98",
+      "task_success": false,
+      "official_signal": {
+        "recorded_reward": 0.0,
+        "recorded_db_reward": 0.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": false,
+        "nl_match": true,
+        "reconstructed_reward": 0.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [
+          "db_mismatch"
+        ],
+        "root_cause": [
+          "payment_error",
+          "scope_error",
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [
+          "payment_error"
+        ],
+        "secondary_findings": [
+          "scope_error",
+          "policy_error"
+        ],
+        "business_impact": [
+          "overbroad_or_incorrect_order_effect",
+          "wrong_refund_or_charge_destination",
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "98",
+        "domain": "retail",
+        "db_match": false,
+        "gold_hash": "a38fddcc78ebe2ba2a41b1cffaff27fd678aa60e52c505a0cd0a43e3963ea641",
+        "agent_hash": "74f96064794e1864ead14309cd77d785e58c2ce9b751d2a934e4b314d78eee6a",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [
+          {
+            "path": "agent.orders.#W3916020.exchange_payment_method_id",
+            "agent": "credit_card_3951670",
+            "gold": "credit_card_8105988"
+          },
+          {
+            "path": "agent.orders.#W4689314.exchange_payment_method_id",
+            "agent": "credit_card_3951670",
+            "gold": "credit_card_8105988"
+          }
+        ],
+        "order_diffs": {
+          "#W3916020": {
+            "differing_fields": {
+              "exchange_payment_method_id": {
+                "agent": "credit_card_3951670",
+                "gold": "credit_card_8105988"
+              }
+            },
+            "agent_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ],
+            "gold_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ]
+          },
+          "#W4689314": {
+            "differing_fields": {
+              "exchange_payment_method_id": {
+                "agent": "credit_card_3951670",
+                "gold": "credit_card_8105988"
+              }
+            },
+            "agent_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ],
+            "gold_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ]
+          }
+        },
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": true,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "no_assertions",
+        "assertions": [],
+        "notes": [
+          "Tau2 treats missing/empty nl_assertions as reward 1."
+        ]
+      },
+      "root_causes": [
+        {
+          "code": "wrong_payment_method",
+          "explanation": "The exchange/return payment method persisted in DB differs from the gold action.",
+          "evidence": [
+            {
+              "#W3916020": {
+                "agent": "credit_card_3951670",
+                "gold": "credit_card_8105988"
+              },
+              "#W4689314": {
+                "agent": "credit_card_3951670",
+                "gold": "credit_card_8105988"
+              }
+            }
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "scope_confirmation_failure",
+          "explanation": "The tool cancelled a multi-item order, but the final claim described an item-only cancellation.",
+          "evidence": [
+            "#W8855135"
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        },
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8,
+            15,
+            29
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Confirm and report the complete tool effect scope.",
+        "Bind the confirmed payment method to every exchange action.",
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_98\\returned_results.json",
+      "artifact_sha256": "ba0434c3d1c1693ef6a2bc6f421eea212ff4bec6358dfb411c3a142183823ca8"
+    },
+    {
+      "task_id": "107",
+      "task_success": false,
+      "official_signal": {
+        "recorded_reward": 0.0,
+        "recorded_db_reward": 0.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": false,
+        "nl_match": true,
+        "reconstructed_reward": 0.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [
+          "db_mismatch"
+        ],
+        "root_cause": [
+          "variant_error",
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [
+          "variant_error",
+          "policy_error"
+        ],
+        "secondary_findings": [],
+        "business_impact": [
+          "wrong_product_selection",
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "107",
+        "domain": "retail",
+        "db_match": false,
+        "gold_hash": "8111ebca39106dc47090d13df4491130add9e194d7d71697cf909a9a0be50040",
+        "agent_hash": "5eb70a54dd4d8d92d9b5e540f608e0a8afe6bf35aeebeb38f8dd3b4b271a9744",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [
+          {
+            "path": "agent.orders.#W1304208.exchange_new_items",
+            "agent": [
+              "1615379700"
+            ],
+            "gold": [
+              "8106223139"
+            ]
+          },
+          {
+            "path": "agent.orders.#W1304208.exchange_price_difference",
+            "agent": 0.0,
+            "gold": -4.77
+          }
+        ],
+        "order_diffs": {
+          "#W1304208": {
+            "differing_fields": {
+              "exchange_new_items": {
+                "agent": [
+                  "1615379700"
+                ],
+                "gold": [
+                  "8106223139"
+                ]
+              },
+              "exchange_price_difference": {
+                "agent": 0.0,
+                "gold": -4.77
+              }
+            },
+            "agent_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ],
+            "gold_mutations": [
+              "exchange_items",
+              "exchange_new_items",
+              "exchange_payment_method_id",
+              "exchange_price_difference",
+              "status"
+            ]
+          }
+        },
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": true,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should exchange items in both orders.",
+            "met": true,
+            "justification": "The agent successfully processed exchanges for both the hiking boots (order #W1304208) and the jigsaw puzzle (order #W8353027). The agent confirmed the customer's requests, looked up the available options, and executed the exchanges, updating the order statuses to 'exchange requested'."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "wrong_variant",
+          "explanation": "The reconstructed exchange_new_items differ from gold.",
+          "evidence": [
+            {
+              "#W1304208": {
+                "agent": [
+                  "1615379700"
+                ],
+                "gold": [
+                  "8106223139"
+                ]
+              }
+            }
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy requires exchange to a different product option, but the tool call used the same old and new item ID. The tool accepted a business-rule violation.",
+          "evidence": [
+            {
+              "name": "exchange_delivered_order_items",
+              "arguments": {
+                "order_id": "#W1304208",
+                "item_ids": [
+                  "1615379700"
+                ],
+                "new_item_ids": [
+                  "1615379700"
+                ],
+                "payment_method_id": "paypal_1679017"
+              },
+              "message_index": 20
+            }
+          ],
+          "caused_official_failure": true,
+          "confidence": "high"
+        },
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8,
+            13,
+            20
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Resolve variants structurally from product options and availability.",
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_107\\returned_results.json",
+      "artifact_sha256": "64d338141033856e97831620d531995dcb969ebe76abe376115881c1f78ad363"
+    },
+    {
+      "task_id": "109",
+      "task_success": true,
+      "official_signal": {
+        "recorded_reward": 1.0,
+        "recorded_db_reward": 1.0,
+        "recorded_nl_reward": 1.0,
+        "termination_reason": "user_stop",
+        "db_match": true,
+        "nl_match": true,
+        "reconstructed_reward": 1.0,
+        "recorded_vs_reconstructed_db_consistent": true
+      },
+      "taxonomy": {
+        "official_signal": [],
+        "root_cause": [
+          "policy_error"
+        ],
+        "primary_causal_root_cause": [],
+        "secondary_findings": [
+          "policy_error"
+        ],
+        "business_impact": [
+          "policy_risk"
+        ],
+        "quarantine_recommended": false
+      },
+      "replay": {
+        "task_id": "109",
+        "domain": "retail",
+        "db_match": true,
+        "gold_hash": "b7a36959054a9b2b3445bb8625028fda7a0ffccb943a2b037879889dc22abd8c",
+        "agent_hash": "b7a36959054a9b2b3445bb8625028fda7a0ffccb943a2b037879889dc22abd8c",
+        "gold_user_hash": null,
+        "agent_user_hash": null,
+        "replay_errors": []
+      },
+      "state_diff": {
+        "changed_paths": [],
+        "order_diffs": {},
+        "flags": {
+          "extra_cancel": false,
+          "missing_cancel": false,
+          "missing_exchange": false,
+          "extra_exchange": false,
+          "wrong_variant": false,
+          "wrong_payment": false,
+          "wrong_refund": false,
+          "wrong_address": false,
+          "wrong_status": false,
+          "partial_scope": false,
+          "missing_mutation": false,
+          "extra_mutation": false
+        }
+      },
+      "nl_assertions": {
+        "nl_match": true,
+        "source": "recorded_official_judge",
+        "assertions": [
+          {
+            "assertion": "Agent should make changes to address on order and user profile",
+            "met": true,
+            "justification": "The agent updated the user's default address to 592 Elm Avenue, Suite 978, Houston, TX 77242, USA and changed the shipping address on order #W1603792 to the same address, as confirmed by the tool outputs and the agent's summary."
+          },
+          {
+            "assertion": "Agent should modify the pending order.",
+            "met": true,
+            "justification": "The agent successfully modified order #W1603792 by replacing the tablet (item #6501071631) with the cheapest available tablet (item #2106335193) and processed a refund of $114.73 to the customer's Mastercard, as shown in the tool output and the agent's final summary."
+          }
+        ],
+        "notes": []
+      },
+      "root_causes": [
+        {
+          "code": "policy_violation",
+          "explanation": "Retail policy permits at most one tool call per assistant turn.",
+          "evidence": [
+            8,
+            15
+          ],
+          "caused_official_failure": false,
+          "confidence": "high"
+        }
+      ],
+      "legacy_rule_checks": {
+        "scope_checker": {
+          "has_scope_failure": false,
+          "evidence": [],
+          "reason": "No scope mismatch detected."
+        },
+        "variant_checker": {
+          "has_variant_failure": false,
+          "evidence": [],
+          "reason": "No explicit variant requirement found."
+        }
+      },
+      "improvement_suggestions": [
+        "Run deterministic policy checks before write tool execution."
+      ],
+      "artifact": "D:\\PolicyAgent-PostTrain\\experiments\\20260722_110504_retail_baseline20_trial1_deepseek\\task_109\\returned_results.json",
+      "artifact_sha256": "a5e06597e6e3fa7872b4088452279ebae4c1025fd61b9fd65aa52211b7af93ea"
+    }
+  ]
+}

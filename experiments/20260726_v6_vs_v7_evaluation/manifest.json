@@ -1,0 +1,21 @@
+{
+  "experiment": "v6_vs_v7_evaluation",
+  "date": "2026-07-26",
+  "dataset": "frozen Retail baseline20 development set",
+  "task_count": 20,
+  "failure_audit_task_ids": [
+    "59",
+    "95",
+    "98",
+    "107"
+  ],
+  "gold_outcome": "recorded Tau2 overall reward",
+  "v6_prediction": "raw prediction.has_failure from v6_verifier_result.jsonl",
+  "v7_prediction": "DB replay match AND frozen official NL assertion result",
+  "taxonomy_audit_status": "development diagnostic set; not held out",
+  "limitations": [
+    "Historical v6 token usage and latency were not recorded.",
+    "V7 replay fidelity is not an unseen-task generalization metric.",
+    "The four failure taxonomy expectations were reviewed during development."
+  ]
+}
