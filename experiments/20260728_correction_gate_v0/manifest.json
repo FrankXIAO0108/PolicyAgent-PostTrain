@@ -1,0 +1,36 @@
+{
+  "experiment_id": "20260728_correction_gate_v0",
+  "role": "Fail-closed corrected-trajectory validation dry run",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "correction_supplied": false,
+    "approvals_supplied": false,
+    "new_model_calls": 0,
+    "environment_replay": false
+  },
+  "implementation": {
+    "src/training/correction_validation.py": "004B37AEE62BC866C133AF081ED741355003CB458FEAE00FEB25BAF2673E8C1C",
+    "src/training/sft_release.py": "BEC3E4EDFB08761694F1DD1353443B2C9C695BE0EFC3FC06869AE1BCE8935802",
+    "tests/test_correction_validation.py": "F708F0E31A5450D9A7F6203426F133D603EBD57089D68B907100A5DE42724917",
+    "tests/test_sft_release.py": "F49CCFDBB14F40C3126A99F834E26CC855C33EF1B1E2BD4374B62E7B724B1DD4",
+    "docs/20260728_corrected_trajectory_protocol.md": "652B9989C2AF8E48D8E9A5A7BEEE5DC8A8E44043B45CBA77E62186D5500718F2",
+    "docs/20260728_sft_release_protocol.md": "50D3BB64B53C1CEA30837873A7B2F30D424A18028BEC3EA9037D5221E824E410"
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.training.correction_validation --output experiments\\20260728_correction_gate_v0",
+  "expected_exit_code": 2,
+  "outputs": {
+    "correction_validation.json": "2D65C43F7FD4628F7DF2F427A7EE944CB234E45F82899D052D662406A2FC2CB2",
+    "analysis.md": "C1B982D4B4390CED5A74C0C1379563EC253881CDFBE257156875E42DEB1EE84A"
+  },
+  "result": {
+    "ready": false,
+    "reason": "No corrected trajectory supplied.",
+    "gate_behavior": "expected_fail_closed"
+  },
+  "interpretation_boundary": [
+    "No corrected target was generated or approved.",
+    "No SFT data was released.",
+    "This validates empty-input gate behavior only."
+  ]
+}

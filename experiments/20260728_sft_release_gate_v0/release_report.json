@@ -1,0 +1,11 @@
+{
+  "ready": false,
+  "reasons": [
+    "Policy annotations are not fully ADJUDICATED: 1, 107, 109, 16, 19, 21, 24, 28, 29, 37, 43, 46, 50, 52, 59, 72, 76, 89, 95, 98",
+    "No adjudicated trajectory-quality decision file supplied."
+  ],
+  "counts": {
+    "annotations": 20,
+    "released": 0
+  }
+}

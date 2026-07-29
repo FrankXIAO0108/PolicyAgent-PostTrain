@@ -1,0 +1,51 @@
+{
+  "experiment_id": "20260728_post_training_readiness_v0",
+  "role": "Evidence-backed SFT, DPO, and RLHF/GRPO stage readiness audit",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "new_model_calls": 0,
+    "training_run": false,
+    "required_stage": "SFT_START"
+  },
+  "implementation": {
+    "src/training/readiness_gate.py": "4F7BE170FAF97355B34E744BD0EB85327DE15CFF1B9697D49176F809BD5023A3",
+    "tests/test_readiness_gate.py": "C74AEDB20E8D78FD943CB0C473F3CE693EE10BEA028B8F6BDAC78C18944B1E43",
+    "docs/20260728_post_training_readiness_protocol.md": "213DCBF540DC31DED356ADC1DDBCCF6AEC12852B1CDC7D1883F76D2A719EB0E3"
+  },
+  "inputs": {
+    "policy_validation": {
+      "path": "experiments/20260727_policy_grounding_v2_2/validation/metrics.json",
+      "sha256": "E7D2EF1ED9874904E204CBDA8948257EAC04F12D9D330CB2526930CFF17B4B99",
+      "official_metrics_allowed": false
+    },
+    "sft_dataset_manifest": null,
+    "sft_run_manifest": null,
+    "comparison_manifest": null,
+    "preference_manifest": null,
+    "reward_validation": null
+  },
+  "thresholds": {
+    "reward_min_precision": 0.9,
+    "reward_min_recall": 0.9,
+    "critical_min_recall": 0.95
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.training.readiness_gate --policy-validation experiments\\20260727_policy_grounding_v2_2\\validation\\metrics.json --require-stage SFT_START --output experiments\\20260728_post_training_readiness_v0",
+  "expected_exit_code": 2,
+  "outputs": {
+    "readiness_report.json": "2FC4B605F9C6E09F042B6EE95C0DCBB68E2F1EA1EEB06C8866572F36CEA301B4",
+    "analysis.md": "DE8B31F9018F42E46E52F55FF623C48F25883288EBE65A72935F979D0B7CFF51"
+  },
+  "result": {
+    "sft_start_ready": false,
+    "sft_evaluation_ready": false,
+    "dpo_ready": false,
+    "rlhf_grpo_ready": false,
+    "gate_behavior": "expected_fail_closed"
+  },
+  "interpretation_boundary": [
+    "This is a readiness audit, not a training run.",
+    "DPO and RL are conditional on comparable residual-failure evidence.",
+    "No model-improvement claim is made."
+  ]
+}

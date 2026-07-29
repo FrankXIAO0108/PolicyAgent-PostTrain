@@ -1,0 +1,46 @@
+{
+  "experiment_id": "20260728_sft_release_gate_v0",
+  "role": "Fail-closed SFT release dry run against current provisional policy annotations",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_count": 20,
+    "source_split": "official Retail train split development subset",
+    "new_model_calls": 0,
+    "training_run": false
+  },
+  "implementation": {
+    "src/training/sft_release.py": "25F9F4326ECA9E64CDA6EEAE865CEF5485478B46722B817852414ABF0C757B58",
+    "tests/test_sft_release.py": "AAA8683528A038FE8DE48CE7EB8E189040157BF921DD5E6EC3C06CAD8E47ED6D",
+    "docs/20260728_sft_release_protocol.md": "6181ECDA86173E05537BDC4A776B6BD12EC4EA3768EFC9A67D19427E0FD651BA"
+  },
+  "inputs": {
+    "policy_annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "E11837A22A2611C71D4D7864B06D7DD57061B6F80C5C124FFBC26C9AE244C73D",
+      "status_counts": {
+        "ADJUDICATED": 0,
+        "PROVISIONAL": 20,
+        "UNREVIEWED": 0
+      }
+    },
+    "trajectory_quality_decisions": null
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.training.sft_release --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --output experiments\\20260728_sft_release_gate_v0",
+  "expected_exit_code": 2,
+  "outputs": {
+    "release_report.json": "C366D7078F64883D1573F86A12CA97B0FFB38DA67BCCD356B3399C8D108931D9",
+    "analysis.md": "0F1C28448911C060ACD700A7212A087356009479A0402E785564368394F2DB15",
+    "sft_dataset.jsonl": null
+  },
+  "result": {
+    "ready": false,
+    "released_records": 0,
+    "gate_behavior": "expected_fail_closed"
+  },
+  "interpretation_boundary": [
+    "No training data was released.",
+    "No corrected trajectory was inferred or generated.",
+    "This dry run validates release-gate behavior only."
+  ]
+}

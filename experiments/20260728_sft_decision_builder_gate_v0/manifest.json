@@ -1,0 +1,49 @@
+{
+  "experiment_id": "20260728_sft_decision_builder_gate_v0",
+  "role": "Fail-closed quality-to-SFT decision build dry run",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_count": 20,
+    "new_model_calls": 0,
+    "training_run": false
+  },
+  "implementation": {
+    "src/training/sft_decision_builder.py": "69CA657EC4E86D91E62F1D269669DC000327FB5B6075BA8701E4453F47837716",
+    "src/training/sft_release.py": "BFEBC5E2C1D5EC4BAEC1BE8571C34D77A0B9CB70A91E199BA3ABBEF718986811",
+    "tests/test_sft_decision_builder.py": "8855B65B1C892BB637F98DDFD682B59A16437D3601818FDD24229EE9E2EC3AF2",
+    "tests/test_sft_release.py": "F49CCFDBB14F40C3126A99F834E26CC855C33EF1B1E2BD4374B62E7B724B1DD4",
+    "docs/20260728_sft_decision_builder_protocol.md": "60A909D7CADA9D87A66CFD58B79CA72243069996854D75EC5BAB692E043066F1"
+  },
+  "inputs": {
+    "policy_annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "E11837A22A2611C71D4D7864B06D7DD57061B6F80C5C124FFBC26C9AE244C73D",
+      "status_counts": {
+        "ADJUDICATED": 0,
+        "PROVISIONAL": 20,
+        "UNREVIEWED": 0
+      }
+    },
+    "adjudicated_quality": null,
+    "corrections": null,
+    "split_plan": null
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.training.sft_decision_builder --policy-annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --output experiments\\20260728_sft_decision_builder_gate_v0",
+  "expected_exit_code": 2,
+  "outputs": {
+    "decision_build_report.json": "889DE7B8679532E5A94373C2A04214C511AE48650F00D0B40D2CFF47B1B922B5",
+    "analysis.md": "18717E1F9EEE0729A6CDEEB85361303768F322947737F2B54E13BCAEDC2BD9E1",
+    "sft_quality_decisions.jsonl": null
+  },
+  "result": {
+    "ready": false,
+    "decision_count": 0,
+    "gate_behavior": "expected_fail_closed"
+  },
+  "interpretation_boundary": [
+    "No disposition was inferred from provisional labels.",
+    "No correction or split assignment was fabricated.",
+    "No SFT data was released."
+  ]
+}

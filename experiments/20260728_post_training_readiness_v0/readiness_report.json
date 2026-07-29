@@ -1,0 +1,59 @@
+{
+  "schema_version": "policy-agent-post-training-readiness-v0.1",
+  "inputs": {
+    "policy_validation": {
+      "path": "experiments\\20260727_policy_grounding_v2_2\\validation\\metrics.json",
+      "sha256": "E7D2EF1ED9874904E204CBDA8948257EAC04F12D9D330CB2526930CFF17B4B99"
+    },
+    "sft_dataset_manifest": null,
+    "sft_run_manifest": null,
+    "comparison_manifest": null,
+    "preference_manifest": null,
+    "reward_validation": null
+  },
+  "thresholds": {
+    "reward_min_precision": 0.9,
+    "reward_min_recall": 0.9,
+    "critical_min_recall": 0.95
+  },
+  "gates": {
+    "sft_start": {
+      "ready": false,
+      "reasons": [
+        "Policy-gold official metric release gate is closed.",
+        "Missing released SFT dataset manifest."
+      ]
+    },
+    "sft_evaluation": {
+      "ready": false,
+      "reasons": [
+        "Policy-gold official metric release gate is closed.",
+        "Missing released SFT dataset manifest.",
+        "Missing completed SFT run manifest.",
+        "Missing Base-vs-SFT comparison manifest."
+      ]
+    },
+    "dpo": {
+      "ready": false,
+      "reasons": [
+        "Policy-gold official metric release gate is closed.",
+        "Missing released SFT dataset manifest.",
+        "Missing completed SFT run manifest.",
+        "Missing Base-vs-SFT comparison manifest.",
+        "No residual systematic failures justify preference work.",
+        "Missing adjudicated preference-pair manifest."
+      ]
+    },
+    "rlhf_grpo": {
+      "ready": false,
+      "reasons": [
+        "Policy-gold official metric release gate is closed.",
+        "Missing released SFT dataset manifest.",
+        "Missing completed SFT run manifest.",
+        "Missing Base-vs-SFT comparison manifest.",
+        "Comparable SFT evaluation does not justify RL.",
+        "Missing held-out reward validation."
+      ]
+    }
+  }
+}

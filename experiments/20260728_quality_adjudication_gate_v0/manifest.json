@@ -1,0 +1,49 @@
+{
+  "experiment_id": "20260728_quality_adjudication_gate_v0",
+  "role": "Fail-closed trajectory-quality adjudication readiness dry run",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_count": 20,
+    "new_model_calls": 0,
+    "human_reviews_supplied": 0
+  },
+  "implementation": {
+    "src/training/quality_adjudication.py": "16E1A8A7AF7C16A7F546A06EE9E65BA115E49F0162288BEC99712F2396DDB9D5",
+    "tests/test_quality_adjudication.py": "C1E3FD9FA9DA2E264E75203901B866609C8374A6ACFE8DF5B2DF87FD48BFF8AB",
+    "docs/20260728_trajectory_quality_adjudication_protocol.md": "BFC7FC14BADD9A5A901791EBC23F66955BA3F9533E0049F83F650BE55D7CE460"
+  },
+  "inputs": {
+    "policy_annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "E11837A22A2611C71D4D7864B06D7DD57061B6F80C5C124FFBC26C9AE244C73D",
+      "status_counts": {
+        "ADJUDICATED": 0,
+        "PROVISIONAL": 20,
+        "UNREVIEWED": 0
+      }
+    },
+    "experiment": "experiments/20260722_110504_retail_baseline20_trial1_deepseek",
+    "reviewer_a": null,
+    "reviewer_b": null,
+    "resolver": null
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.training.quality_adjudication --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --experiment experiments\\20260722_110504_retail_baseline20_trial1_deepseek --output experiments\\20260728_quality_adjudication_gate_v0",
+  "expected_exit_code": 2,
+  "outputs": {
+    "quality_adjudication_report.json": "5A300791BBC8385B94AB565C95CCE03D408312D40F128CF0905DFD72A893CBD9",
+    "analysis.md": "67C981E33D7DA1C9FBC2359B674A1DAEAB3FC9EAB69B8C49C67197D5513213FB",
+    "quality_review_template.jsonl": null,
+    "adjudicated_quality.jsonl": null
+  },
+  "result": {
+    "ready": false,
+    "stage": "BLOCKED_POLICY_ADJUDICATION",
+    "gate_behavior": "expected_fail_closed"
+  },
+  "interpretation_boundary": [
+    "No quality labels were inferred from provisional policy labels.",
+    "No reviewer identity or decision was fabricated.",
+    "No training data was released."
+  ]
+}

@@ -1,0 +1,76 @@
+# 后训练阶段门禁协议 v0
+
+日期：2026-07-28
+
+## 目的
+
+让 SFT、DPO 和 RLHF/GRPO 的阶段切换由证据决定。仅仅存在名为 `sft`、
+`dpo` 或 `grpo` 的目录不代表阶段完成。每个阶段必须由可读取的 manifest、
+准确哈希、可比较评测和明确 release gate 打开。
+
+## SFT 可以开始
+
+必须同时满足：
+
+- 只使用 adjudicated 标签的政策验证，并且官方 release gate 已打开；
+- 存在已发布的 SFT dataset manifest；
+- TRAIN 和 VALIDATION 都包含非空记录；
+- 数据文件 SHA-256 与 manifest 完全一致。
+
+## SFT 评测完成
+
+除上述条件外，还要求：
+
+- SFT run manifest 完整，本地 smoke 成功；
+- checkpoint 路径存在且哈希正确；
+- checkpoint 与发布数据集准确绑定；
+- Base-vs-SFT 对比完成；
+- 任务集合和运行协议冻结且可比较；
+- 明确禁止看结果后调 prompt、规则或数据；
+- 对比产物与 SFT run、checkpoint、任务集合和运行配置完整绑定。
+
+## DPO 可以开始
+
+还必须满足：
+
+- 可比较的 SFT 评测识别出系统性残余失败；
+- preference dataset 非空且全部经过裁决；
+- 不存在实体组泄漏；
+- preference data 与 Base-vs-SFT 对比准确绑定。
+
+“计划做偏好优化”本身不能打开 DPO。
+
+## RLHF/GRPO 可以开始
+
+还必须满足：
+
+- 可比较 SFT 评测明确证明 RL 有必要；
+- held-out reward validation 的官方 gate 已打开；
+- reward spec 哈希冻结；
+- reward 与 adjudicated policy validation 准确绑定；
+- precision 和 recall 均不低于 0.90；
+- critical-risk recall 不低于 0.95；
+- 没有未解决的 FP 或 FN。
+
+这些阈值是初始安全门禁，不是通用生产标准。未来如需修改阈值，必须在评测前
+冻结。
+
+## 命令
+
+```powershell
+D:\tau2-bench\.venv\Scripts\python.exe -m src.training.readiness_gate `
+  --policy-validation path\metrics.json `
+  --sft-dataset-manifest path\dataset_manifest.json `
+  --sft-run-manifest path\sft_run_manifest.json `
+  --comparison-manifest path\base_vs_sft_manifest.json `
+  --preference-manifest path\preference_manifest.json `
+  --reward-validation path\reward_validation.json `
+  --require-stage SFT_START `
+  --output experiments\YYYYMMDD_post_training_readiness
+```
+
+不传 `--require-stage` 时只生成报告；传入后，仅当指定阶段关闭时退出码为 2。
+SFT 不会因为 DPO 或 RL 尚未就绪而被错误阻塞。
+
+英文证据原文保存在
+[20260728_post_training_readiness_protocol.md](20260728_post_training_readiness_protocol.md)。

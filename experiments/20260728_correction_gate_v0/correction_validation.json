@@ -1,0 +1,12 @@
+{
+  "ready": false,
+  "reasons": [
+    "No corrected trajectory supplied."
+  ],
+  "task_id": null,
+  "correction_sha256": null,
+  "inputs": {
+    "correction": null,
+    "approvals": null
+  }
+}

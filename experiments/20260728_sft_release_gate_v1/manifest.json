@@ -1,0 +1,48 @@
+{
+  "experiment_id": "20260728_sft_release_gate_v1",
+  "role": "SFT release dry run with mandatory correction-approval binding",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_count": 20,
+    "source_split": "official Retail train split development subset",
+    "new_model_calls": 0,
+    "training_run": false
+  },
+  "implementation": {
+    "src/training/correction_validation.py": "004B37AEE62BC866C133AF081ED741355003CB458FEAE00FEB25BAF2673E8C1C",
+    "src/training/sft_release.py": "BEC3E4EDFB08761694F1DD1353443B2C9C695BE0EFC3FC06869AE1BCE8935802",
+    "tests/test_correction_validation.py": "F708F0E31A5450D9A7F6203426F133D603EBD57089D68B907100A5DE42724917",
+    "tests/test_sft_release.py": "F49CCFDBB14F40C3126A99F834E26CC855C33EF1B1E2BD4374B62E7B724B1DD4"
+  },
+  "inputs": {
+    "policy_annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "E11837A22A2611C71D4D7864B06D7DD57061B6F80C5C124FFBC26C9AE244C73D",
+      "status_counts": {
+        "ADJUDICATED": 0,
+        "PROVISIONAL": 20,
+        "UNREVIEWED": 0
+      }
+    },
+    "trajectory_quality_decisions": null
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.training.sft_release --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --output experiments\\20260728_sft_release_gate_v1",
+  "expected_exit_code": 2,
+  "outputs": {
+    "release_report.json": "C366D7078F64883D1573F86A12CA97B0FFB38DA67BCCD356B3399C8D108931D9",
+    "analysis.md": "B402757233F068434F5D83F3417362743D909E8BDF1584539ECC9F308390313E",
+    "sft_dataset.jsonl": null
+  },
+  "result": {
+    "ready": false,
+    "released_records": 0,
+    "gate_behavior": "expected_fail_closed"
+  },
+  "behavior_change": "CORRECTED_POSITIVE now requires a ready correction-validation report bound by exact path and SHA-256.",
+  "interpretation_boundary": [
+    "No training data was released.",
+    "No corrected target was inferred or generated.",
+    "This dry run validates the strengthened release boundary only."
+  ]
+}
