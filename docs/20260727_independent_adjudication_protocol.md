@@ -1,0 +1,112 @@
+# Independent policy-gold adjudication protocol
+
+Date: 2026-07-27
+
+## Purpose
+
+Convert the 20-row provisional policy-grounding pool into independently
+adjudicated gold without silently accepting analyst labels or verifier output.
+The verifier prediction must not be shown to reviewers before they submit
+their decisions.
+
+## Reviewer files
+
+Reviewer A and Reviewer B each complete a separate copy of the portable packet.
+The preferred reviewer interface is `review_sheet.csv`, which can be opened in
+Excel. `review_template.jsonl` remains available as a machine-readable
+alternative. Every row must contain:
+
+```json
+{
+  "task_id": "1",
+  "label": "PASS",
+  "reviewer_id": "stable-independent-identity",
+  "reviewed_at": "2026-07-27T14:00:00+08:00",
+  "rationale": "Evidence-based policy decision.",
+  "evidence_files": ["path/to/reviewed/evidence"]
+}
+```
+
+Allowed labels are `PASS`, `REVIEW`, and `FAIL`. Each submission must cover all
+20 task IDs exactly once and use one reviewer identity throughout. Rationale,
+timezone-aware review time, and evidence paths are mandatory. Reviewers fill
+only `label`, `reviewer_id`, `reviewed_at`, and `rationale`; they must preserve
+the pre-filled `task_id` and `evidence_files`.
+
+The two reviewers must work independently. They may inspect frozen trajectory,
+tool-result, task, and policy artifacts, but not each other's decisions or the
+current verifier verdict.
+
+Generate a label-blind template for each reviewer from frozen raw artifacts:
+
+```powershell
+D:\tau2-bench\.venv\Scripts\python.exe -m src.verifiers.blind_review_packet `
+  --annotations data\verifier_gold\policy_grounding_gold_v0.jsonl `
+  --experiment experiments\20260722_110504_retail_baseline20_trial1_deepseek `
+  --policy D:\tau2-bench\data\tau2\domains\retail\policy.md `
+  --output experiments\YYYYMMDD_blind_review_packet `
+  --bundle-evidence
+```
+
+The packet intentionally omits provisional labels, prior audit rationales,
+verifier predictions, and other reviewer decisions. Copy the template before
+Reviewer A and Reviewer B fill it independently.
+
+Preflight each returned CSV separately. This validates the exact task coverage,
+single reviewer identity, timestamps, preserved evidence paths, and every
+bundled evidence hash:
+
+```powershell
+D:\tau2-bench\.venv\Scripts\python.exe -m src.verifiers.review_submission `
+  --packet experiments\YYYYMMDD_blind_review_packet `
+  --submission path\reviewer_a_completed.csv `
+  --output experiments\YYYYMMDD_reviewer_a_preflight
+```
+
+A valid submission emits `normalized_review.jsonl`, which is the file supplied
+to the adjudication command. An invalid submission exits with status 2, records
+the errors in `preflight_report.json`, and emits no normalized review.
+
+## Conflict resolution
+
+If Reviewer A and Reviewer B disagree, a third independent reviewer receives
+only the conflicting tasks and submits the same row schema. The resolver
+identity must differ from both initial reviewers.
+
+The pipeline is fail-closed:
+
+- unresolved conflicts create a report and `conflicts.jsonl`;
+- no `adjudicated_annotations.jsonl` is emitted while any conflict is open;
+- agreement plus complete third-reviewer resolution emits a complete
+  adjudicated annotation file;
+- the provisional source file is never overwritten.
+
+## Commands
+
+```powershell
+cd D:\PolicyAgent-PostTrain
+D:\tau2-bench\.venv\Scripts\python.exe -m src.verifiers.adjudication `
+  --annotations data\verifier_gold\policy_grounding_gold_v0.jsonl `
+  --reviewer-a path\reviewer_a.jsonl `
+  --reviewer-b path\reviewer_b.jsonl `
+  --output experiments\YYYYMMDD_policy_gold_adjudication
+```
+
+If conflicts remain, add:
+
+```powershell
+  --resolver path\resolver.jsonl
+```
+
+The command exits with status 2 when conflicts remain unresolved. After a
+complete adjudication, run `src.verifiers.gold_validation` in its default
+adjudicated-only mode. Do not use `--include-provisional` for official
+validation.
+
+## Release boundary
+
+Passing structural adjudication checks is necessary but not sufficient for SFT
+release. Environment-corrupted rows and `REVIEW` rows still require the
+trajectory-quality gates in
+`docs/20260722_trajectory_quality_taxonomy_v1.md`. No RL decision follows from
+adjudication alone.

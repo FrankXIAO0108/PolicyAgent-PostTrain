@@ -1,0 +1,42 @@
+{
+  "experiment_id": "20260728_route_alignment_and_handoff_v1",
+  "role": "Audit route alignment and create portable independent policy-review handoff",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_count": 20,
+    "new_model_calls": 0,
+    "reviewer_decisions_created": 0,
+    "training_run": false
+  },
+  "implementation": {
+    "AGENTS.md": "370F019F621AF696C6F9F7405268BE0F43CEC9E441D48BFBD26B74F35BBEBE4C",
+    "docs/20260728_route_alignment_audit.md": "DE54D60CC80808B03666C3A7EFAEEB6BCE5497B33B0A2D8EA5C8685245475E2F",
+    "src/verifiers/blind_review_packet.py": "B86F96D24C9B4421AAB5A39308AB9083E292A3C2754A7C9F543A1EB692068772",
+    "tests/test_blind_review_packet.py": "C36904F95056D8DC662901B6F39C36196F420DF43932683D8A2BE0169B21293E"
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.blind_review_packet --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --experiment experiments\\20260722_110504_retail_baseline20_trial1_deepseek --policy D:\\tau2-bench\\data\\tau2\\domains\\retail\\policy.md --bundle-evidence --output experiments\\20260728_portable_policy_review_handoff_v1",
+  "outputs": {
+    "analysis.md": "52073EDF1A0C389C6775DDFCF4178FE05BA50D236B66315FBAD0CBCE7A8B35B0",
+    "../20260728_portable_policy_review_handoff_v1/manifest.json": "25CFDED45BDC6DFFF7495D8FADF6E1E46314CC7A43BD30119866444CC6078318",
+    "../20260728_portable_policy_review_handoff_v1/review_template.jsonl": "DBC570C45B0EC9F40C14BAD6ADEFA4D7278EBF4EBD2DD789E924B109C1A1A4DB",
+    "../20260728_portable_policy_review_handoff_v1/REVIEWER_INSTRUCTIONS.md": "645AED2A2C179C6A9643434D38700FC7087E68C1D563A3ACEB2C809C9D1DDFC7",
+    "../20260728_portable_policy_review_handoff_v1.zip": "65BE289C074B7EA67789CAA4E91B32308C19F96922F0BD00352786B6B2179EF2"
+  },
+  "portable_packet": {
+    "task_count": 20,
+    "pre_filled_label_count": 0,
+    "bundled_evidence_file_count": 41,
+    "archive_bytes": 322967
+  },
+  "route_audit": {
+    "strategic_deviation": false,
+    "tactical_drift": "mild",
+    "corrective_priority": "Obtain two independent blind policy reviews before further downstream infrastructure."
+  },
+  "interpretation_boundary": [
+    "The packet contains no reviewer decision.",
+    "Provisional labels and verifier predictions are excluded.",
+    "No training or model-improvement claim is made."
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "experiment_id": "20260729_reviewer_submission_workflow_v1",
+  "role": "Make independent blind review easier to complete and fail-closed to ingest",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_count": 20,
+    "new_model_calls": 0,
+    "reviewer_decisions_created": 0,
+    "training_run": false,
+    "evaluation_run": false
+  },
+  "implementation": {
+    "README.md": "02FAA1571B3BBFB37A6F5CCC105BBFDB2DB06022845300BCDB00F47E886DA417",
+    "docs/20260727_independent_adjudication_protocol.md": "DAF35C917F060EDA8AC6F0CEA2B439707179256393C867D77647E76BD356E1EE",
+    "src/verifiers/blind_review_packet.py": "F675FFF5516BD5FF85D84621F3EFA21A203F4A5E2F49A4BC255250BFC17A1602",
+    "src/verifiers/review_submission.py": "4CBF99934D9147B76212638E9F78B8EF237171712B79B9B60DD0AE9B94E5ECFF",
+    "tests/test_blind_review_packet.py": "0EE358A4FB70D8E03E42564D0971A9AAA4EAA7C8A7F3A342E4D42154E545FB10",
+    "tests/test_review_submission.py": "06BD276556C0EE5504F50C1F60D8561BCDCEE9CB36F8E8099BE2557BA11F8ED6"
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.blind_review_packet --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --experiment experiments\\20260722_110504_retail_baseline20_trial1_deepseek --policy D:\\tau2-bench\\data\\tau2\\domains\\retail\\policy.md --bundle-evidence --output experiments\\20260729_portable_policy_review_handoff_v2",
+  "outputs": {
+    "analysis.md": "F2537E8EE96AA5FAF768ECBDC5B06C8C52B472866D51544FB8D3B8C6845BA51A",
+    "../20260729_portable_policy_review_handoff_v2/manifest.json": "0528850C0F8694278B20289417579FF03C06FE0A251CACE58E3F0D163DBA2C39",
+    "../20260729_portable_policy_review_handoff_v2/review_template.jsonl": "DBC570C45B0EC9F40C14BAD6ADEFA4D7278EBF4EBD2DD789E924B109C1A1A4DB",
+    "../20260729_portable_policy_review_handoff_v2/review_sheet.csv": "5811DFCF5775F7D2CF2E82C624F654E18C366CCA893571C097D8E10D6723F01A",
+    "../20260729_portable_policy_review_handoff_v2/REVIEWER_INSTRUCTIONS.md": "384A6B0611E01DE045D087E5F745E04E7653258B248C81D39CFC98086346AF0A",
+    "../20260729_portable_policy_review_handoff_v2.zip": "FF3002C43054CEBF0AEE7B3E81234D085B80DB8F19865DEE53B1CCDA6D9F36FE"
+  },
+  "portable_packet": {
+    "task_count": 20,
+    "csv_pre_filled_label_count": 0,
+    "jsonl_pre_filled_label_count": 0,
+    "bundled_evidence_file_count": 41,
+    "evidence_hash_mismatch_count": 0,
+    "archive_bytes": 324108
+  },
+  "validation": {
+    "focused_tests": "12 passed",
+    "full_tests": "72 passed, 1 upstream deprecation warning",
+    "ruff": "clean"
+  },
+  "route_audit": {
+    "strategic_deviation": false,
+    "tactical_drift_after_change": "none",
+    "reason": "The change directly reduces the P0 independent-review handoff and ingestion blocker without adding downstream training infrastructure."
+  },
+  "interpretation_boundary": [
+    "The packet contains no reviewer decision.",
+    "Provisional labels and verifier predictions are excluded.",
+    "Preflight readiness is structural and does not make a label human gold.",
+    "No training or model-improvement claim is made."
+  ]
+}

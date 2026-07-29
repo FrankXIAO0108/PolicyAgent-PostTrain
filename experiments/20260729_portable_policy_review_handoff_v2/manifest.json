@@ -1,0 +1,49 @@
+{
+  "schema_version": "policy-grounding-blind-review-packet-v0.1",
+  "annotation_source": {
+    "path": "data\\verifier_gold\\policy_grounding_gold_v0.jsonl",
+    "sha256": "E11837A22A2611C71D4D7864B06D7DD57061B6F80C5C124FFBC26C9AE244C73D",
+    "labels_exposed_in_packet": false
+  },
+  "experiment_dir": "experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+  "policy": {
+    "path": "D:\\tau2-bench\\data\\tau2\\domains\\retail\\policy.md",
+    "sha256": "4313D3FEF8ACF919F555FA17FBCE929CC3ED1CEF2DD8F0D35FF5C8C3364DE176"
+  },
+  "task_count": 20,
+  "task_ids": [
+    "1",
+    "16",
+    "19",
+    "21",
+    "24",
+    "28",
+    "29",
+    "37",
+    "43",
+    "46",
+    "50",
+    "52",
+    "59",
+    "72",
+    "76",
+    "89",
+    "95",
+    "98",
+    "107",
+    "109"
+  ],
+  "excluded_from_packet": [
+    "provisional labels",
+    "provisional rationales",
+    "verifier predictions",
+    "other reviewer decisions"
+  ],
+  "outputs": {
+    "review_template.jsonl": "DBC570C45B0EC9F40C14BAD6ADEFA4D7278EBF4EBD2DD789E924B109C1A1A4DB",
+    "review_sheet.csv": "5811DFCF5775F7D2CF2E82C624F654E18C366CCA893571C097D8E10D6723F01A",
+    "REVIEWER_INSTRUCTIONS.md": "384A6B0611E01DE045D087E5F745E04E7653258B248C81D39CFC98086346AF0A"
+  },
+  "portable_bundle": true,
+  "bundled_evidence_file_count": 41
+}

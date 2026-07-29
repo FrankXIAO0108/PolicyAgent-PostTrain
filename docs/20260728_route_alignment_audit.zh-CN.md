@@ -1,0 +1,56 @@
+# 项目任务路线审查
+
+日期：2026-07-28
+
+## 结论
+
+项目没有发生战略路线偏移：
+
+- 没有启动 SFT、DPO、RLHF 或 GRPO；
+- 没有把 provisional 标签升级为训练 gold；
+- 官方 Tau2 test split 保持未使用；
+- “审计 → SFT → 对比 → 有条件进入 RL”的顺序保持不变。
+
+项目曾出现轻微的战术偏移：
+
+- 2026-07-27 已经生成 label-blind 政策审阅包；
+- 独立政策审阅数量仍为 0；
+- 最高优先级的外部依赖尚未解决时，又实现了若干下游门禁。
+
+这些下游门禁具有防护价值，但继续扩展 DPO/RL 或通用工作流会偏离当时的主要
+阻塞项。
+
+## 证据
+
+| 路线阶段 | 当前证据 | 状态 |
+|---|---|---|
+| Prompt baseline | 冻结 20 任务 Trial-1 | 开发基线完成 |
+| 失败审计 | Taxonomy v2 和分析员审计批次 | provisional 覆盖完成 |
+| Programmatic Verifier | Policy Grounding V2.2 | 仅开发诊断 |
+| 独立政策 gold | 盲审包存在，0 条 adjudicated | 阻塞 |
+| 轨迹质量 gold | 工具和门禁存在，没有合格输入 | 阻塞 |
+| 修正后的 SFT 数据 | 发布工具存在，0 条发布 | 阻塞 |
+| SFT | 没有数据集和 checkpoint | 未开始 |
+| Base vs SFT | 没有可比较产物 | 未开始 |
+| DPO/RLHF/GRPO | readiness gate 关闭 | 无充分依据 |
+
+## 当时的纠偏动作
+
+1. 暂停新增下游优化基础设施；
+2. 生成包含冻结原始证据的便携式 label-blind 审阅包；
+3. 尝试获得 Reviewer A 和 Reviewer B 的独立决策；
+4. 为冲突准备第三方裁决；
+5. 只在 adjudicated gold 上验证 Verifier 并审查全部 FP/FN。
+
+## 当前调整
+
+由于无法获得业务人员填写完整审阅文件，项目没有伪造独立金标，而是将当前
+完成定义调整为可复现的 Tool Agent Reliability System：
+
+- 保留所有训练门禁；
+- 不声明 SFT/DPO/RL 提升；
+- 优先展示状态重放、失败归因、Guard 和数据治理能力；
+- 未来获得可靠监督后再恢复正式后训练路线。
+
+英文证据原文保存在
+[20260728_route_alignment_audit.md](20260728_route_alignment_audit.md)。

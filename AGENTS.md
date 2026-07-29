@@ -57,6 +57,13 @@ the project had not entered the baseline stage is superseded by the completed
   valid results, 16 business successes, 4 business failures, and no system
   failures. It is not an official leaderboard score.
 - Failure Taxonomy v2 and an eight-trajectory quality audit exist.
+- Programmatic Policy Grounding V2.2 and its 20-row development diagnostic
+  exist. All 20 policy labels are `PROVISIONAL`; zero are independently
+  `ADJUDICATED`.
+- A label-blind policy-review packet and independent two-reviewer plus
+  third-reviewer adjudication tooling exist.
+- Downstream correction, quality, SFT-release, and post-training readiness
+  gates are implemented but remain closed.
 - SFT, DPO, Outcome-GRPO, Policy-aware GRPO, and final frozen comparison are
   not confirmed as completed.
 
@@ -118,16 +125,20 @@ data policy. In particular:
 - Mixed cases must be segmented and relabeled.
 - Benchmark-label conflicts must not be naively learned as negatives.
 
-The current eight-trajectory audit must not be generalized to all 20 tasks.
-The remaining twelve successful trajectories are still `UNREVIEWED_SUCCESS`
-until audited by validated checks and/or humans.
+Analyst review now provides provisional coverage for all 20 tasks, but this
+must not be generalized into human gold. There are zero independently
+adjudicated policy labels, and no provisional label may release training data.
 
 ## Priority order
 
-1. Validate Programmatic Verifier v1 against human gold and review FP/FN cases.
-2. Complete targeted human review of the twelve verifier-covered but still unreviewed success trajectories.
-3. Establish a trustworthy data pool, then construct strictly split and hashed SFT data.
-4. Re-evaluate Base vs SFT vs Verifier-assisted variants on a frozen protocol.
+1. Obtain two independent blind policy reviews for all 20 rows, resolve
+   conflicts, and validate V2.2 against adjudicated-only gold.
+2. Independently adjudicate trajectory quality and review all verifier FP/FN
+   cases.
+3. Establish a trustworthy data pool, approve corrections, then construct
+   strictly split and hashed SFT data.
+4. Run SFT and re-evaluate Base vs SFT vs Verifier-assisted variants on a
+   frozen protocol.
 5. Proceed to preference optimization or RL only if residual systematic
    failures and a reliable reward signal justify it.
 
