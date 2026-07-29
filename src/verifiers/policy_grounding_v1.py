@@ -117,7 +117,7 @@ def verify_trajectory(
     )
     result.metrics.update(
         {
-            "verifier_version": "1.2",
+            "verifier_version": "1.3",
             "latest_intent_audited_write_calls": len(audits),
             "latest_intent_passed_write_calls": sum(
                 audit.verdict == Verdict.PASS for audit in audits
@@ -131,9 +131,11 @@ def verify_trajectory(
         }
     )
     result.notes = [
-        "V1.2 freezes the latest assistant action summary when the next user turn "
+        "V1.3 freezes the latest assistant action summary when the next user turn "
         "explicitly confirms it, then compares material write-tool arguments "
         "against that frozen state.",
+        "Modify actions ground user-visible item, address, and payment details "
+        "without requiring internal order IDs to be repeated in the final summary.",
         "Internal entity IDs may be grounded through user-visible names and "
         "variant aliases observed in earlier tool results.",
         "A later confirmed summary supersedes earlier user constraints.",

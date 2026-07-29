@@ -1,0 +1,144 @@
+{
+  "schema_version": "policy-grounding-gold-validation-v0.1",
+  "generated_at_utc": "2026-07-27T01:34:47.862554+00:00",
+  "mode": "provisional_included",
+  "coverage": {
+    "annotation_rows": 20,
+    "prediction_rows": 20,
+    "status_counts": {
+      "ADJUDICATED": 0,
+      "PROVISIONAL": 9,
+      "UNREVIEWED": 11
+    },
+    "eligible_gold_rows": 9,
+    "evaluated_rows": 9,
+    "missing_prediction_task_ids": [],
+    "unknown_prediction_task_ids": []
+  },
+  "three_class": {
+    "labels": [
+      "PASS",
+      "REVIEW",
+      "FAIL"
+    ],
+    "confusion_matrix": {
+      "PASS": {
+        "PASS": 0,
+        "REVIEW": 1,
+        "FAIL": 0
+      },
+      "REVIEW": {
+        "PASS": 0,
+        "REVIEW": 3,
+        "FAIL": 1
+      },
+      "FAIL": {
+        "PASS": 0,
+        "REVIEW": 0,
+        "FAIL": 4
+      }
+    },
+    "exact_match_accuracy": 0.7777777777777778,
+    "review_prediction_count": 4,
+    "review_prediction_rate": 0.4444444444444444
+  },
+  "fail_detection": {
+    "scope": "Gold PASS/FAIL rows; REVIEW predictions count as abstaining misses",
+    "tp": 4,
+    "fp": 0,
+    "fn": 0,
+    "tn": 1,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_positive_task_ids": [],
+    "false_negative_task_ids": []
+  },
+  "task_results": [
+    {
+      "task_id": "1",
+      "gold": "REVIEW",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": false,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Reward passed, but the existing trajectory audit assigns SILVER and requires correction before positive SFT use."
+    },
+    {
+      "task_id": "16",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "raw_turn_and_upstream_policy_audit",
+      "rationale": "Outcome passed, but one assistant turn issued three mutating tool calls. The frozen Retail policy permits at most one tool call at a time. The older GOLD bucket describes trajectory/training quality and is not a policy PASS label."
+    },
+    {
+      "task_id": "21",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Existing trajectory audit assigns SUSPECT and environment-integrity hold."
+    },
+    {
+      "task_id": "28",
+      "gold": "PASS",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": false,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Existing trajectory audit assigns GOLD."
+    },
+    {
+      "task_id": "46",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Reward passed, but the existing trajectory audit assigns SILVER and requires correction before positive SFT use."
+    },
+    {
+      "task_id": "59",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Static-gold and latest-user-intent conflict; quarantine instead of treating the trajectory as an ordinary policy failure."
+    },
+    {
+      "task_id": "95",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Valid agent failure: variant/inventory semantics were misread and the requested exchanges were not completed."
+    },
+    {
+      "task_id": "98",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Mixed badcase with material scope/payment errors; unsafe segments require correction and relabeling."
+    },
+    {
+      "task_id": "107",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Valid agent policy-grounding failure: same-item exchange and wrong replacement variant."
+    }
+  ],
+  "release_gate": {
+    "official_metrics_allowed": false,
+    "reason": "Human adjudication is incomplete; metrics are diagnostic only."
+  }
+}

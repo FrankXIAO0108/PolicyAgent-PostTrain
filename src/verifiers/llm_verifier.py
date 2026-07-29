@@ -5,15 +5,105 @@ from src.verifiers.deepseek_client import DeepSeekClient
 
 
 INPUT_FILE = Path(
-    "data/verifier/verifier_dataset.jsonl"
+    "data/trajectory/retail_baseline20_trial1.jsonl"
 )
 
 OUTPUT_FILE = Path(
-    "reports/verifier/llm_verifier_result.jsonl"
+    "reports/verifier/llm_verifier_v2_result.jsonl"
 )
 
 
 client = DeepSeekClient()
+
+
+SYSTEM_PROMPT = """
+You are a policy-aware evaluator for customer service agent trajectories.
+
+Evaluate whether the agent behavior is correct.
+
+You must analyze four dimensions.
+
+1. Intent Alignment
+
+Check:
+- Did the agent understand the user's actual request?
+- Did it process only requested items?
+- Did it avoid misunderstanding user goals?
+
+
+2. Policy Compliance
+
+Important:
+
+A tool action being executable does NOT mean it is allowed.
+
+Check:
+- Did the agent follow business rules?
+- Did it violate exchange/cancellation/refund policies?
+- Did it perform actions that policy forbids?
+
+
+3. Tool Usage
+
+Check:
+- Were the correct tools used?
+- Were parameters correct?
+- Did tool execution match user intent?
+
+
+4. Scope Handling
+
+Check:
+- Did the agent modify only requested items?
+- Did it cancel/exchange unrelated items?
+- Did it confirm ambiguous requests?
+
+
+Return JSON only.
+
+Format:
+
+{
+ "correct": true/false,
+
+ "intent_alignment": {
+    "score": 0/1,
+    "reason": ""
+ },
+
+ "policy_compliance": {
+    "score": 0/1,
+    "reason": ""
+ },
+
+ "tool_usage": {
+    "score": 0/1,
+    "reason": ""
+ },
+
+ "scope_handling": {
+    "score": 0/1,
+    "reason": ""
+ },
+
+ "failure_type": "",
+
+ "reason": ""
+}
+
+
+Failure types:
+
+none
+
+golden_mismatch
+
+variant_understanding_failure
+
+scope_confirmation_failure
+
+policy_violation
+"""
 
 
 
@@ -28,7 +118,6 @@ def load_jsonl(path):
     ) as f:
 
         for line in f:
-
             data.append(
                 json.loads(line)
             )
@@ -37,63 +126,51 @@ def load_jsonl(path):
 
 
 
-def build_prompt(sample):
+def build_prompt(item):
 
-    conversation = "\n".join(
-        [
-            f'{m["role"]}: {m["content"]}'
-            for m in sample["messages"]
-        ]
-    )
+    text = ""
+
+    for message in item["messages"]:
+
+        text += (
+            message["role"]
+            +
+            ": "
+            +
+            message["content"]
+            +
+            "\n"
+        )
 
 
     return f"""
-You are an expert AI agent verifier.
+Evaluate this trajectory:
 
-Analyze this customer service agent trajectory.
+{text}
 
-Conversation:
-
-{conversation}
-
-
-Determine whether the agent completed the task correctly.
-
-Evaluation criteria:
-
-1. Did the agent understand user intent?
-2. Did the agent modify only requested items?
-3. Did the agent follow policy?
-4. Did the final tool action match the request?
-
-
-Return ONLY JSON:
-
-{{
-    "correct": true,
-    "failure_type": "none",
-    "reason": ""
-}}
-
-
-Allowed failure_type:
-
-none
-golden_mismatch
-scope_confirmation_failure
-variant_understanding_failure
-policy_violation
-unknown
-
+Return JSON only.
 """
 
 
 
-def call_verifier(prompt):
+def call_verifier(item):
+
+    prompt = f"""
+
+{SYSTEM_PROMPT}
+
+
+{build_prompt(item)}
+
+"""
+
 
     response = client.chat(
         prompt
     )
+
+
+    response = response.strip()
 
 
     try:
@@ -105,30 +182,52 @@ def call_verifier(prompt):
 
     except Exception:
 
+
         return {
 
-            "correct": None,
+            "correct": False,
+
+            "intent_alignment": {
+                "score":0,
+                "reason":"JSON parse failed"
+            },
+
+            "policy_compliance":{
+                "score":0,
+                "reason":"JSON parse failed"
+            },
+
+            "tool_usage":{
+                "score":0,
+                "reason":"JSON parse failed"
+            },
+
+            "scope_handling":{
+                "score":0,
+                "reason":"JSON parse failed"
+            },
 
             "failure_type":
                 "parse_error",
 
             "reason":
                 response
-
         }
+
 
 
 
 def main():
 
-    samples = load_jsonl(
-        INPUT_FILE
-    )
-
 
     OUTPUT_FILE.parent.mkdir(
         parents=True,
         exist_ok=True
+    )
+
+
+    data = load_jsonl(
+        INPUT_FILE
     )
 
 
@@ -139,38 +238,26 @@ def main():
     ) as f:
 
 
-        for i, sample in enumerate(samples):
+        for idx,item in enumerate(
+            data,
+            1
+        ):
 
             print(
-                f"Evaluating {i+1}/{len(samples)} "
-                f"task={sample['task_id']}"
-            )
-
-
-            prompt = build_prompt(
-                sample
+                f"Evaluating {idx}/{len(data)} "
+                f"task={item['task_id']}"
             )
 
 
             prediction = call_verifier(
-                prompt
+                item
             )
 
 
             result = {
 
                 "task_id":
-                    sample["task_id"],
-
-
-                "gold":
-                    {
-                        "label":
-                            sample["label"],
-
-                        "failure_type":
-                            sample["failure_type"]
-                    },
+                    item["task_id"],
 
 
                 "prediction":
@@ -184,20 +271,23 @@ def main():
                     result,
                     ensure_ascii=False
                 )
-                + "\n"
+                +
+                "\n"
             )
 
 
-    print(
-        "LLM verifier evaluation finished"
-    )
 
     print(
-        "Saved:",
-        OUTPUT_FILE
+        "LLM verifier v2 finished"
+    )
+
+
+    print(
+        f"Saved: {OUTPUT_FILE}"
     )
 
 
 
 if __name__ == "__main__":
+
     main()

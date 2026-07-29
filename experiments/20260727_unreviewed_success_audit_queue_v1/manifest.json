@@ -1,0 +1,65 @@
+{
+  "experiment_id": "20260727_unreviewed_success_audit_queue_v1",
+  "role": "Route frozen unreviewed trajectories to targeted human review",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "new_model_calls": 0,
+  "command": [
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe",
+    "D:\\PolicyAgent-PostTrain\\src\\verifiers\\review_queue.py",
+    "--annotations",
+    "data\\verifier_gold\\policy_grounding_gold_v0.jsonl",
+    "--v1-predictions",
+    "experiments\\20260724_verifier_v1_diagnostics\\verifier_v1_2_baseline20.json",
+    "--v2-predictions",
+    "experiments\\20260727_policy_grounding_v2\\verifier_v2_baseline20.json",
+    "--experiment",
+    "experiments\\20260722_110504_retail_baseline20_trial1_deepseek",
+    "--output",
+    "experiments\\20260727_unreviewed_success_audit_queue_v1",
+    "--project-root",
+    "D:\\PolicyAgent-PostTrain",
+    "--project-commit",
+    "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+    "--upstream-commit",
+    "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+  ],
+  "implementation": {
+    "path": "src/verifiers/review_queue.py",
+    "sha256": "3E603D22ACF6FE6746D2E0EED0A6528C2C54B6C6DEA8257DB681EC7241FDF171"
+  },
+  "inputs": {
+    "annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "EA9F676A8A80830A8AC368C5A83E4FF030D1F5390B6C1F9941568D0CA31C42BC"
+    },
+    "v1.2": {
+      "path": "experiments/20260724_verifier_v1_diagnostics/verifier_v1_2_baseline20.json",
+      "sha256": "E13FDCFE321A8CD7B54A345F1890F4FBB82EC146DAE1BC0F0630917DDF6AE103"
+    },
+    "v2.0": {
+      "path": "experiments/20260727_policy_grounding_v2/verifier_v2_baseline20.json",
+      "sha256": "BEEA7B182E8D5531547ACDBAC6917DCC53EFB2FFB16DF9B3B28DDBEBC8742E2D"
+    }
+  },
+  "outputs": {
+    "review_queue.json": "2E2662243503E42AEEA704B8FF483D4A10C06F32A9CBCE19F06ED2A5FA0229DF",
+    "review_queue.md": "1444BE764F23B3AB86875A45B6412930747B3B3DF3740790A8979B7AE3A3BEE7",
+    "packets": {
+      "37": "8F5B4DC736951FF3ABD8DD98CDFEBC5AAB33EA2AA2CDB9D817318DE26E166566",
+      "72": "909E95C3936E4787DF1CF9ADAA578B8E2625B085AD75B5EA97DE7628A0341941",
+      "19": "7CB142A31DE95A86284444B47ABA79B7628007C21B02CA0E6BCC1C4A55311308",
+      "24": "D80DCEFBDEEE9E89AF7662DC4FA5729443C8657F7E128903152243D1D60A9794",
+      "43": "A9E8333F1480538D70883F6F5948A217E03D23AD545099571CE6A32EC8D8FDA8",
+      "50": "2F05FC15A08AD6704AA44D9EB169E57F916F088CBDA5C2349BF74412BFDBF8EF",
+      "52": "E44F10FC0B1080B4C0B9959C45D254931B098F4DC35DF72CDDBC7B2847EA8FB4",
+      "89": "24DBF85492E22F5F426BB455D37F411CCF0A239DC0C674CF1F6D250807059F46"
+    }
+  },
+  "candidate_count": 8,
+  "interpretation_boundary": [
+    "Queue membership is selected only from annotation status UNREVIEWED.",
+    "Verifier predictions prioritize review but do not become gold labels.",
+    "Packets preserve generated PENDING review fields and cannot open the metric release gate."
+  ]
+}

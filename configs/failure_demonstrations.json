@@ -1,0 +1,90 @@
+{
+  "variant_understanding_failure": {
+    "definition": "Agent fails to understand or satisfy user's requested product variant constraints.",
+    "trigger_patterns": [
+      "User specifies product attributes such as size, color, capacity, model, compatibility.",
+      "Agent selects or processes an item that does not satisfy those constraints.",
+      "Agent ignores important variant requirements."
+    ],
+    "positive_example": {
+      "scenario": "User wants a laptop exchange with specific capacity and configuration.",
+      "wrong_behavior": "Agent selects a replacement laptop with different capacity or configuration without confirming.",
+      "evidence": [
+        "User requested variant A.",
+        "Replacement item is variant B.",
+        "Agent did not resolve mismatch."
+      ]
+    },
+    "negative_example": {
+      "scenario": "User requested a product variant that is unavailable.",
+      "correct_behavior": "Agent explains available alternatives or transfers to human support.",
+      "not_failure_reason": "No incorrect variant selection occurred."
+    }
+  },
+
+
+  "scope_confirmation_failure": {
+    "definition": "Agent performs actions beyond the user's confirmed scope or fails to resolve ambiguous operation scope.",
+    "trigger_patterns": [
+      "User specifies only certain items or operations.",
+      "Agent modifies unrelated items.",
+      "Agent executes broader action without confirmation."
+    ],
+    "positive_example": {
+      "scenario": "User wants to cancel one item from an order.",
+      "wrong_behavior": "Agent cancels the entire order.",
+      "evidence": [
+        "User requested item-level operation.",
+        "Agent performed order-level operation."
+      ]
+    },
+    "negative_example": {
+      "scenario": "User clearly confirms all items before processing.",
+      "correct_behavior": "Agent processes only confirmed items.",
+      "not_failure_reason": "Scope was explicitly confirmed."
+    }
+  },
+
+
+  "policy_violation": {
+    "definition": "Agent performs an action that conflicts with benchmark policy even if tools allow execution.",
+    "trigger_patterns": [
+      "Tool execution succeeds.",
+      "Action violates known benchmark policy.",
+      "Agent fails to block or correct invalid operation."
+    ],
+    "positive_example": {
+      "scenario": "Tool allows an exchange but benchmark policy forbids this exchange type.",
+      "wrong_behavior": "Agent executes the exchange successfully.",
+      "evidence": [
+        "Tool returned success.",
+        "Policy requirement was violated."
+      ]
+    },
+    "negative_example": {
+      "scenario": "Tool execution succeeds and policy requirements are satisfied.",
+      "correct_behavior": "Agent completes operation.",
+      "not_failure_reason": "Successful tool execution matches policy."
+    }
+  },
+
+
+  "golden_mismatch": {
+    "definition": "Trajectory differs from benchmark expected behavior due to mismatch between simulator expectation and gold annotation.",
+    "trigger_patterns": [
+      "Agent behavior appears reasonable.",
+      "Failure comes from deviation from benchmark expected result."
+    ],
+    "positive_example": {
+      "scenario": "Agent completes a reasonable action but benchmark expects another outcome.",
+      "wrong_behavior": "Agent trajectory differs from gold expectation.",
+      "evidence": [
+        "Compare trajectory with benchmark annotation."
+      ]
+    },
+    "negative_example": {
+      "scenario": "Agent action matches benchmark expectation.",
+      "correct_behavior": "No failure."
+    }
+  }
+}

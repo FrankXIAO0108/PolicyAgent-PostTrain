@@ -1,0 +1,108 @@
+{
+  "scope_confirmation_failure": {
+    "definition": "Agent performs an operation that exceeds the user's explicitly confirmed scope, or fails to preserve the user's requested operation boundary.",
+
+    "check_items": [
+      "Extract the items/actions explicitly requested by user.",
+      "Extract the items/actions actually modified by agent.",
+      "Compare requested scope with executed scope."
+    ],
+
+    "failure_conditions": [
+      "User explicitly limits operation to specific item(s), but agent modifies additional unrelated items.",
+      "User requests item-level operation, but agent performs broader order-level operation.",
+      "User expresses ambiguity, but agent executes without confirmation."
+    ],
+
+    "not_failure_conditions": [
+      "User explicitly confirms all affected items before execution.",
+      "Agent operation exactly matches user's confirmed scope."
+    ],
+
+    "evidence_required": [
+      "User requested scope",
+      "Agent action scope",
+      "Difference between the two scopes"
+    ]
+  },
+
+
+  "variant_understanding_failure": {
+    "definition": "Agent fails to correctly understand or satisfy user-required product attributes during selection, exchange, or modification.",
+
+    "check_items": [
+      "Extract product attributes required by user.",
+      "Extract attributes of selected replacement item.",
+      "Compare requested attributes with selected attributes."
+    ],
+
+    "failure_conditions": [
+      "Agent selects a product variant that does not satisfy user constraints.",
+      "Agent ignores one or more important requested attributes.",
+      "Agent assumes an available variant satisfies the request without verification."
+    ],
+
+    "not_failure_conditions": [
+      "Requested variant is unavailable and agent correctly explains alternatives.",
+      "Agent asks clarification before selecting a variant."
+    ],
+
+    "evidence_required": [
+      "User variant requirements",
+      "Agent selected variant",
+      "Attribute mismatch"
+    ]
+  },
+
+
+  "policy_violation": {
+    "definition": "Agent executes an action that conflicts with benchmark-defined policy constraints, even if the tool execution succeeds.",
+
+    "check_items": [
+      "Identify the operation performed by agent.",
+      "Identify benchmark policy restrictions related to this operation.",
+      "Check whether tool success hides a policy violation."
+    ],
+
+    "failure_conditions": [
+      "Tool allows an operation but benchmark policy forbids it.",
+      "Agent executes an operation without satisfying required benchmark conditions."
+    ],
+
+    "not_failure_conditions": [
+      "Tool execution succeeds and all benchmark conditions are satisfied.",
+      "Agent refuses an operation that is not allowed."
+    ],
+
+    "evidence_required": [
+      "Executed action",
+      "Relevant benchmark policy",
+      "Conflict between action and policy"
+    ]
+  },
+
+
+  "golden_mismatch": {
+    "definition": "The trajectory differs from benchmark expected behavior even when the agent action may appear reasonable from a general perspective.",
+
+    "check_items": [
+      "Compare trajectory result with benchmark expected outcome.",
+      "Do not judge only from general business logic."
+    ],
+
+    "failure_conditions": [
+      "Agent behavior differs from benchmark annotation.",
+      "User simulator expectation and benchmark gold outcome are inconsistent with agent behavior."
+    ],
+
+    "not_failure_conditions": [
+      "Agent behavior matches benchmark expected outcome."
+    ],
+
+    "evidence_required": [
+      "Agent trajectory",
+      "Benchmark expected result",
+      "Difference between them"
+    ]
+  }
+}

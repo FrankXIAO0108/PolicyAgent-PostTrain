@@ -1,0 +1,72 @@
+{
+  "experiment_id": "20260727_policy_grounding_v2_2",
+  "role": "Preserve confirmed action state across scope-only reconfirmation",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "experiment": "20260722_110504_retail_baseline20_trial1_deepseek",
+    "task_count": 20,
+    "new_model_calls": 0,
+    "reference_actions_used": false,
+    "gold_state_used": false
+  },
+  "implementation": {
+    "src/verifiers/intent_state.py": "E929A0937E2F70446BD32B356500F763566576397974722A890A18DF55D19CA1",
+    "src/verifiers/policy_grounding_v1.py": "FD11FD1FA558440E330B69D7500B67F78EE4E4A3E18C26AD6A733795E3080654",
+    "src/verifiers/policy_grounding_v2.py": "AB52BEFBDA3EB1B54965AE83ACA496542CE914366D446614E1BD20680A34B719",
+    "src/guards/retail_pre_action.py": "57C622009F8D59830DD4BAD3FD274E7266C3BB6CA9545372D313CF7F66D74524"
+  },
+  "inputs": {
+    "annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "E11837A22A2611C71D4D7864B06D7DD57061B6F80C5C124FFBC26C9AE244C73D",
+      "status_counts": {
+        "ADJUDICATED": 0,
+        "PROVISIONAL": 20,
+        "UNREVIEWED": 0
+      }
+    },
+    "v2_1_predictions": {
+      "path": "experiments/20260727_policy_grounding_v2_1/verifier_v2_1_baseline20.json",
+      "sha256": "BFA47292C72A6FD1A1FC8EE5B52947F67E80287AB712EFA4C3CBFFFE7D2D024E"
+    }
+  },
+  "commands": [
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.policy_grounding_v2 experiments\\20260722_110504_retail_baseline20_trial1_deepseek --output experiments\\20260727_policy_grounding_v2_2\\verifier_v2_2_baseline20.json",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.gold_validation --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --predictions experiments\\20260727_policy_grounding_v2_2\\verifier_v2_2_baseline20.json --output experiments\\20260727_policy_grounding_v2_2\\validation --include-provisional"
+  ],
+  "outputs": {
+    "verifier_v2_2_baseline20.json": "FED9DB1F286D93588722D1F5ABC67C003D2A88F06ECE283BAEE19BCE5E77C231",
+    "validation/metrics.json": "E7D2EF1ED9874904E204CBDA8948257EAC04F12D9D330CB2526930CFF17B4B99",
+    "validation/analysis.md": "81931092ED8A0F11F9B3FDD445F82D3A5A3F400861FBED35E159568374610C4F",
+    "analysis.md": "6429FC1071D2321334D47907B72F3F7713EE6039834AAB97AB37D0E64CDBFDCB"
+  },
+  "behavior_changes": {
+    "task_1": {
+      "v2_1": "FAIL",
+      "v2_2": "REVIEW",
+      "reason": "A scope-only reconfirmation no longer erases the immediately preceding confirmed order, variant, and payment parameters."
+    },
+    "task_28": {
+      "v2_1": "REVIEW",
+      "v2_2": "REVIEW",
+      "reason": "The prediction is unchanged; the provisional policy label is corrected from PASS to REVIEW."
+    },
+    "task_107_regression": "FAIL"
+  },
+  "diagnostic_results": {
+    "three_class_exact_match_accuracy": 1.0,
+    "labels": {
+      "PASS": 0,
+      "REVIEW": 12,
+      "FAIL": 8
+    },
+    "remaining_three_class_mismatches": []
+  },
+  "interpretation_boundary": [
+    "All labels are PROVISIONAL; zero are independently adjudicated.",
+    "There are no provisional PASS rows, so FAIL metrics do not measure true negatives.",
+    "Rules were refined using these same development trajectories.",
+    "The official metric, SFT release, training, and RL gates remain closed."
+  ]
+}

@@ -1,0 +1,34 @@
+# Programmatic Verifier Gold Validation
+
+- Mode: `provisional_included`
+- Evaluated rows: 12
+- Adjudicated: 0
+- Provisional: 12
+- Unreviewed: 8
+- Official metric release allowed: `false`
+- Gate reason: Human adjudication is incomplete; metrics are diagnostic only.
+
+## FAIL detection
+
+| TP | FP | FN | TN | Precision | Recall | F1 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 7 | 0 | 0 | 1 | 1.000 | 1.000 | 1.000 |
+
+- False positives: []
+- False negatives: []
+- REVIEW prediction rate: 0.333
+
+## Three-class confusion matrix
+
+| Gold \ Pred | PASS | REVIEW | FAIL |
+|---|---:|---:|---:|
+| PASS | 0 | 1 | 0 |
+| REVIEW | 0 | 3 | 1 |
+| FAIL | 0 | 0 | 7 |
+
+## Interpretation boundary
+
+- `PROVISIONAL` labels are seeded from existing project audits and are not a substitute for independent human adjudication.
+- `UNREVIEWED` rows do not contribute to metrics.
+- A `REVIEW` prediction is an abstention. For FAIL detection it counts as a miss when the gold label is FAIL.
+- These metrics validate policy-grounding rules; they do not replace Tau2 official reward reconstruction.

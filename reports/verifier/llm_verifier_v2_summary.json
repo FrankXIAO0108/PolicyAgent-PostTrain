@@ -1,0 +1,23 @@
+{
+  "total": 20,
+  "overall_accuracy": {
+    "correct": 18,
+    "wrong": 2,
+    "accuracy": 0.9
+  },
+  "failure_prediction": {
+    "predicted_failure": 2,
+    "rate": 0.1
+  },
+  "dimension_accuracy": {
+    "intent_alignment": 0.95,
+    "policy_compliance": 0.9,
+    "tool_usage": 0.95,
+    "scope_handling": 0.9
+  },
+  "failure_type_distribution": {
+    "none": 18,
+    "scope_confirmation_failure": 1,
+    "parse_error": 1
+  }
+}

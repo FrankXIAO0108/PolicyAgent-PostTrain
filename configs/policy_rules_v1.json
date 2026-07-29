@@ -1,0 +1,15 @@
+{
+ "exchange": {
+    "rules":[
+        {
+          "condition":
+          "same_variant_exchange",
+
+          "allowed":false,
+
+          "failure_type":
+          "policy_violation"
+        }
+    ]
+ }
+}

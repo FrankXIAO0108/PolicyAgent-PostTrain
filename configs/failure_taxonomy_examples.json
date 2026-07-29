@@ -1,0 +1,86 @@
+{
+  "task_59": {
+    "failure_type": "golden_mismatch",
+    "description": "The benchmark gold label conflicts with the agent behavior or user simulation expectation. This case should be treated separately from normal agent execution errors.",
+    "pattern": [
+      "Agent action may appear reasonable.",
+      "The mismatch comes from disagreement between simulator expectation and gold trajectory.",
+      "Do not classify only based on common business intuition."
+    ],
+    "verification_rule": {
+      "check": [
+        "Compare user explicit request",
+        "Compare executed action",
+        "Compare benchmark expected outcome"
+      ],
+      "failure_condition": "Only mark when the trajectory differs from benchmark expected behavior."
+    }
+  },
+
+
+  "task_95": {
+    "failure_type": "variant_understanding_failure",
+    "description": "Agent misunderstands product variant requirements during exchange.",
+    "pattern": [
+      "User specifies product attributes.",
+      "Agent selects an incorrect variant.",
+      "Agent ignores required options or attributes."
+    ],
+    "verification_rule": {
+      "check": [
+        "Original item attributes",
+        "Requested replacement attributes",
+        "Selected replacement item attributes"
+      ],
+      "failure_condition": "Replacement item does not satisfy user's requested variant constraints."
+    }
+  },
+
+
+  "task_98": {
+    "failure_type": "scope_confirmation_failure",
+    "description": "Agent fails to correctly handle the scope of user requested operations.",
+    "pattern": [
+      "User requests operation on specific items.",
+      "Agent modifies unrelated items.",
+      "Agent fails to confirm ambiguous scope."
+    ],
+    "verification_rule": {
+      "check": [
+        "User requested items",
+        "Tool operation item_ids",
+        "Final changed items"
+      ],
+      "failure_condition": "Agent changes items outside user confirmed scope."
+    }
+  },
+
+
+  "task_107": {
+    "failure_type": "policy_violation",
+    "description": "Agent performs an action allowed by tools but forbidden by benchmark policy.",
+    "pattern": [
+      "Tool execution succeeds.",
+      "Environment accepts operation.",
+      "Business policy should prevent the action."
+    ],
+    "verification_rule": {
+      "check": [
+        "Tool result",
+        "Known benchmark policy",
+        "Whether action should have been blocked"
+      ],
+      "failure_condition": "Tool success but policy violation exists."
+    }
+  },
+
+
+  "general_rules": {
+    "important_constraints": [
+      "Do not introduce external business rules not present in benchmark.",
+      "Do not assume common ecommerce policies.",
+      "Only classify failure when evidence exists in trajectory or benchmark rules.",
+      "Tool success does not guarantee policy correctness."
+    ]
+  }
+}

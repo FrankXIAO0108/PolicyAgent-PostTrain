@@ -1,0 +1,23 @@
+# Verifier迭代实验复盘记录
+
+本阶段主要目标是优化PolicyAgent-PostTrain项目中的LLM Failure Verifier，使其能够自动识别Agent trajectory中的错误行为。初始版本采用简单的LLM Judge方式，直接输入完整trajectory，让模型判断Agent行为是否正确。该方法可以快速建立baseline，但是存在明显问题：模型更关注任务最终是否完成，而不是分析Agent执行过程中的潜在错误。例如，Agent虽然成功调用工具并完成任务，但是可能存在scope理解错误、variant选择错误或者policy违反等隐藏问题，导致真实failure无法被识别。因此baseline版本主要问题是False Negative较高，即真实错误被模型判断为正常。
+
+针对baseline漏检问题，第二阶段引入Failure-aware Critic思想，对verifier prompt进行修改。不再要求模型简单判断结果是否正确，而是要求模型主动从多个角度分析trajectory，包括用户意图理解（intent alignment）、policy遵循情况（policy compliance）、工具调用情况（tool usage）、操作范围确认（scope handling）以及商品variant理解（variant understanding）。实验假设是：如果让LLM主动寻找错误，可以提高failure识别能力。
+
+v3版本实验结果证明该方向有效。相比baseline，模型开始能够发现更多潜在问题，对trajectory进行了更加深入的分析。但是同时出现新的问题，即False Positive明显增加。原因在于LLM开始利用自身已有知识判断，而不是严格依据benchmark规则。例如模型可能认为现实电商流程中应该检查退货期限、商品状态等，因此将某些trajectory判断为policy violation。但是tau2 benchmark中的policy可能并没有这些要求，因此出现“现实合理但是benchmark错误”的问题。说明Failure-aware Critic虽然提升了Recall，但是降低了Precision。
+
+针对v3版本误报严重的问题，第三阶段引入Benchmark Grounding方法。新增failure taxonomy配置文件，对benchmark中已知failure类型进行定义，包括golden_mismatch、variant_understanding_failure、scope_confirmation_failure和policy_violation。同时修改prompt，要求模型不要使用外部商业规则，只能根据用户请求、Agent行为、tool调用结果以及benchmark定义进行判断。实验目标是降低模型由于常识推断导致的错误判断，提高Precision。
+
+v4版本实验结果显示，benchmark grounding确实减少了无依据的failure判断，但是出现了新的问题：模型过度保守。20个trajectory中模型没有预测任何failure，导致真实failure全部漏检。进一步分析发现，问题不是taxonomy方向错误，而是taxonomy提供的信息不足。目前taxonomy只有failure名称和简单描述，没有提供具体失败案例、触发条件以及错误行为模式。因此模型知道“什么是policy violation”，但是不知道“什么样的trajectory应该被判断为policy violation”。
+
+通过以上三轮实验，可以发现LLM verifier存在明显的Precision-Recall trade-off。过于开放的Failure-aware Critic能够提高错误发现能力，但是容易引入外部知识导致误报；过于严格的Benchmark Grounding能够减少误报，但是会导致模型无法识别复杂failure。当前问题不是简单调整prompt，而是需要让模型同时具备benchmark规则理解和failure pattern识别能力。
+
+下一阶段计划设计Contrastive Failure Verifier。在当前benchmark grounding基础上，引入failure demonstrations，为每一种failure类型增加具体案例，包括错误trajectory、错误行为模式、判断依据以及关键evidence。目标是让模型不仅知道failure定义，还能够学习什么样的Agent行为符合该failure模式，从而在保持Precision的同时提升Recall。
+
+当前Verifier实验进展如下：
+Baseline LLM Judge：完成，主要问题是隐藏failure漏检。
+Failure-aware Critic v3：完成，提高failure发现能力，但误报较多。
+Benchmark Grounded Verifier v4：完成，降低误报，但过度保守。
+下一阶段：Contrastive Failure Verifier v5，通过failure examples进一步提升错误识别能力。
+
+本阶段核心经验：LLM Failure Verifier优化不是单纯提升模型推理能力，而是在Precision和Recall之间寻找平衡。有效的Verifier需要同时具备任务理解能力、benchmark规则约束能力以及failure pattern匹配能力。

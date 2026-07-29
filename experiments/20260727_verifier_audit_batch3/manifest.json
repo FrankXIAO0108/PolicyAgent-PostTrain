@@ -1,0 +1,91 @@
+{
+  "experiment_id": "20260727_verifier_audit_batch3",
+  "role": "Complete provisional audit coverage for remaining Baseline20 trajectories",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_ids": [
+      "19",
+      "24",
+      "43",
+      "50",
+      "52",
+      "89"
+    ],
+    "selection": "Remaining P2_PREDICTED_REVIEW rows from 20260727_unreviewed_success_audit_queue_v2",
+    "new_model_calls": 0,
+    "independent_human_adjudication": false
+  },
+  "inputs": {
+    "annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256_after_batch": "B5504D12B34C8E3E77B5DE5C91F1D6DA927D5922C1FE6BFA516981D59F700E5B"
+    },
+    "v1_predictions": {
+      "path": "experiments/20260724_verifier_v1_diagnostics/verifier_v1_2_baseline20.json",
+      "sha256": "E13FDCFE321A8CD7B54A345F1890F4FBB82EC146DAE1BC0F0630917DDF6AE103"
+    },
+    "v2_predictions": {
+      "path": "experiments/20260727_policy_grounding_v2/verifier_v2_baseline20.json",
+      "sha256": "BEEA7B182E8D5531547ACDBAC6917DCC53EFB2FFB16DF9B3B28DDBEBC8742E2D"
+    },
+    "review_queue_v2": "experiments/20260727_unreviewed_success_audit_queue_v2"
+  },
+  "provisional_decisions": {
+    "19": "REVIEW",
+    "24": "REVIEW",
+    "43": "REVIEW",
+    "50": "REVIEW",
+    "52": "REVIEW",
+    "89": "REVIEW"
+  },
+  "commands": [
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.gold_validation --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --predictions experiments\\20260724_verifier_v1_diagnostics\\verifier_v1_2_baseline20.json --output experiments\\20260727_verifier_audit_batch3\\v1_validation --include-provisional",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.gold_validation --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --predictions experiments\\20260727_policy_grounding_v2\\verifier_v2_baseline20.json --output experiments\\20260727_verifier_audit_batch3\\v2_validation --include-provisional",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.review_queue --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --v1-predictions experiments\\20260724_verifier_v1_diagnostics\\verifier_v1_2_baseline20.json --v2-predictions experiments\\20260727_policy_grounding_v2\\verifier_v2_baseline20.json --experiment experiments\\20260722_110504_retail_baseline20_trial1_deepseek --output experiments\\20260727_unreviewed_success_audit_queue_v3 --project-root D:\\PolicyAgent-PostTrain --project-commit 0929b8968ef3a5b8060a2ea137aedff754ee73c1 --upstream-commit 58e5e1ace69302e6982d27014569c03e0ffccdd2"
+  ],
+  "outputs": {
+    "task_19_audit.md": "51F51DC985D454A59E7F5A9225C106B436DBDE7B4FFC6EAD7DEF76D9CD9BEDC4",
+    "task_24_audit.md": "811E35A646CB3102D5A516C41319D353360F79CED71B9D1509B17BFF21A40EEA",
+    "task_43_audit.md": "C7A81BF488F744937CB7E45A1A9AEFD2A36164DB13F997AA6D8871E2890F95E5",
+    "task_50_audit.md": "E38CBFF2759464EB9F5226739A0E9E91031A45E4BED9BC403016166B8AF3C887",
+    "task_52_audit.md": "4AAEF9B184000D8B86BBFB9B2EC6FAF2A7F64E996C434C9A3E55C97C860EEF78",
+    "task_89_audit.md": "A178C5F6DFA27922F8CC6900262E73640F855AEEF3CAB61A09A10BD5E6D4C6BC",
+    "analysis.md": "E70816C6A0E46F67AF082F762CF36903659CB95083138E2836AD681234ED29F6",
+    "v1_validation/metrics.json": "F0B61EA1ED9AB6709BE8D3A29F1C88B6CDD130A5BAB60277FD72AED6CA7A059D",
+    "v1_validation/analysis.md": "41BC9D32ABC16308A202E95FC80CFD1C070BDDFDC24915415C06100486660A4A",
+    "v2_validation/metrics.json": "8F88B692B5AC808E4214E68B4EB69E0C00953E733C432921FBC7BD146612B049",
+    "v2_validation/analysis.md": "A74EA012F3980626BBCC764E5CEB03007D57BBE5BDD27421EB84D45EC93208B5",
+    "review_queue_v3_manifest.json": "64D0B5307FEFC4D449492710A53A14E68E014633689B3D6AB83B824E7AA3D2FF"
+  },
+  "diagnostic_results": {
+    "coverage": {
+      "ADJUDICATED": 0,
+      "PROVISIONAL": 20,
+      "UNREVIEWED": 0
+    },
+    "v1": {
+      "three_class_accuracy": 0.8,
+      "fail_precision": 1.0,
+      "fail_recall": 0.875,
+      "fail_f1": 0.9333333333333333,
+      "false_negative_task_ids": [
+        "95"
+      ]
+    },
+    "v2": {
+      "three_class_accuracy": 0.85,
+      "fail_precision": 1.0,
+      "fail_recall": 1.0,
+      "fail_f1": 1.0,
+      "false_negative_task_ids": []
+    }
+  },
+  "interpretation_boundary": [
+    "All 20 labels are PROVISIONAL and zero are independently human-adjudicated.",
+    "Completion of provisional coverage does not open the official metric release gate.",
+    "Gold REVIEW rows are excluded from binary FAIL precision and recall.",
+    "Task 37 remains quarantined for environment-integrity adjudication.",
+    "No SFT dataset or training run is authorized by these diagnostic metrics."
+  ]
+}

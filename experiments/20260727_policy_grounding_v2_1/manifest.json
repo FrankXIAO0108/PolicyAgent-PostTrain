@@ -1,0 +1,74 @@
+{
+  "experiment_id": "20260727_policy_grounding_v2_1",
+  "role": "Correct contextual confirmation and repeated order-mutation attribution",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "experiment": "20260722_110504_retail_baseline20_trial1_deepseek",
+    "task_count": 20,
+    "new_model_calls": 0,
+    "reference_actions_used": false,
+    "gold_state_used": false
+  },
+  "implementation": {
+    "src/verifiers/intent_state.py": "C9F37D391E59F85E5088E5E03DD0CA9C670731CBCD4B5DAFB7C7734614B77DB5",
+    "src/verifiers/policy_grounding_v1.py": "FD11FD1FA558440E330B69D7500B67F78EE4E4A3E18C26AD6A733795E3080654",
+    "src/verifiers/policy_grounding_v2.py": "449FF6C0A733DEFEEE1970814E85738179F733CE584655E18E938DE844C37DB9",
+    "src/guards/retail_pre_action.py": "57C622009F8D59830DD4BAD3FD274E7266C3BB6CA9545372D313CF7F66D74524"
+  },
+  "inputs": {
+    "annotations": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "B5504D12B34C8E3E77B5DE5C91F1D6DA927D5922C1FE6BFA516981D59F700E5B",
+      "status_counts": {
+        "ADJUDICATED": 0,
+        "PROVISIONAL": 20,
+        "UNREVIEWED": 0
+      }
+    },
+    "v2_0_predictions": {
+      "path": "experiments/20260727_policy_grounding_v2/verifier_v2_baseline20.json",
+      "sha256": "BEEA7B182E8D5531547ACDBAC6917DCC53EFB2FFB16DF9B3B28DDBEBC8742E2D"
+    }
+  },
+  "commands": [
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.policy_grounding_v2 experiments\\20260722_110504_retail_baseline20_trial1_deepseek --output experiments\\20260727_policy_grounding_v2_1\\verifier_v2_1_baseline20.json",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.gold_validation --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --predictions experiments\\20260727_policy_grounding_v2_1\\verifier_v2_1_baseline20.json --output experiments\\20260727_policy_grounding_v2_1\\validation --include-provisional"
+  ],
+  "outputs": {
+    "verifier_v2_1_baseline20.json": "BFA47292C72A6FD1A1FC8EE5B52947F67E80287AB712EFA4C3CBFFFE7D2D024E",
+    "validation/metrics.json": "B0A59371AA599640A98A3A44FC0861960DE7C3DA289A4C0E90F042B622F2D33B",
+    "validation/analysis.md": "C5B52FD777E9E7973531516B035121F47980C0D26BDA29B323A3ECFA16DD6957",
+    "analysis.md": "78E207D7437BC2AA8B6AE7C01A09FA8BE7A28CA4BA2CEA76E3A69A4706FE0D32"
+  },
+  "behavior_changes": {
+    "task_37": {
+      "v2_0": "FAIL",
+      "v2_1": "REVIEW",
+      "reason": "Confirmed item and original-card context no longer fails solely because internal order/payment IDs are omitted from the last summary."
+    },
+    "task_72": {
+      "v2_0": "FAIL",
+      "v2_1": "FAIL",
+      "new_primary_rule": "policy.one_shot_order_mutation",
+      "reason": "The second modify write on the same order is detected across turns."
+    }
+  },
+  "diagnostic_results": {
+    "v2_0_three_class_accuracy": 0.85,
+    "v2_1_three_class_accuracy": 0.9,
+    "fail_precision": 1.0,
+    "fail_recall": 1.0,
+    "fail_f1": 1.0,
+    "remaining_three_class_mismatches": [
+      "1",
+      "28"
+    ]
+  },
+  "interpretation_boundary": [
+    "All labels are PROVISIONAL; zero are independently adjudicated.",
+    "Rules were refined using the same development trajectories, so this is integration fidelity rather than held-out generalization.",
+    "The official metric release gate remains closed.",
+    "No training or RL improvement claim is permitted."
+  ]
+}

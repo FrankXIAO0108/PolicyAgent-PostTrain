@@ -1,0 +1,3066 @@
+[
+  {
+    "task_id": "1",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_user_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          12
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          12
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          21
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 24,
+      "tool_call_count": 6,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 6,
+      "max_tool_calls_in_one_turn": 2,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 1,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "107",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "FAIL",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "FAIL",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          14
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          14
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          21
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items",
+            "exchange_delivered_order_items"
+          ],
+          "write_call_count": 2
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          21
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items",
+            "exchange_delivered_order_items"
+          ]
+        }
+      },
+      {
+        "code": "PG_GUARD_POLICY_EXCHANGE_REQUIRES_DIFFERENT_OPTION",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "An exchange must select a different product option.",
+        "event_indices": [
+          21
+        ],
+        "evidence": {
+          "guard_rule_id": "policy.exchange_requires_different_option",
+          "guard_category": "policy_error",
+          "blocking": true,
+          "item_ids": [
+            "1615379700"
+          ],
+          "new_item_ids": [
+            "1615379700"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 25,
+      "tool_call_count": 10,
+      "write_call_count": 2,
+      "major_finding_count": 1,
+      "minor_finding_count": 7,
+      "max_tool_calls_in_one_turn": 4,
+      "latest_intent_audited_write_calls": 2,
+      "latest_intent_passed_write_calls": 2,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 1,
+      "runtime_guard_major_finding_count": 1,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "109",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "FAIL",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_email"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "modify_user_address",
+            "modify_pending_order_address"
+          ],
+          "write_call_count": 2
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "modify_user_address",
+            "modify_pending_order_address"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          19
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_GUARD_POLICY_ONE_SHOT_ORDER_MUTATION",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Exchange/modify tools can only be called once per order.",
+        "event_indices": [
+          25
+        ],
+        "evidence": {
+          "guard_rule_id": "policy.one_shot_order_mutation",
+          "guard_category": "policy_error",
+          "blocking": true,
+          "order_id": "#W1603792",
+          "previous_tools": [
+            "modify_pending_order_address"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 28,
+      "tool_call_count": 8,
+      "write_call_count": 3,
+      "major_finding_count": 1,
+      "minor_finding_count": 6,
+      "max_tool_calls_in_one_turn": 2,
+      "latest_intent_audited_write_calls": 3,
+      "latest_intent_passed_write_calls": 1,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 2,
+      "runtime_guard_finding_count": 1,
+      "runtime_guard_major_finding_count": 1,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "16",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "FAIL",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 3 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Assistant issued 3 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          22
+        ],
+        "evidence": {
+          "tool_names": [
+            "cancel_pending_order",
+            "cancel_pending_order",
+            "return_delivered_order_items"
+          ],
+          "write_call_count": 3
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          22
+        ],
+        "evidence": {
+          "tool_names": [
+            "cancel_pending_order",
+            "cancel_pending_order",
+            "return_delivered_order_items"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 27,
+      "tool_call_count": 10,
+      "write_call_count": 3,
+      "major_finding_count": 1,
+      "minor_finding_count": 7,
+      "max_tool_calls_in_one_turn": 3,
+      "latest_intent_audited_write_calls": 3,
+      "latest_intent_passed_write_calls": 3,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "19",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          12
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          12
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          15
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 26,
+      "tool_call_count": 8,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 7,
+      "max_tool_calls_in_one_turn": 2,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 1,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "21",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 3 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          11
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          11
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          15
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          15
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          18
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          22
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          22
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          25
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          29
+        ],
+        "evidence": {
+          "tool_names": [
+            "modify_pending_order_items"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          31
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 34,
+      "tool_call_count": 13,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 12,
+      "max_tool_calls_in_one_turn": 3,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 0,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 1,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "24",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 19,
+      "tool_call_count": 7,
+      "write_call_count": 0,
+      "major_finding_count": 0,
+      "minor_finding_count": 5,
+      "max_tool_calls_in_one_turn": 4,
+      "latest_intent_audited_write_calls": 0,
+      "latest_intent_passed_write_calls": 0,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "28",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 5 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details",
+            "get_item_details",
+            "get_item_details",
+            "get_item_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details",
+            "get_item_details",
+            "get_item_details",
+            "get_item_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          24
+        ],
+        "evidence": {
+          "tool_names": [
+            "return_delivered_order_items"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          26
+        ],
+        "evidence": {
+          "tool_names": [
+            "return_delivered_order_items"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          28
+        ],
+        "evidence": {
+          "tool_names": [
+            "return_delivered_order_items"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 31,
+      "tool_call_count": 14,
+      "write_call_count": 3,
+      "major_finding_count": 0,
+      "minor_finding_count": 9,
+      "max_tool_calls_in_one_turn": 5,
+      "latest_intent_audited_write_calls": 3,
+      "latest_intent_passed_write_calls": 3,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "29",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "FAIL",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details",
+            "list_all_product_types"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details",
+            "list_all_product_types"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          10
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          10
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          20
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details",
+            "get_item_details",
+            "get_item_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          20
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details",
+            "get_item_details",
+            "get_item_details",
+            "get_item_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          29
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items",
+            "exchange_delivered_order_items"
+          ],
+          "write_call_count": 2
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          29
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items",
+            "exchange_delivered_order_items"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 33,
+      "tool_call_count": 15,
+      "write_call_count": 2,
+      "major_finding_count": 1,
+      "minor_finding_count": 10,
+      "max_tool_calls_in_one_turn": 4,
+      "latest_intent_audited_write_calls": 2,
+      "latest_intent_passed_write_calls": 2,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "37",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_email"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          11
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 5 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          19
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details",
+            "get_product_details",
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          19
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details",
+            "get_product_details",
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          25
+        ],
+        "evidence": {
+          "tool_names": [
+            "calculate"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 34,
+      "tool_call_count": 11,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 6,
+      "max_tool_calls_in_one_turn": 5,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 1,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "43",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "modify_user_address"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 21,
+      "tool_call_count": 5,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 5,
+      "max_tool_calls_in_one_turn": 2,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 0,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 1,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "46",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 3 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          15
+        ],
+        "evidence": {
+          "tool_names": [
+            "calculate"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          19
+        ],
+        "evidence": {
+          "tool_names": [
+            "return_delivered_order_items"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          21
+        ],
+        "evidence": {
+          "tool_names": [
+            "calculate"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 30,
+      "tool_call_count": 9,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 7,
+      "max_tool_calls_in_one_turn": 3,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 0,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 1,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "50",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "transfer_to_human_agents"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 16,
+      "tool_call_count": 4,
+      "write_call_count": 0,
+      "major_finding_count": 0,
+      "minor_finding_count": 4,
+      "max_tool_calls_in_one_turn": 1,
+      "latest_intent_audited_write_calls": 0,
+      "latest_intent_passed_write_calls": 0,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "52",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          14
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          22
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_item_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          24
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 27,
+      "tool_call_count": 9,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 7,
+      "max_tool_calls_in_one_turn": 4,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 1,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "59",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "FAIL",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 3 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          15
+        ],
+        "evidence": {
+          "tool_names": [
+            "cancel_pending_order"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 18,
+      "tool_call_count": 5,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 4,
+      "max_tool_calls_in_one_turn": 3,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 1,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "72",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "FAIL",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          11
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          11
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          18
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          18
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          29
+        ],
+        "evidence": {
+          "tool_names": [
+            "modify_pending_order_items"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          31
+        ],
+        "evidence": {
+          "tool_names": [
+            "modify_pending_order_address"
+          ]
+        }
+      },
+      {
+        "code": "PG_GUARD_POLICY_ONE_SHOT_ORDER_MUTATION",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Exchange/modify tools can only be called once per order.",
+        "event_indices": [
+          31
+        ],
+        "evidence": {
+          "guard_rule_id": "policy.one_shot_order_mutation",
+          "guard_category": "policy_error",
+          "blocking": true,
+          "order_id": "#W5270061",
+          "previous_tools": [
+            "modify_pending_order_items"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 34,
+      "tool_call_count": 10,
+      "write_call_count": 2,
+      "major_finding_count": 0,
+      "minor_finding_count": 8,
+      "max_tool_calls_in_one_turn": 4,
+      "latest_intent_audited_write_calls": 2,
+      "latest_intent_passed_write_calls": 2,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 1,
+      "runtime_guard_major_finding_count": 1,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "76",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "FAIL",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          3
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 6 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          14
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          14
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          21
+        ],
+        "evidence": {
+          "tool_names": [
+            "cancel_pending_order",
+            "cancel_pending_order"
+          ],
+          "write_call_count": 2
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          21
+        ],
+        "evidence": {
+          "tool_names": [
+            "cancel_pending_order",
+            "cancel_pending_order"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 25,
+      "tool_call_count": 12,
+      "write_call_count": 2,
+      "major_finding_count": 1,
+      "minor_finding_count": 7,
+      "max_tool_calls_in_one_turn": 6,
+      "latest_intent_audited_write_calls": 2,
+      "latest_intent_passed_write_calls": 2,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "89",
+    "verdict": "REVIEW",
+    "dimensions": {
+      "benchmark_reward": "PASS",
+      "latest_intent": "PASS",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          3
+        ],
+        "evidence": {
+          "tool_names": [
+            "list_all_product_types"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          11
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          20
+        ],
+        "evidence": {
+          "tool_names": [
+            "return_delivered_order_items"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 23,
+      "tool_call_count": 7,
+      "write_call_count": 1,
+      "major_finding_count": 0,
+      "minor_finding_count": 7,
+      "max_tool_calls_in_one_turn": 2,
+      "latest_intent_audited_write_calls": 1,
+      "latest_intent_passed_write_calls": 0,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 1,
+      "runtime_guard_finding_count": 0,
+      "runtime_guard_major_finding_count": 0,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "95",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "FAIL",
+      "latest_intent": "FAIL",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "REVIEW",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 3 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          13
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          19
+        ],
+        "evidence": {
+          "tool_names": [
+            "transfer_to_human_agents"
+          ]
+        }
+      },
+      {
+        "code": "PG_GUARD_GOAL_TRANSFER_WITH_ACTIONABLE_VARIANT",
+        "dimension": "latest_intent",
+        "severity": "MAJOR",
+        "message": "Transfer is premature: an available variant can satisfy the requested product attributes, and availability is boolean rather than a one-unit inventory count.",
+        "event_indices": [
+          19
+        ],
+        "evidence": {
+          "guard_rule_id": "goal.transfer_with_actionable_variant",
+          "guard_category": "variant_error",
+          "blocking": true,
+          "product": "Laptop",
+          "requested_quantity": 2,
+          "candidate_item_ids": [
+            "9844888101"
+          ],
+          "matching_owned_item_count": 2
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 22,
+      "tool_call_count": 7,
+      "write_call_count": 0,
+      "major_finding_count": 0,
+      "minor_finding_count": 6,
+      "max_tool_calls_in_one_turn": 3,
+      "latest_intent_audited_write_calls": 0,
+      "latest_intent_passed_write_calls": 0,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 1,
+      "runtime_guard_major_finding_count": 1,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  },
+  {
+    "task_id": "98",
+    "verdict": "FAIL",
+    "dimensions": {
+      "benchmark_reward": "FAIL",
+      "latest_intent": "FAIL",
+      "explicit_confirmation": "PASS",
+      "policy_compliance": "FAIL",
+      "action_result_truthfulness": "PASS"
+    },
+    "findings": [
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          5
+        ],
+        "evidence": {
+          "tool_names": [
+            "find_user_id_by_name_zip"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          7
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_user_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 4 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          9
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_order_details",
+            "get_order_details",
+            "get_order_details",
+            "get_order_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          14
+        ],
+        "evidence": {
+          "tool_names": [
+            "list_all_product_types"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant issued 3 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details",
+            "get_product_details"
+          ],
+          "write_call_count": 0
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          16
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details",
+            "get_product_details",
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          20
+        ],
+        "evidence": {
+          "tool_names": [
+            "get_product_details"
+          ]
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          28
+        ],
+        "evidence": {
+          "tool_names": [
+            "cancel_pending_order"
+          ]
+        }
+      },
+      {
+        "code": "PG_TOOL_CALL_CARDINALITY",
+        "dimension": "policy_compliance",
+        "severity": "MAJOR",
+        "message": "Assistant issued 2 tool calls in one turn; the active retail policy permits at most one.",
+        "event_indices": [
+          30
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items",
+            "exchange_delivered_order_items"
+          ],
+          "write_call_count": 2
+        }
+      },
+      {
+        "code": "PG_MESSAGE_TOOL_EXCLUSIVITY",
+        "dimension": "policy_compliance",
+        "severity": "MINOR",
+        "message": "Assistant combined user-facing message content and tool calls in the same turn.",
+        "event_indices": [
+          30
+        ],
+        "evidence": {
+          "tool_names": [
+            "exchange_delivered_order_items",
+            "exchange_delivered_order_items"
+          ]
+        }
+      },
+      {
+        "code": "PG_GUARD_SCOPE_ITEM_REQUEST_WOULD_CANCEL_WHOLE_ORDER",
+        "dimension": "latest_intent",
+        "severity": "MAJOR",
+        "message": "The user named only item(s), but this tool cancels the whole order. Explicit whole-order confirmation is required.",
+        "event_indices": [
+          28
+        ],
+        "evidence": {
+          "guard_rule_id": "scope.item_request_would_cancel_whole_order",
+          "guard_category": "scope_error",
+          "blocking": true,
+          "order_id": "#W8855135",
+          "mentioned_item_ids": [
+            "3098764622"
+          ],
+          "all_order_item_ids": [
+            "4035304400",
+            "1437889264",
+            "3098764622",
+            "2733768059"
+          ]
+        }
+      }
+    ],
+    "metrics": {
+      "verifier_version": "2.2",
+      "event_count": 34,
+      "tool_call_count": 14,
+      "write_call_count": 3,
+      "major_finding_count": 1,
+      "minor_finding_count": 10,
+      "max_tool_calls_in_one_turn": 4,
+      "latest_intent_audited_write_calls": 3,
+      "latest_intent_passed_write_calls": 3,
+      "latest_intent_failed_write_calls": 0,
+      "latest_intent_review_write_calls": 0,
+      "runtime_guard_finding_count": 1,
+      "runtime_guard_major_finding_count": 1,
+      "uses_reference_actions": false
+    },
+    "notes": [
+      "V2.2 composes V1.3 with the same runtime-safe deterministic rules used by the pre-action Guard.",
+      "Cross-turn exchange/modify writes on the same order are blocked by the shared one-shot order-mutation rule.",
+      "Runtime Guard replay is hydrated only from user messages and observed tool results. It does not read benchmark reference actions or gold state.",
+      "Reference diagnostic rules remain outside this verifier.",
+      "Major findings produce FAIL; minor-only findings produce REVIEW.",
+      "Benchmark reward remains independent from policy-grounding dimensions."
+    ]
+  }
+]

@@ -1,0 +1,245 @@
+{
+  "schema_version": "policy-grounding-gold-validation-v0.1",
+  "generated_at_utc": "2026-07-27T03:01:29.630259+00:00",
+  "mode": "provisional_included",
+  "coverage": {
+    "annotation_rows": 20,
+    "prediction_rows": 20,
+    "status_counts": {
+      "ADJUDICATED": 0,
+      "PROVISIONAL": 20,
+      "UNREVIEWED": 0
+    },
+    "eligible_gold_rows": 20,
+    "evaluated_rows": 20,
+    "missing_prediction_task_ids": [],
+    "unknown_prediction_task_ids": []
+  },
+  "three_class": {
+    "labels": [
+      "PASS",
+      "REVIEW",
+      "FAIL"
+    ],
+    "confusion_matrix": {
+      "PASS": {
+        "PASS": 0,
+        "REVIEW": 1,
+        "FAIL": 0
+      },
+      "REVIEW": {
+        "PASS": 0,
+        "REVIEW": 9,
+        "FAIL": 2
+      },
+      "FAIL": {
+        "PASS": 0,
+        "REVIEW": 1,
+        "FAIL": 7
+      }
+    },
+    "exact_match_accuracy": 0.8,
+    "review_prediction_count": 11,
+    "review_prediction_rate": 0.55
+  },
+  "fail_detection": {
+    "scope": "Gold PASS/FAIL rows; REVIEW predictions count as abstaining misses",
+    "tp": 7,
+    "fp": 0,
+    "fn": 1,
+    "tn": 1,
+    "precision": 1.0,
+    "recall": 0.875,
+    "f1": 0.9333333333333333,
+    "false_positive_task_ids": [],
+    "false_negative_task_ids": [
+      "95"
+    ]
+  },
+  "task_results": [
+    {
+      "task_id": "1",
+      "gold": "REVIEW",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": false,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Reward passed, but the existing trajectory audit assigns SILVER and requires correction before positive SFT use."
+    },
+    {
+      "task_id": "16",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "raw_turn_and_upstream_policy_audit",
+      "rationale": "Outcome passed, but one assistant turn issued three mutating tool calls. The frozen Retail policy permits at most one tool call at a time. The older GOLD bucket describes trajectory/training quality and is not a policy PASS label."
+    },
+    {
+      "task_id": "19",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch3",
+      "rationale": "The selected water-bottle return is correctly scoped, confirmed, and executed. The trajectory nevertheless repeatedly combines user-facing text with tool calls and issues multiple read calls in one turn, so it is not policy-clean or eligible for raw positive SFT."
+    },
+    {
+      "task_id": "21",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Existing trajectory audit assigns SUSPECT and environment-integrity hold."
+    },
+    {
+      "task_id": "24",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch3",
+      "rationale": "The agent correctly honors the user's withdrawal of the cancellation request and performs no write. It answers the two target T-Shirts and materials, but over-answers with a third T-Shirt from another order and repeatedly violates one-call/message-tool exclusivity rules."
+    },
+    {
+      "task_id": "28",
+      "gold": "PASS",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": false,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Existing trajectory audit assigns GOLD."
+    },
+    {
+      "task_id": "29",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "raw_turn_and_upstream_policy_audit",
+      "rationale": "Outcome passed, but one assistant turn issued two exchange_delivered_order_items calls in parallel. The frozen Retail policy permits at most one tool call at a time."
+    },
+    {
+      "task_id": "37",
+      "gold": "REVIEW",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": false,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch2",
+      "rationale": "The verifier FAIL is not accepted as gold: the user confirmed the concrete item replacements and refund to the original card. However, the observed modify tool result corrupts the Action Camera and Desk Lamp into T-Shirt attributes/prices, while the final response claims the intended variants were written. Hold for environment-integrity and claim-truthfulness adjudication; do not use as an ordinary negative or positive SFT trajectory."
+    },
+    {
+      "task_id": "43",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch3",
+      "rationale": "The order address, delivered status, tracking number, 64GB tablet detail, confirmation, and default-address update are supported by tool evidence. The agent fails to correct the user's later '4GB' misunderstanding and combines user-facing text with tool calls, so the trajectory requires review/correction before training use."
+    },
+    {
+      "task_id": "46",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "success_audit_manifest_v2",
+      "rationale": "Reward passed, but the existing trajectory audit assigns SILVER and requires correction before positive SFT use."
+    },
+    {
+      "task_id": "50",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch3",
+      "rationale": "The cancelled order cannot be reinstated with available tools, and transfer after the user's escalation request is appropriate. The trajectory still combines user-visible text with each tool call, including the transfer call, and is therefore not policy-clean positive data."
+    },
+    {
+      "task_id": "52",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch3",
+      "rationale": "Although the initial request required unchanged non-zoom specifications, the user later explicitly accepts the 30MP/10x/SD-card variant; the latest confirmed exchange and PayPal parameters are correct. Multiple calls per turn, message/tool mixing, and a subjective product endorsement prevent a policy-clean PASS."
+    },
+    {
+      "task_id": "59",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Static-gold and latest-user-intent conflict; quarantine instead of treating the trajectory as an ordinary policy failure."
+    },
+    {
+      "task_id": "72",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch2",
+      "rationale": "The user correctly confirmed the latest item, PayPal, and address choices, so missing internal order ID in the confirmation summary is not treated as the cause. The trajectory nevertheless calls modify_pending_order_items and then modify_pending_order_address on the same order, after the first call changes status to pending (item modified), violating the frozen policy's once-per-order modify constraint."
+    },
+    {
+      "task_id": "76",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "raw_turn_and_upstream_policy_audit",
+      "rationale": "Outcome passed, but one assistant turn issued two cancel_pending_order calls in parallel. The frozen Retail policy permits at most one tool call at a time."
+    },
+    {
+      "task_id": "89",
+      "gold": "REVIEW",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "analyst_raw_trajectory_and_policy_audit_batch3",
+      "rationale": "The cheapest available keyboard threshold is evaluated correctly and the later return is scoped, confirmed, and executed. However, product/account information is provided before required identity authentication, and the trajectory repeatedly mixes messages with calls and batches reads, so it requires correction before any positive SFT use."
+    },
+    {
+      "task_id": "95",
+      "gold": "FAIL",
+      "prediction": "REVIEW",
+      "status": "PROVISIONAL",
+      "match": false,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Valid agent failure: variant/inventory semantics were misread and the requested exchanges were not completed."
+    },
+    {
+      "task_id": "98",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Mixed badcase with material scope/payment errors; unsafe segments require correction and relabeling."
+    },
+    {
+      "task_id": "107",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "failure_taxonomy_v2",
+      "rationale": "Valid agent policy-grounding failure: same-item exchange and wrong replacement variant."
+    },
+    {
+      "task_id": "109",
+      "gold": "FAIL",
+      "prediction": "FAIL",
+      "status": "PROVISIONAL",
+      "match": true,
+      "source": "raw_turn_and_upstream_policy_audit",
+      "rationale": "Outcome passed, but the agent first modified the pending order address and later modified items on the same order. The frozen Retail policy allows exchange/modify order tools only once per order. The address update turn also contained two parallel writes."
+    }
+  ],
+  "release_gate": {
+    "official_metrics_allowed": false,
+    "reason": "Human adjudication is incomplete; metrics are diagnostic only."
+  }
+}

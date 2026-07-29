@@ -1,0 +1,61 @@
+{
+  "experiment_id": "20260727_policy_grounding_v2",
+  "role": "Compose Policy Grounding V1.2 with runtime-safe pre-action Guard rules",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "experiment": "20260722_110504_retail_baseline20_trial1_deepseek",
+    "task_count": 20,
+    "new_model_calls": 0,
+    "reference_actions_used_by_v2": false,
+    "gold_state_used_by_v2": false
+  },
+  "inputs": {
+    "v1_predictions": "experiments/20260724_verifier_v1_diagnostics/verifier_v1_2_baseline20.json",
+    "candidate_gold": {
+      "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+      "sha256": "EA9F676A8A80830A8AC368C5A83E4FF030D1F5390B6C1F9941568D0CA31C42BC",
+      "status_counts": {
+        "ADJUDICATED": 0,
+        "PROVISIONAL": 12,
+        "UNREVIEWED": 8
+      }
+    }
+  },
+  "implementation": {
+    "path": "src/verifiers/policy_grounding_v2.py",
+    "sha256": "BAE5708291C4E1C82F8E139551D204B90460E734B60A5D658E0FB7B57DECCEEA",
+    "design": "Replay only runtime-safe Guard rules from observed user messages and tool results; skip reference diagnostic rules."
+  },
+  "commands": [
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.policy_grounding_v2 experiments\\20260722_110504_retail_baseline20_trial1_deepseek --output experiments\\20260727_policy_grounding_v2\\verifier_v2_baseline20.json",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.gold_validation --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --predictions experiments\\20260724_verifier_v1_diagnostics\\verifier_v1_2_baseline20.json --output experiments\\20260727_policy_grounding_v2\\v1_validation --include-provisional",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.gold_validation --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --predictions experiments\\20260727_policy_grounding_v2\\verifier_v2_baseline20.json --output experiments\\20260727_policy_grounding_v2\\v2_validation --include-provisional"
+  ],
+  "outputs": {
+    "verifier_v2_baseline20.json": "BEEA7B182E8D5531547ACDBAC6917DCC53EFB2FFB16DF9B3B28DDBEBC8742E2D",
+    "v1_validation/metrics.json": "9032299EAED39D9D173BB1DB1D245D9134602CF57700285FDA1C6C5A7ADC553E",
+    "v2_validation/metrics.json": "9629AF7766BFC8388BC823D5C880F9478F8375546EDA11787F018A1452605593"
+  },
+  "diagnostic_results": {
+    "v1": {
+      "fail_precision": 1.0,
+      "fail_recall": 0.8571428571428571,
+      "fail_f1": 0.923076923076923,
+      "false_negative_task_ids": [
+        "95"
+      ]
+    },
+    "v2": {
+      "fail_precision": 1.0,
+      "fail_recall": 1.0,
+      "fail_f1": 1.0,
+      "false_negative_task_ids": []
+    }
+  },
+  "interpretation_boundary": [
+    "All metric-bearing labels are PROVISIONAL; these are diagnostic results, not official verifier performance.",
+    "The same development trajectories motivated the Guard rules, so this experiment measures integration fidelity rather than held-out generalization.",
+    "The official metric release gate remains closed until independent adjudication and held-out validation."
+  ]
+}

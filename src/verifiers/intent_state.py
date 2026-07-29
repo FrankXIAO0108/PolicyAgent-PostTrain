@@ -17,6 +17,10 @@ _REVISION_RE = re.compile(
     r"\b(?:but|however|actually|instead|except|change|rather)\b",
     re.IGNORECASE,
 )
+_SCOPE_RECONFIRM_RE = re.compile(
+    r"\b(?:only|all (?:the )?items|other items|same (?:details|action)|still)\b",
+    re.IGNORECASE,
+)
 
 # Fields that materially define the user's authorized write action.  Internal
 # bookkeeping arguments that do not change action scope are intentionally
@@ -35,13 +39,19 @@ _ACTION_FIELDS: dict[str, tuple[str, ...]] = {
         "payment_method_id",
     ),
     "modify_pending_order_items": (
-        "order_id",
         "item_ids",
         "new_item_ids",
         "payment_method_id",
     ),
-    "modify_pending_order_address": ("order_id", "address"),
-    "modify_pending_order_payment": ("order_id", "payment_method_id"),
+    "modify_pending_order_address": (
+        "address1",
+        "address2",
+        "city",
+        "state",
+        "country",
+        "zip",
+    ),
+    "modify_pending_order_payment": ("payment_method_id",),
 }
 
 
@@ -210,6 +220,8 @@ class ConfirmationSnapshot:
     confirmation_event_index: int
     proposal_text: str
     confirmation_text: str
+    preceding_user_text: str = ""
+    carried_forward_text: str = ""
     has_revision: bool = False
 
 
@@ -251,14 +263,74 @@ def confirmation_snapshot_before(
     )
     if proposal is None:
         return None
+    preceding_user = next(
+        (
+            event
+            for event in reversed(preceding)
+            if event.index < proposal.index and event.role == "user"
+        ),
+        None,
+    )
+    carried_forward_text = ""
+    if _SCOPE_RECONFIRM_RE.search(
+        f"{proposal.content}\n{confirmation.content}"
+    ):
+        prior_confirmation = next(
+            (
+                event
+                for event in reversed(preceding)
+                if event.index < proposal.index
+                and event.role == "user"
+                and _CONFIRM_RE.search(event.content)
+                and not _REVISION_RE.search(event.content)
+            ),
+            None,
+        )
+        if prior_confirmation is not None:
+            prior_proposal = next(
+                (
+                    event
+                    for event in reversed(preceding)
+                    if event.index < prior_confirmation.index
+                    and event.role == "assistant"
+                    and event.content.strip()
+                    and not event.tool_calls
+                ),
+                None,
+            )
+            if prior_proposal is not None:
+                carried_forward_text = (
+                    f"{prior_proposal.content}\n{prior_confirmation.content}"
+                )
 
     return ConfirmationSnapshot(
         proposal_event_index=proposal.index,
         confirmation_event_index=confirmation.index,
         proposal_text=proposal.content,
         confirmation_text=confirmation.content,
+        preceding_user_text=preceding_user.content if preceding_user else "",
+        carried_forward_text=carried_forward_text,
         has_revision=bool(_REVISION_RE.search(confirmation.content)),
     )
+
+
+def _payment_reference_matches_context(payment_id: str, text: str) -> bool:
+    """Recognize explicit user references to the selected payment channel."""
+    normalized = _normalize(text)
+    if not normalized:
+        return False
+    lowered_id = payment_id.lower()
+    if lowered_id.startswith("paypal_"):
+        return "paypal" in normalized
+    if lowered_id.startswith("gift_card_"):
+        return "giftcard" in normalized
+    if lowered_id.startswith("credit_card_"):
+        return (
+            "creditcard" in normalized
+            or "originalcard" in normalized
+            or "samecard" in normalized
+        )
+    return False
 
 
 def audit_call_against_latest_intent(
@@ -298,7 +370,15 @@ def audit_call_against_latest_intent(
             reason=f"V1 has no argument policy for write tool {call.name!r}.",
         )
 
-    proposal_normalized = _normalize(snapshot.proposal_text)
+    proposal_normalized = _normalize(
+        "\n".join(
+            (
+                snapshot.proposal_text,
+                snapshot.confirmation_text,
+                snapshot.carried_forward_text,
+            )
+        )
+    )
     value_aliases = value_aliases or {}
     checked: dict[str, list[str]] = {}
     missing: dict[str, list[str]] = {}
@@ -319,6 +399,13 @@ def audit_call_against_latest_intent(
             and not any(
                 _normalize(alias) in proposal_normalized
                 for alias in value_aliases.get(value, [])
+            )
+            and not (
+                field_name == "payment_method_id"
+                and _payment_reference_matches_context(
+                    value,
+                    snapshot.preceding_user_text,
+                )
             )
         ]
         if absent:

@@ -1,0 +1,33 @@
+{
+  "experiment_id": "20260726_verifier_gold_validation_v0",
+  "role": "Programmatic Verifier validation gate bootstrap",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "prediction_artifact": {
+    "path": "experiments/20260724_verifier_v1_diagnostics/verifier_v1_2_baseline20.json",
+    "sha256": "E13FDCFE321A8CD7B54A345F1890F4FBB82EC146DAE1BC0F0630917DDF6AE103"
+  },
+  "gold_annotation_artifact": {
+    "path": "data/verifier_gold/policy_grounding_gold_v0.jsonl",
+    "sha256": "CF91097E741E77E73BD688E41FCD464AA7102FCB78A6BF32F455E65A85F4DA91",
+    "adjudication_boundary": "Existing audits seed PROVISIONAL labels only. No row is promoted to ADJUDICATED by this experiment."
+  },
+  "evaluator_source": {
+    "path": "src/verifiers/gold_validation.py",
+    "sha256": "8AE210A202787FB1F31C17FC9CEDF6C1AC7EA8C5731EDE00357537A532635D1A"
+  },
+  "command": "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.verifiers.gold_validation --annotations data\\verifier_gold\\policy_grounding_gold_v0.jsonl --predictions experiments\\20260724_verifier_v1_diagnostics\\verifier_v1_2_baseline20.json --output experiments\\20260726_verifier_gold_validation_v0 --include-provisional",
+  "expected_outputs": [
+    "metrics.json",
+    "analysis.md"
+  ],
+  "output_hashes": {
+    "metrics.json": "B1907203A3CC48394AC7093A893B815703F4B9E09801B8FB6FA6983541753991",
+    "analysis.md": "DF7FC38348CFBFD51F05B7F8E8D6952868037081327345CD841582B9D1EF4D89"
+  },
+  "metric_policy": {
+    "official_metrics_require": "All rows ADJUDICATED; no PROVISIONAL or UNREVIEWED rows.",
+    "review_semantics": "REVIEW is an abstention and counts as a miss for FAIL recall.",
+    "current_results_are": "diagnostic-only"
+  }
+}

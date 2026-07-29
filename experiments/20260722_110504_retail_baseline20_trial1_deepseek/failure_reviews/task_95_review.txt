@@ -373,42 +373,704 @@ CONTENT:
   "justification": "The agent did not provide a total amount of $107.09. Instead, the agent only mentioned the $167.87 difference for one laptop and did not combine any figures to give a total, as the second exchange could not be completed due to lack of inventory."
 }
 
-=== MANUAL ROOT-CAUSE ANALYSIS ===
+=== 人工根因分析 ===
 
-Task ID: 95
-
-1. User Final Intent:
+任务 ID：95
 
 
-2. Expected Critical Actions:
+1. 用户最终意图：
+
+用户最终意图非常明确：
+
+将两个已经 delivered 的 15-inch Laptop 都换成完全相同的新配置：
+
+- processor = i7
+- RAM = 8GB
+- storage = 1TB SSD
+
+用户明确表示：
+
+- 两台都必须是相同规格；
+- 不接受 32GB RAM 等替代配置；
+- 希望知道两个换货合计今天需要支付多少钱。
+
+对应两个原始订单：
+
+订单 #W2905754：
+- 原 Laptop item_id = 3478699712
+- 当前价格 = $2291.87
+
+订单 #W4073673：
+- 原 Laptop item_id = 2216662955
+- 当前价格 = $2520.52
+
+符合目标规格的新 Laptop Variant 为：
+
+item_id = 9844888101
+
+规格：
+
+- 15-inch
+- i7
+- 8GB RAM
+- 1TB SSD
+- black
+
+价格：
+
+$2459.74。
 
 
-3. Actual Critical Actions:
+2. 预期关键动作：
+
+根据 Benchmark Static Golden，应分别对两个 delivered order 执行换货：
+
+第一笔：
+
+exchange_delivered_order_items(
+    order_id="#W2905754",
+    item_ids=["3478699712"],
+    new_item_ids=["9844888101"],
+    payment_method_id="credit_card_3677959"
+)
+
+对应价格差：
+
+$2459.74 - $2291.87
+=
++$167.87
+
+即用户需要支付：
+
+$167.87。
 
 
-4. First Divergence Point:
+第二笔：
+
+exchange_delivered_order_items(
+    order_id="#W4073673",
+    item_ids=["2216662955"],
+    new_item_ids=["9844888101"],
+    payment_method_id="credit_card_3677959"
+)
+
+对应价格差：
+
+$2459.74 - $2520.52
+=
+-$60.78
+
+即用户应获得：
+
+$60.78 refund。
 
 
-5. Failure Type:
+两个换货合并后的净支付金额：
+
+$167.87 - $60.78
+=
+$107.09
+
+因此 Agent 应告诉用户：
+
+今天总共需要支付：
+
+$107.09。
 
 
-6. Root Cause:
+3. Agent 实际执行的关键动作：
+
+Agent正确完成了：
+
+- 用户身份认证；
+- 查询用户全部订单；
+- 正确识别出两个 delivered Laptop；
+- 正确读取两个原始 Laptop 的配置；
+- 正确查询 Laptop 产品所有 variants；
+- 正确找到唯一完全符合用户目标规格的 Variant：
+
+  item_id = 9844888101
+  15-inch
+  i7
+  8GB RAM
+  1TB SSD
+  available = true
+  price = $2459.74
+
+Agent还正确计算了第一台 Laptop 的价格差：
+
+$2459.74 - $2291.87
+=
+$167.87。
 
 
-7. Policy Issue:
+但是 Agent 随后错误判断：
+
+因为只有一个符合规格的 Variant：
+
+9844888101
+
+所以只能给其中一台 Laptop 换货，
+第二台没有另一台相同规格商品可用。
+
+因此 Agent：
+
+- 没有执行第一个 exchange；
+- 没有执行第二个 exchange；
+- 没有计算第二台的 -$60.78 refund；
+- 没有计算两个换货合计净支付 $107.09；
+- 最终错误地 transfer_to_human_agents。
+
+因此：
+
+Expected Write Actions = 2
+
+Actual Matching Write Actions = 0。
 
 
-8. Tool / Environment Issue:
+4. 第一次偏离点（First Divergence Point）：
+
+第一次真正的推理偏离发生在 Agent 第 [14]～[16] 轮。
+
+Agent已经正确找到：
+
+item_id = 9844888101
+available = true
+
+并且该 Variant 完全满足：
+
+i7 + 8GB + 1TB SSD + 15-inch。
+
+但 Agent错误地把：
+
+“只有一个满足条件的 Variant”
+
+理解成：
+
+“库存中只有一台这个商品”。
+
+因此产生错误推理：
+
+Only one matching item
+→
+只能换一台 Laptop
+→
+第二台无法获得相同配置
+→
+需要人工处理。
+
+这是错误的环境语义理解。
+
+在该 Benchmark 的数据模型和 Golden Evaluation 中：
+
+item_id = 9844888101
+
+代表的是一个商品 Variant / SKU 选项，
+
+而不是：
+
+“一件库存只剩一台的独立实体”。
+
+Golden 明确要求：
+
+两个不同订单都使用：
+
+new_item_ids=["9844888101"]
+
+完成换货。
+
+因此：
+
+找到一个符合条件的 Variant
+并不意味着
+这个 Variant 只能被使用一次。
 
 
-9. Evaluator Issue:
+5. 失败类型：
+
+主要失败类型：
+
+ENVIRONMENT_STATE_SEMANTICS_MISUNDERSTANDING
+（环境状态语义理解错误）
+
+具体表现为：
+
+Variant Identity
+被误解为
+Single Inventory Unit。
 
 
-10. Claim-Action Consistency:
+第二类：
+
+FALSE_CAPABILITY_BOUNDARY_DETECTION
+（错误判断能力边界）
+
+Agent错误认为：
+
+系统无法完成第二个同规格换货，
+
+因此进行了不必要的人工转接。
 
 
-11. Training Value:
+第三类：
+
+PREMATURE_ESCALATION
+（过早升级人工）
+
+Agent在尚未真正遇到 Tool Failure、Policy Restriction 或库存不可用错误之前，就主动停止自动执行。
 
 
-12. Candidate Intervention:
+第四类：
 
+INCOMPLETE_MULTI-GOAL_EXECUTION
+（多目标任务未完成）
+
+用户要求两个换货，
+Agent最终一个都没有执行。
+
+
+6. 根因：
+
+根因不是：
+
+Agent没有找到正确商品。
+
+事实上 Agent已经准确找到：
+
+9844888101
+
+而且商品属性完全正确。
+
+真正根因是：
+
+Agent对 Retail Environment 中：
+
+product variant
+item_id
+available
+
+这些字段的语义理解错误。
+
+Agent看到：
+
+只有一个 Variant 满足条件
+
+就推断：
+
+只有一个实体库存可以被换出一次。
+
+但 Benchmark 环境中：
+
+item_id 表示商品 Variant，
+并不是单件库存实例。
+
+同一个：
+
+new_item_id = 9844888101
+
+可以作为两个不同订单的换货目标。
+
+Static Golden 也明确证明了这一点：
+
+#W2905754
+→ 9844888101
+
+#W4073673
+→ 9844888101
+
+两个订单使用同一个目标 Variant。
+
+因此本任务属于真实的：
+
+Environment Grounding / State Semantics Reasoning Failure。
+
+
+7. Policy 是否存在问题：
+
+目前没有发现明显的 Policy 冲突。
+
+用户请求：
+
+- 两台 delivered Laptop 换货；
+- 两台都换成相同规格。
+
+从现有 Golden 来看，这两个操作均是允许的。
+
+Agent没有遇到：
+
+- Policy 禁止；
+- Tool 权限不足；
+- 必须人工审批；
+- 商品真正不可用。
+
+因此：
+
+Transfer to Human
+
+不是由真实 Policy Boundary 触发的。
+
+问题在于 Agent自己错误推断了一个不存在的能力边界。
+
+
+8. Tool / Environment 是否存在问题：
+
+没有证据表明 Tool 本身存在故障。
+
+Agent甚至没有真正调用：
+
+exchange_delivered_order_items。
+
+因此：
+
+Tool Execution Failure = NO。
+
+真正问题发生在 Tool Call 之前的决策阶段。
+
+Environment 返回：
+
+9844888101:
+available = true
+
+Agent错误解释成：
+
+只有一台库存。
+
+实际上，从 Golden Evaluation 可以确认：
+
+Benchmark 允许两个不同订单都将目标商品设置为：
+
+9844888101。
+
+因此：
+
+Environment Data 本身足够支持正确决策，
+
+错误主要来自 Agent 对数据模型的解释。
+
+
+9. Evaluator 是否存在问题：
+
+当前没有发现明显 Evaluator 错判。
+
+Static Golden 与用户实际最终意图基本一致：
+
+用户：
+
+两台 Laptop
+→
+都换成
+i7 / 8GB / 1TB SSD。
+
+Golden：
+
+两个订单
+→
+都换成
+9844888101。
+
+二者一致。
+
+
+NL Assertions 也与真实价格计算一致：
+
+第一台：
+
+2459.74 - 2291.87
+=
+167.87
+
+第二台：
+
+2459.74 - 2520.52
+=
+-60.78
+
+总净支付：
+
+167.87 - 60.78
+=
+107.09。
+
+
+Agent只正确告诉用户：
+
+$167.87
+
+但遗漏：
+
+- $60.78 refund；
+- $107.09 total。
+
+因此：
+
+NL Assertions：
+
+1/3 通过
+
+符合真实轨迹。
+
+虽然总体 Reward=0，但这一条目前更接近：
+
+真实 Agent Failure，
+
+而不是 Task 59/98 那种主要由 Static Gold Alignment 问题导致的失败。
+
+
+10. Claim-Action Consistency（声明-动作一致性）：
+
+从“是否虚假声称已经完成 Tool 操作”的角度：
+
+基本没有出现虚假成功声明。
+
+Agent没有声称：
+
+两个换货已经完成。
+
+它明确表示：
+
+自己认为只有一个匹配商品可用，
+因此无法继续两个完整换货，
+最终转人工。
+
+所以：
+
+Fake Success Claim = NO。
+
+
+但是：
+
+Agent的能力状态声明是错误的。
+
+Agent向用户表达：
+
+只有一个符合规格的商品，
+因此无法为第二台执行同规格换货。
+
+这个结论并不符合 Benchmark Environment 的真实语义。
+
+所以更准确的标签是：
+
+CAPABILITY_STATE_MISREPRESENTATION
+
+即：
+
+不是 Tool 已失败却说成功，
+
+而是错误判断系统能力，
+并向用户传达了错误的能力限制。
+
+
+11. 训练价值：
+
+该样本训练价值很高。
+
+与 Task 59 不同，
+
+这条可以作为一个相对干净的真实 Agent Failure 样本。
+
+
+适合训练的能力包括：
+
+一、Environment Schema Understanding
+
+模型必须理解：
+
+Product
+→ Variant
+→ item_id
+→ available
+
+之间的语义关系。
+
+
+二、Tool Grounding
+
+不能把：
+
+Variant ID
+
+误解成：
+
+单件库存 Instance。
+
+
+三、Multi-order Planning
+
+两个不同订单可以：
+
+分别执行 exchange，
+
+同时指向同一个目标 Variant。
+
+
+四、Capability Boundary Judgment
+
+只有在真实出现：
+
+- Tool 不支持；
+- Policy 不允许；
+- available=false；
+- Tool Error；
+- Human-only operation
+
+时，
+
+才应该 transfer_to_human_agents。
+
+不能因为自己的错误推断而过早转人工。
+
+
+五、Complete Task Execution
+
+面对：
+
+两个 Laptop 换货
+
+必须保持：
+
+Pending Subtask List
+
+直到：
+
+两个换货都完成
++
+价格计算完成
++
+最终结果沟通完成。
+
+
+该样本适合作为：
+
+- SFT Badcase Correction；
+- Tool-use reasoning training；
+- Environment grounding training；
+- Preference Pair；
+- Verifier Training。
+
+相比 Task 59、98，
+
+它更适合作为真正的 Agent 负样本。
+
+
+12. 候选改进方案：
+
+一、SFT 侧：
+
+构造正确轨迹：
+
+识别两个 delivered Laptop
+→
+找到共同目标 Variant 9844888101
+→
+理解 Variant 可被两个订单分别引用
+→
+分别计算价格差
+→
+获得必要确认
+→
+执行两个 exchange
+→
+汇总金额
+→
+告诉用户净支付 $107.09。
+
+
+重点训练：
+
+“一个满足条件的 Variant”
+不等于
+“只剩一件库存”。
+
+
+二、Prompt / Schema 侧：
+
+在 Tool / Data Model 描述中明确：
+
+item_id 表示 Product Variant Identifier，
+
+不是：
+
+Unique Physical Inventory Unit。
+
+明确：
+
+同一可用 Variant 可以被多个不同订单引用作为 exchange target，
+除非 Environment 明确提供库存数量限制。
+
+
+三、Verifier 侧：
+
+增加 Premature Escalation Verifier。
+
+当 Agent准备调用：
+
+transfer_to_human_agents
+
+之前检查：
+
+1. 是否真的存在 Tool 不支持？
+2. 是否存在 Policy 限制？
+3. 是否有明确 Tool Error？
+4. 是否有 available=false？
+5. 是否只是 Agent自己的未经验证推断？
+
+如果：
+
+不存在真实能力边界证据
+
+则阻止无依据转人工。
+
+
+四、Task Completeness Verifier：
+
+对于用户提出多个子任务：
+
+Task Set = {
+    exchange laptop A,
+    exchange laptop B,
+    calculate total
+}
+
+在结束前检查：
+
+是否所有 required subtasks 都已经：
+
+COMPLETED
+或
+LEGITIMATELY_BLOCKED。
+
+本任务中：
+
+exchange A = 未执行
+exchange B = 未执行
+total calculation = 未完成
+
+所以不应该正常结束。
+
+
+五、训练数据标记建议：
+
+Task 95：
+
+Raw Reward:
+0
+
+Human Audit:
+VALID AGENT FAILURE
+
+Primary Label:
+ENVIRONMENT_STATE_SEMANTICS_MISUNDERSTANDING
+
+Secondary Labels:
+FALSE_CAPABILITY_BOUNDARY_DETECTION
+PREMATURE_ESCALATION
+INCOMPLETE_MULTI_GOAL_EXECUTION
+
+Evaluator Suspect:
+NO CLEAR EVIDENCE
+
+Eligible as Negative Training Data:
+YES
+
+Training Priority:
+HIGH

@@ -1,0 +1,41 @@
+{
+  "experiment_id": "20260727_verifier_audit_batch4",
+  "role": "Resolve the final two V2.1/provisional policy-label mismatches",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "task_ids": ["1", "28"],
+    "new_model_calls": 0,
+    "independent_human_adjudication": false
+  },
+  "inputs": {
+    "v2_1_predictions": {
+      "path": "experiments/20260727_policy_grounding_v2_1/verifier_v2_1_baseline20.json",
+      "sha256": "BFA47292C72A6FD1A1FC8EE5B52947F67E80287AB712EFA4C3CBFFFE7D2D024E"
+    },
+    "task_1_review": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/success_audit_reviews/task_1_success_review.txt",
+    "task_28_review": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/success_audit_reviews/task_28_success_review.txt",
+    "retail_policy": "D:/tau2-bench/data/tau2/domains/retail/policy.md"
+  },
+  "provisional_decisions": {
+    "1": {
+      "before": "REVIEW",
+      "after": "REVIEW"
+    },
+    "28": {
+      "before": "PASS",
+      "after": "REVIEW"
+    }
+  },
+  "outputs": {
+    "task_1_audit.md": "E4A02C3246D8251015CB06590D14C4E790F2EDA696BA14E1E2CA17E3D3183479",
+    "task_28_audit.md": "0D8DE7E422EBFAC86BABE9E7B26F0E79628991CFB54877378D977FFDB616253A",
+    "analysis.md": "B545D10804AD9C3BF0D9AA8171ED87EF4A1B5E15680FB8FE5328C0BA73A97FFB",
+    "annotations_sha256_after_batch": "E11837A22A2611C71D4D7864B06D7DD57061B6F80C5C124FFBC26C9AE244C73D"
+  },
+  "interpretation_boundary": [
+    "Both decisions are analyst provisional and not independent adjudication.",
+    "Task 1 motivates a verifier correction; Task 28 is a label-boundary correction.",
+    "No official metric, SFT release, training, or RL gate is opened."
+  ]
+}

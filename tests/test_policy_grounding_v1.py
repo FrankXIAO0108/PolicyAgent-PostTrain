@@ -1,5 +1,5 @@
-from verifiers.policy_grounding_v1 import verify_trajectory
-from verifiers.schemas import Dimension, MessageEvent, ToolCall, Verdict
+from src.verifiers.policy_grounding_v1 import verify_trajectory
+from src.verifiers.schemas import Dimension, MessageEvent, ToolCall, Verdict
 
 
 def _events(new_item_id: str) -> list[MessageEvent]:
