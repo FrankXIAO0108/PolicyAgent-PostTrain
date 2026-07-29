@@ -1,0 +1,66 @@
+{
+  "experiment_id": "20260729_offer_ready_portfolio_v1",
+  "role": "Package verified Tool Agent reliability work as an offer-oriented portfolio",
+  "project_commit_before_change": "0929b8968ef3a5b8060a2ea137aedff754ee73c1",
+  "upstream_runtime_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "scope": {
+    "frozen_task_count": 20,
+    "representative_case_ids": [
+      "95",
+      "98",
+      "107"
+    ],
+    "new_model_calls": 0,
+    "new_environment_runs": 0,
+    "reviewer_decisions_created": 0,
+    "training_run": false,
+    "evaluation_claim_changed": false
+  },
+  "frozen_inputs": {
+    "reports/evaluation/final_report.json": "0AF6D38410824664687C5BCDB49A75D4834B4C99156834BA7BC68A5B57CBD627",
+    "experiments/20260726_pre_action_guard_v1/guard_audit.json": "FC175A49900BC8DCE7C4038FE476826570E266201C3AB598A5754B13AD3C4314",
+    "experiments/20260726_v6_vs_v7_evaluation/comparison.json": "3975EAABB1DF057ADB34196378CABE5D7A4ADE4F350E074C887F852DEA6E40C1"
+  },
+  "implementation": {
+    "README.md": "ED873A15924C10C464E5EE58E3F7A78B962F7FC9EEF52FB88C732DE88C9BFBF5",
+    "demo.ps1": "ED7433A3C08E4DDA3D5CB269E487039ED99CDB8C3E6A4F2E81EBD8F20838FF74",
+    "src/portfolio_demo.py": "621EB3F1804F9D327DB1F8FB205A70F61171D7FEF468191B0E7A41A42F01B068",
+    "tests/test_portfolio_demo.py": "61298790061526C8BC902E30793BB28ACEF2D2ABAB7FE7E538441672F048FD56",
+    "docs/PROJECT_COMPLETION_REPORT.md": "B79B8F8A8AF7892E800468F046D14C98D5C5F79E4B1977ADE53A8FC10556FDB9",
+    "docs/INTERVIEW_PLAYBOOK.md": "9EA5872314E30D346C065738ACE0A3EA35F2FA89D330F35E9BC83DEDF96C7DD3"
+  },
+  "outputs": {
+    "analysis.md": "9F3FBD245AEB5C733A6CB23F5C28D7E47B9624EBDA15D2387E7E6558F40CA9A1",
+    "../../reports/portfolio_demo/demo.md": "47E9AFE943ECE841D9B2AA47338141E84ACFCC4CFCB53FE81293AAC785FFF335",
+    "../../reports/portfolio_demo/demo.json": "BC30E9D7BE6F2B7EA4CFC5B84C636F901FDD9451D19E8DDA80AE17A434CF412E"
+  },
+  "commands": [
+    ".\\demo.ps1",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.portfolio_demo --format markdown --output reports\\portfolio_demo\\demo.md",
+    "D:\\tau2-bench\\.venv\\Scripts\\python.exe -m src.portfolio_demo --format json --output reports\\portfolio_demo\\demo.json"
+  ],
+  "validation": {
+    "demo_command": "passed",
+    "focused_ruff": "passed",
+    "pytest": "74 passed, 1 upstream deprecation warning",
+    "full_ruff": {
+      "status": "pre-existing findings outside change scope",
+      "finding_count": 8,
+      "paths": [
+        "src/trajectory/__init__.py",
+        "src/trajectory/parser.py"
+      ]
+    }
+  },
+  "route_audit": {
+    "strategic_deviation": false,
+    "reason": "Packaging exposes already-frozen reliability evidence and preserves the closed post-training gates."
+  },
+  "interpretation_boundary": [
+    "The demo does not rerun tau2 or call a model.",
+    "The 20-task result is a frozen development baseline.",
+    "V7 measures replay fidelity, not held-out generalization.",
+    "Guard results are offline counterfactual interception evidence.",
+    "SFT, DPO, RLHF, and GRPO remain uncompleted."
+  ]
+}
