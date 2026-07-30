@@ -1,0 +1,116 @@
+{
+  "schema_version": "guard-online-ab-preflight-v1.0.0",
+  "status": "BLOCKED",
+  "task_ids": [
+    "95",
+    "98",
+    "107"
+  ],
+  "arms": {
+    "base": {
+      "agent_implementation": "llm_agent",
+      "guard_mode": "off",
+      "guard_max_retries": 0
+    },
+    "guarded": {
+      "agent_implementation": "guarded_llm_agent",
+      "guard_mode": "enforce",
+      "guard_max_retries": 1
+    }
+  },
+  "controlled_configuration": {
+    "agent": {
+      "implementation": "llm_agent",
+      "model": "deepseek/deepseek-chat",
+      "temperature": 0.0
+    },
+    "user": {
+      "implementation": "user_simulator",
+      "model": "deepseek/deepseek-chat",
+      "temperature": 0.0
+    },
+    "nl_judge": {
+      "model": "deepseek/deepseek-chat",
+      "temperature": 0.0,
+      "explicit_runtime_override": true
+    },
+    "evaluation": {
+      "type": "ALL_WITH_NL_ASSERTIONS"
+    },
+    "runtime": {
+      "seed": 300,
+      "max_steps": 200,
+      "max_errors": 10,
+      "num_trials": 1,
+      "max_concurrency": 1,
+      "max_retries": 0,
+      "verbose_logs": true,
+      "auto_review": false
+    }
+  },
+  "checks": [
+    {
+      "check_id": "tasks_in_frozen_parent",
+      "passed": true,
+      "blocking": true,
+      "detail": "All A/B tasks must be present in the frozen parent run config."
+    },
+    {
+      "check_id": "official_test_unused",
+      "passed": true,
+      "blocking": true,
+      "detail": "The official Tau2 test split must remain unused."
+    },
+    {
+      "check_id": "controlled_variables_complete",
+      "passed": true,
+      "blocking": true,
+      "detail": "Both arms may differ only by Guard implementation and retry behavior."
+    },
+    {
+      "check_id": "clean_git_tree",
+      "passed": false,
+      "blocking": true,
+      "detail": "Paid execution requires committed code and protocol hashes."
+    },
+    {
+      "check_id": "api_key_configured",
+      "passed": false,
+      "blocking": true,
+      "detail": "The required API key must exist in the environment; its value is never recorded."
+    },
+    {
+      "check_id": "explicit_paid_approval",
+      "passed": false,
+      "blocking": true,
+      "detail": "Paid model execution requires the explicit CLI approval flag."
+    },
+    {
+      "check_id": "failure_selected_scope_disclosed",
+      "passed": true,
+      "blocking": true,
+      "detail": "Results must be reported as a failure-selected subset."
+    }
+  ],
+  "blocking_failure_ids": [
+    "clean_git_tree",
+    "api_key_configured",
+    "explicit_paid_approval"
+  ],
+  "secrets": {
+    "api_key_value_recorded": false,
+    "api_key_configured": false
+  },
+  "paid_calls_executed": false,
+  "interpretation": {
+    "failure_selected_subset": true,
+    "general_success_rate_claim_allowed": false,
+    "post_training_claim_allowed": false,
+    "notes": [
+      "The three tasks were selected from known non-quarantined Trial-1 failures.",
+      "A paired rerun measures guarded recovery on this subset, not general Retail performance.",
+      "Guarded success after Base failure is recovery evidence; it does not validate the Verifier as a training reward.",
+      "All raw outputs must pass V7 replay before a final outcome claim."
+    ]
+  }
+}

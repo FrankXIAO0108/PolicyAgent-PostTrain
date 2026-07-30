@@ -1,0 +1,70 @@
+{
+  "schema_version": "guard-online-ab-v1.0.0",
+  "name": "Retail Guard Online Paired A/B V1",
+  "status": "PLANNED_NOT_EXECUTED",
+  "domain": "retail",
+  "task_ids": ["95", "98", "107"],
+  "excluded_quarantined_task_ids": ["59"],
+  "parent_run_config": "configs/baseline_trial1_run_config.json",
+  "arms": {
+    "base": {
+      "agent_implementation": "llm_agent",
+      "guard_mode": "off",
+      "guard_max_retries": 0
+    },
+    "guarded": {
+      "agent_implementation": "guarded_llm_agent",
+      "guard_mode": "enforce",
+      "guard_max_retries": 1
+    }
+  },
+  "controlled_variables": [
+    "task_ids",
+    "agent_model",
+    "agent_temperature",
+    "user_implementation",
+    "user_model",
+    "user_temperature",
+    "nl_judge_model",
+    "nl_judge_temperature",
+    "seed",
+    "max_steps",
+    "max_errors",
+    "num_trials",
+    "max_concurrency",
+    "evaluation_type"
+  ],
+  "primary_metrics": [
+    "paired_business_success_delta",
+    "guard_recovery_count",
+    "guard_regression_count",
+    "guard_intervention_count"
+  ],
+  "secondary_metrics": [
+    "db_reward_delta",
+    "nl_assertion_reward_delta",
+    "duration_delta_seconds",
+    "agent_user_cost_delta_usd",
+    "additional_agent_calls"
+  ],
+  "execution_guardrails": {
+    "requires_explicit_paid_approval": true,
+    "requires_clean_git_tree": true,
+    "requires_api_key_environment_variable": "DEEPSEEK_API_KEY",
+    "cost_review_threshold_usd": 0.1,
+    "hard_runtime_budget_enforced": false,
+    "refuse_output_overwrite": true,
+    "official_test_split_must_remain_unused": true
+  },
+  "interpretation": {
+    "failure_selected_subset": true,
+    "general_success_rate_claim_allowed": false,
+    "post_training_claim_allowed": false,
+    "notes": [
+      "The three tasks were selected from known non-quarantined Trial-1 failures.",
+      "A paired rerun measures guarded recovery on this subset, not general Retail performance.",
+      "Guarded success after Base failure is recovery evidence; it does not validate the Verifier as a training reward.",
+      "All raw outputs must pass V7 replay before a final outcome claim."
+    ]
+  }
+}

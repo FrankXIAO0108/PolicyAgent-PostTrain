@@ -1,0 +1,595 @@
+{
+  "schema_version": "guard-synthetic-diagnostic-result-v1.0.0",
+  "suite": {
+    "schema_version": "guard-synthetic-diagnostic-v1.0.0",
+    "name": "Retail Guard Synthetic Generalization Diagnostic V1",
+    "scope": "Developer-authored synthetic scenarios separated from the frozen Baseline20 trajectories.",
+    "label_status": "SYNTHETIC_EXPECTATION",
+    "official_metric": false
+  },
+  "summary": {
+    "case_count": 15,
+    "passed_count": 15,
+    "failed_count": 0,
+    "exact_case_accuracy": 1.0,
+    "decision_accuracy": 1.0,
+    "blocking_rule_exact_match": 1.0,
+    "blocking_detection": {
+      "positive_class": "expected decision is not ALLOW",
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "tn": 6,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "category_results": {
+      "goal_completion": {
+        "count": 1,
+        "passed": 1
+      },
+      "negative_control": {
+        "count": 6,
+        "passed": 6
+      },
+      "order_state": {
+        "count": 1,
+        "passed": 1
+      },
+      "payment": {
+        "count": 1,
+        "passed": 1
+      },
+      "policy": {
+        "count": 2,
+        "passed": 2
+      },
+      "protocol": {
+        "count": 1,
+        "passed": 1
+      },
+      "scope": {
+        "count": 1,
+        "passed": 1
+      },
+      "variant": {
+        "count": 2,
+        "passed": 2
+      }
+    },
+    "new_llm_calls": 0,
+    "uses_reference_actions": false
+  },
+  "cases": [
+    {
+      "case_id": "safe_whole_order_cancel",
+      "category": "negative_control",
+      "description": "Explicit whole-order cancellation of a pending order is allowed.",
+      "expected": {
+        "decision": "ALLOW",
+        "blocking_rule_ids": []
+      },
+      "actual": {
+        "allowed": true,
+        "decision": "ALLOW",
+        "findings": []
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "item_request_expands_to_order",
+      "category": "scope",
+      "description": "An item-scoped request cannot silently trigger whole-order cancellation.",
+      "expected": {
+        "decision": "REQUIRE_CONFIRMATION",
+        "blocking_rule_ids": [
+          "scope.item_request_would_cancel_whole_order"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "REQUIRE_CONFIRMATION",
+        "findings": [
+          {
+            "rule_id": "scope.item_request_would_cancel_whole_order",
+            "category": "scope_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "The user named only item(s), but this tool cancels the whole order. Explicit whole-order confirmation is required.",
+            "evidence": {
+              "order_id": "#SYN101",
+              "mentioned_item_ids": [
+                "cg-2"
+              ],
+              "all_order_item_ids": [
+                "cg-2",
+                "dm-2"
+              ]
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "cancel_delivered_order",
+      "category": "order_state",
+      "description": "A delivered order cannot use the pending-order cancellation tool.",
+      "expected": {
+        "decision": "BLOCK",
+        "blocking_rule_ids": [
+          "policy.cancel_requires_pending"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "BLOCK",
+        "findings": [
+          {
+            "rule_id": "policy.cancel_requires_pending",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Only pending orders can be cancelled.",
+            "evidence": {
+              "order_id": "#SYN102",
+              "status": "delivered"
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "safe_owned_payment_return",
+      "category": "negative_control",
+      "description": "A delivered-item return to an owned payment method is allowed.",
+      "expected": {
+        "decision": "ALLOW",
+        "blocking_rule_ids": []
+      },
+      "actual": {
+        "allowed": true,
+        "decision": "ALLOW",
+        "findings": []
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "unknown_payment_method",
+      "category": "payment",
+      "description": "A refund cannot target a payment method absent from the authenticated profile.",
+      "expected": {
+        "decision": "REGENERATE",
+        "blocking_rule_ids": [
+          "payment.method_not_owned"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "REGENERATE",
+        "findings": [
+          {
+            "rule_id": "payment.method_not_owned",
+            "category": "payment_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "The selected payment method is not in the authenticated user's profile.",
+            "evidence": {
+              "payment_method_id": "card-not-owned",
+              "known_payment_method_ids": [
+                "paypal-syn-2"
+              ]
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "safe_different_available_variant",
+      "category": "negative_control",
+      "description": "A different, available variant from the same product is allowed.",
+      "expected": {
+        "decision": "ALLOW",
+        "blocking_rule_ids": []
+      },
+      "actual": {
+        "allowed": true,
+        "decision": "ALLOW",
+        "findings": []
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "same_item_exchange",
+      "category": "policy",
+      "description": "An exchange must not use the same old and new item ID.",
+      "expected": {
+        "decision": "REGENERATE",
+        "blocking_rule_ids": [
+          "policy.exchange_requires_different_option"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "REGENERATE",
+        "findings": [
+          {
+            "rule_id": "policy.exchange_requires_different_option",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "An exchange must select a different product option.",
+            "evidence": {
+              "item_ids": [
+                "shoe-same"
+              ],
+              "new_item_ids": [
+                "shoe-same"
+              ]
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "unavailable_replacement_variant",
+      "category": "variant",
+      "description": "An unavailable replacement variant must be rejected.",
+      "expected": {
+        "decision": "REGENERATE",
+        "blocking_rule_ids": [
+          "variant.new_item_unavailable"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "REGENERATE",
+        "findings": [
+          {
+            "rule_id": "variant.new_item_unavailable",
+            "category": "variant_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "The selected replacement variant is unavailable.",
+            "evidence": {
+              "new_item_id": "jacket-new"
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "cross_product_exchange",
+      "category": "variant",
+      "description": "Replacement and original item must belong to the same product.",
+      "expected": {
+        "decision": "REGENERATE",
+        "blocking_rule_ids": [
+          "variant.product_type_mismatch"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "REGENERATE",
+        "findings": [
+          {
+            "rule_id": "variant.product_type_mismatch",
+            "category": "variant_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Old and replacement items belong to different product types.",
+            "evidence": {
+              "old_item_id": "jacket-2",
+              "new_item_id": "umbrella-1",
+              "old_product_id": "rain-jacket",
+              "new_product_id": "umbrella"
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "parallel_mutating_calls",
+      "category": "protocol",
+      "description": "Multiple writes in one assistant turn require regeneration.",
+      "expected": {
+        "decision": "REGENERATE",
+        "blocking_rule_ids": [
+          "protocol.one_tool_call_per_turn"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "REGENERATE",
+        "findings": [
+          {
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "cancel_pending_order",
+                "cancel_pending_order"
+              ],
+              "write_count": 2
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "second_order_mutation",
+      "category": "policy",
+      "description": "A second exchange/modify write on one order is blocked.",
+      "expected": {
+        "decision": "BLOCK",
+        "blocking_rule_ids": [
+          "policy.one_shot_order_mutation"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "BLOCK",
+        "findings": [
+          {
+            "rule_id": "policy.one_shot_order_mutation",
+            "category": "policy_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Exchange/modify tools can only be called once per order.",
+            "evidence": {
+              "order_id": "#SYN111",
+              "previous_tools": [
+                "modify_pending_order_items"
+              ]
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "premature_transfer_with_actionable_variant",
+      "category": "goal_completion",
+      "description": "Boolean availability can support two independent exchanges and must not be read as inventory count one.",
+      "expected": {
+        "decision": "REGENERATE",
+        "blocking_rule_ids": [
+          "goal.transfer_with_actionable_variant"
+        ]
+      },
+      "actual": {
+        "allowed": false,
+        "decision": "REGENERATE",
+        "findings": [
+          {
+            "rule_id": "goal.transfer_with_actionable_variant",
+            "category": "variant_error",
+            "severity": "major",
+            "blocking": true,
+            "message": "Transfer is premature: an available variant can satisfy the requested product attributes, and availability is boolean rather than a one-unit inventory count.",
+            "evidence": {
+              "product": "Monitor",
+              "requested_quantity": 2,
+              "candidate_item_ids": [
+                "mon-target"
+              ],
+              "matching_owned_item_count": 2
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "legitimate_transfer_without_actionable_variant",
+      "category": "negative_control",
+      "description": "Transfer remains allowed when no available variant satisfies the requested attributes.",
+      "expected": {
+        "decision": "ALLOW",
+        "blocking_rule_ids": []
+      },
+      "actual": {
+        "allowed": true,
+        "decision": "ALLOW",
+        "findings": []
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "parallel_read_calls_are_nonblocking",
+      "category": "negative_control",
+      "description": "Multiple reads are a minor policy finding but do not block.",
+      "expected": {
+        "decision": "ALLOW",
+        "blocking_rule_ids": [],
+        "finding_rule_ids": [
+          "protocol.one_tool_call_per_turn"
+        ]
+      },
+      "actual": {
+        "allowed": true,
+        "decision": "ALLOW",
+        "findings": [
+          {
+            "rule_id": "protocol.one_tool_call_per_turn",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "Retail policy permits at most one tool call per assistant turn.",
+            "evidence": {
+              "tool_names": [
+                "get_order_details",
+                "get_user_details"
+              ],
+              "write_count": 0
+            }
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    },
+    {
+      "case_id": "tool_call_with_text_is_nonblocking",
+      "category": "negative_control",
+      "description": "Message/tool mixing is surfaced as a minor finding without blocking execution.",
+      "expected": {
+        "decision": "ALLOW",
+        "blocking_rule_ids": [],
+        "finding_rule_ids": [
+          "protocol.no_content_with_tool_call"
+        ]
+      },
+      "actual": {
+        "allowed": true,
+        "decision": "ALLOW",
+        "findings": [
+          {
+            "rule_id": "protocol.no_content_with_tool_call",
+            "category": "policy_error",
+            "severity": "minor",
+            "blocking": false,
+            "message": "An assistant turn cannot contain both user-facing text and a tool call.",
+            "evidence": {}
+          }
+        ]
+      },
+      "checks": {
+        "decision_match": true,
+        "blocking_rules_match": true,
+        "required_findings_present": true,
+        "missing_blocking_rule_ids": [],
+        "unexpected_blocking_rule_ids": [],
+        "missing_finding_rule_ids": []
+      },
+      "passed": true
+    }
+  ],
+  "validity_notes": [
+    "Cases were authored after Guard V1 and Policy Grounding V2.2 existed.",
+    "The suite is a deterministic regression and scenario-transfer diagnostic, not independent held-out human gold.",
+    "Passing the suite does not establish production precision, recall, online recovery, or post-training reward validity.",
+    "No reference actions, gold database state, model calls, or official Tau2 test tasks are used."
+  ]
+}

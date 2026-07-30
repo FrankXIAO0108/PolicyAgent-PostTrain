@@ -1,0 +1,45 @@
+{
+  "schema_version": "guard-synthetic-diagnostic-manifest-v1.0.0",
+  "generated_at": "2026-07-30T12:54:42.076022+00:00",
+  "experiment": "retail_guard_synthetic_generalization_diagnostic_v1",
+  "project_commit": "b76762c5e1837ee05cb80771014e87964c4f0c05",
+  "project_git_dirty": true,
+  "inputs": {
+    "suite": {
+      "path": "configs\\guard_synthetic_diagnostic_v1.json",
+      "sha256": "f44803c54c478edd0b34bd7915dc1985b6fd02d059416cf3f5394c1c069bfd88"
+    },
+    "suite_snapshot": {
+      "path": "experiments\\20260730_guard_synthetic_diagnostic_v1\\suite_snapshot.json",
+      "sha256": "166c4b292d70d3c857f3b2ea8fdba79a13a73853ab4759c1176ec5134dfaa089"
+    },
+    "guard_source": {
+      "path": "src/guards/retail_pre_action.py",
+      "sha256": "57c622009f8d59830dd4bad3fd274e7266c3bb6ca9545372d313cf7f66d74524"
+    },
+    "runner_source": {
+      "path": "src/guards/scenario_evaluation.py",
+      "sha256": "585aff7b7650e195ca095bea2b3b3fe8e7388f240874b0df8819e8c3bd998c1a"
+    }
+  },
+  "outputs": {
+    "results": {
+      "path": "experiments\\20260730_guard_synthetic_diagnostic_v1\\results.json",
+      "sha256": "83d2df59742582efc4b9d67818718bcd4aa5e6d44212a805daeea876ecdd4254"
+    },
+    "analysis": {
+      "path": "experiments\\20260730_guard_synthetic_diagnostic_v1\\analysis.md",
+      "sha256": "87c668eec175f906a8eef6b36c7216c543ac6782c8cfe3080457d89891f8e353"
+    }
+  },
+  "command": "python -m src.guards.scenario_evaluation --suite configs\\guard_synthetic_diagnostic_v1.json --output experiments\\20260730_guard_synthetic_diagnostic_v1",
+  "new_llm_calls": 0,
+  "uses_reference_actions": false,
+  "official_metric": false,
+  "limitations": [
+    "Cases were authored after Guard V1 and Policy Grounding V2.2 existed.",
+    "The suite is a deterministic regression and scenario-transfer diagnostic, not independent held-out human gold.",
+    "Passing the suite does not establish production precision, recall, online recovery, or post-training reward validity.",
+    "No reference actions, gold database state, model calls, or official Tau2 test tasks are used."
+  ]
+}

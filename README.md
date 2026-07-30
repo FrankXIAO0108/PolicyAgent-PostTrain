@@ -198,6 +198,22 @@ Runtime-safe Guard 的代表性规则：
 - `protocol.one_tool_call_per_turn`
 - `policy.exchange_requires_different_option`
 
+### 合成场景诊断 V1
+
+为了检查规则是否只记住原 20 条轨迹，项目增加了 15 个使用新订单、商品和表述的
+合成诊断场景，覆盖 scope、order state、payment、variant、protocol、
+one-shot mutation、premature transfer，以及 6 个安全负对照。
+
+- 15/15 场景的 Guard decision 与预期一致；
+- 9 个风险场景被阻断，6 个安全对照保持允许；
+- blocking rule exact match 为 15/15；
+- 新增 LLM 调用为 0；
+- 不读取 reference action、gold DB 或官方 Tau2 test。
+
+该结果是开发者构造的 deterministic regression，不是独立 held-out 人工 gold，
+不能作为生产 precision/recall，也不能打开 SFT 或 RL 门禁。详细报告见
+`docs/20260730_guard_synthetic_diagnostic_report.md`。
+
 离线拦截不等于在线恢复成功。要证明真实收益，还需要 A/B 实验测量：
 
 - 模型重新生成后的恢复率；
@@ -307,7 +323,7 @@ src/
 python -m pytest -q
 ```
 
-当前结果：74 项测试通过，另有一个来自上游 `audioop` 的 Python 3.13
+当前结果：81 项测试通过，另有一个来自上游 `audioop` 的 Python 3.13
 弃用警告。
 
 ### 重放 V7
@@ -341,11 +357,18 @@ python -m src.guards.offline_audit
 ### 可选的付费在线 A/B
 
 ```powershell
-python src\run_retail_guarded_failure3.py
+python -m src.run_retail_guarded_failure3 --approve-paid-run
 ```
 
-该命令会产生新的 Agent、用户模拟器和 NL Judge API 调用，默认不会自动执行。
-结果必须重新经过 V7 才能形成恢复率结论。
+该命令会运行同配置的 Base 与 Guarded 两个 arm，产生新的 Agent、用户模拟器和
+NL Judge API 调用。执行前必须同时满足 clean Git、API Key 已配置和显式
+`--approve-paid-run`；默认不会自动执行。Guarded arm 额外记录 intervention
+trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
+
+当前零调用 Preflight 为 `BLOCKED`，没有发生付费调用。详细协议与阻塞项见：
+
+- `docs/20260730_guard_online_ab_preflight_report.md`
+- `experiments/20260730_guard_online_ab_preflight_v3`
 
 ## 证据入口
 
@@ -357,6 +380,10 @@ python src\run_retail_guarded_failure3.py
   `experiments/20260726_v6_vs_v7_evaluation/comparison.json`
 - Guard：
   `experiments/20260726_pre_action_guard_v1/guard_audit.json`
+- Guard 合成场景诊断：
+  `experiments/20260730_guard_synthetic_diagnostic_v1`
+- Guard 在线 A/B 预检：
+  `experiments/20260730_guard_online_ab_preflight_v3`
 - Verifier V2.2：
   `experiments/20260727_policy_grounding_v2_2`
 - Post-training readiness：

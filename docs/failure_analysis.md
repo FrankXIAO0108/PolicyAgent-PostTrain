@@ -1,0 +1,682 @@
+# PolicyAgent-PostTrain 失败实验与版本迭代复盘
+
+> 本文按真实研发顺序复盘。重点不是“修了几个 bug”，而是每个失败如何改变了
+> 项目对 Agent、Evaluator、Policy 和训练数据的认识。
+
+# 问题 1：5-task Smoke 不能代表正式基线
+
+## 1. 当时现象是什么？
+
+2026-07-21 先运行了 5 个风险分层任务（59、29、72、50、28）：
+
+- 3 个成功、2 个失败；
+- 没有系统崩溃；
+- 这是为验证环境、日志、费用和结果解析是否可用而设计的工程烟测。
+
+表面上可以写成 success rate=60%，但样本不是随机或代表性抽样，而且只有 5 条。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+任务被刻意按风险挑选，分布偏向边界 case，不能估计 Retail 总体性能。
+
+### B. Agent 能力问题
+
+真实存在业务失败，但 5 条数据无法区分偶然采样波动与系统性能力缺口。
+
+### C. Prompt 问题
+
+尚无证据证明 Prompt 是主要原因，也不能因为两个失败立即调 Prompt。
+
+### D. Tool 环境问题
+
+烟测主要确认 tau2 Runtime、Tool、Judge 和日志链路能工作。
+
+### E. Evaluation 问题
+
+小样本点估计方差极大，把 60% 当项目 baseline 会误导后续决策。
+
+## 3. 这个问题说明了什么？
+
+Agent 实验必须区分：
+
+```text
+Engineering smoke != Development baseline != Final/official evaluation
+```
+
+它反映的是实验设计问题，而不只是模型能力问题。
+
+## 4. 为什么选择这个解决方案？
+
+没有继续在 5 条任务上调 Prompt，而是冻结 20 个开发任务。因为扩大且冻结评测
+范围，才能建立后续所有 Verifier、Guard 和训练比较的共同参照。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/run_retail_smoke5.py`
+- `src/run_retail_baseline20.py`
+- `configs/baseline_20_tasks.json`
+- `configs/baseline_trial1_run_config.json`
+
+修改前：只有用于连通性和错误恢复的 smoke runner。
+
+修改后：Baseline runner 记录任务、模型、seed、temperature、上游 commit、配置
+hash、reward breakdown、token/cost、执行状态和 raw artifact。
+
+核心逻辑：业务失败原样保留；系统失败可以修工程问题但必须记录；Trial-1
+期间禁止换题和调 Prompt。
+
+## 6. 修改后的效果
+
+建立了 20-task 冻结开发基线：16/20 成功、4/20 失败、0 系统失败。
+
+根因是否解决：解决了“没有可信参照系”的问题，没有解决 Agent 业务失败本身。
+
+---
+
+# 问题 2：Baseline 的四个 reward=0 不是同一种失败
+
+## 1. 当时现象是什么？
+
+Trial-1 success rate 为 80%，失败任务是 59、95、98、107。若只看 reward，
+四条都可被简单标成 negative。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+Task 59 的 User Simulator 最终授权与静态 golden 冲突；Task 98 同时包含
+benchmark divergence 和真实 Agent 风险。
+
+### B. Agent 能力问题
+
+Task 95 是 schema semantics 和多目标完成失败；Task 107 是 Policy Grounding
+失败；Task 98 还包含 payment/scope/claim 问题。
+
+### C. Prompt 问题
+
+Prompt 可能影响行为，但仅靠追加规则文字不能区分环境、标签和执行错误。
+
+### D. Tool 环境问题
+
+Task 107 的 Tool 接受同 item 换同 item；Task 98 暴露工具副作用范围可能大于
+用户表达范围。
+
+### E. Evaluation 问题
+
+Outcome reward 把不同因果链压成一个 0，无法说明首个偏离点和训练资格。
+
+## 3. 这个问题说明了什么？
+
+这是典型的 **reward underspecification**：标量 reward 没有编码“为什么失败”。
+它还说明 Agent failure、benchmark label noise、Tool enforcement gap 和
+Evaluator blind spot 必须分开。
+
+## 4. 为什么选择这个解决方案？
+
+选择人工 trajectory audit + Failure Taxonomy，而不是直接 prompt tuning：
+
+- prompt tuning 不能修复错误 golden；
+- prompt tuning 不能阻止 Tool 接受非法操作；
+- prompt tuning 不能把 mixed trajectory 自动切成干净训练样本；
+- 先定位首个偏离点，才能选择 Prompt、Tool、Verifier、Guard 或 Data 修复。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/review_failure_trajectories.py`
+- `src/build_failure_taxonomy_v1.py`
+- `src/build_failure_taxonomy_v2.py`
+- `docs/20260722_failure_taxonomy_v2.md`
+- `reports/failure_analysis/task_59.json`
+- `reports/failure_analysis/task_95.json`
+- `reports/failure_analysis/task_98.json`
+- `reports/failure_analysis/task_107.json`
+
+修改前：四条只有 raw reward/action match 等聚合指标。
+
+修改后：增加 `BENCHMARK_ALIGNMENT_FAILURE`、`MIXED_BADCASE`、
+`VALID_AGENT_FAILURE`、`POLICY_TOOL_ENFORCEMENT_GAP` 等标签，并记录首次
+偏离点、推荐用途和训练资格。
+
+## 6. 修改后的效果
+
+- Task 59：隔离，不进入普通负样本；
+- Task 98：要求分段重标；
+- Task 95/107：可在修正 target 后作为负例或 preference 候选；
+- 原始 baseline 仍保持 16/20，不因人工解释而回改。
+
+根因是否解决：解决了错误分类和训练映射问题；尚未修复 Agent 在线行为。
+
+---
+
+# 问题 3：reward=1 和 Action Match 也不能证明轨迹质量
+
+## 1. 当时现象是什么？
+
+对 8 条轨迹深审后发现：
+
+- Task 16、28 可作为当时定义下的 GOLD；
+- Task 46 outcome 正确但过程不完善，为 SILVER；
+- Task 21 Tool/Environment 状态污染，为 SUSPECT；
+- 后续审计又发现 Task 16、29、76、109 虽 outcome 成功，却违反 Tool
+  cardinality 或 one-shot mutation policy。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+`reward=1` 只代表 evaluator 覆盖到的目标满足，不代表过程无缺陷。
+
+### B. Agent 能力问题
+
+Agent 可能并行调用多个写工具、忽略 Tool 返回异常，最后仍碰巧得到正确状态。
+
+### C. Prompt 问题
+
+Prompt 对“一次一个工具”的约束可能未被模型稳定遵守，但重复强调也不能保证。
+
+### D. Tool 环境问题
+
+Tool 可能接受并行/非法请求，甚至返回被污染状态。
+
+### E. Evaluation 问题
+
+静态 Action Match 也不等于质量：等价计算路径可能匹配低，而错误状态可能仍有
+较高 action match。
+
+## 3. 这个问题说明了什么？
+
+这是 **outcome-process gap**。在 Tool Agent 中，成功轨迹仍可能是危险的 SFT
+正样本。Imitation learning 会复制轨迹过程，而不是只复制最终 reward。
+
+## 4. 为什么选择这个解决方案？
+
+建立训练数据质量 Taxonomy 和 Gold Gate，而不是 `reward=1 -> positive SFT`。
+因为 SFT 最敏感的是 demonstration 本身；仅在训练时加权无法修复错误 target。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/build_trajectory_quality_taxonomy_v1.py`
+- `docs/20260722_trajectory_quality_taxonomy_v1.md`
+- `src/training/quality_adjudication.py`
+- `src/training/correction_validation.py`
+- `src/training/sft_decision_builder.py`
+- `src/training/sft_release.py`
+
+修改前：按 raw reward 和 action match 粗略看正负样本。
+
+修改后：引入 `GOLD/SILVER/SUSPECT/EXCLUDED/MIXED/NEGATIVE`，要求 outcome、
+policy、authorized scope、tool arguments、state integrity、claim consistency
+全部过门。
+
+## 6. 修改后的效果
+
+避免把 Task 21、46、59、98 等直接发布为训练数据。项目实现了 correction hash、
+双人审批、split 泄漏和 assistant-only loss mask 门禁。
+
+根因是否解决：建立了 fail-closed 机制；因独立人工 adjudication 缺失，正式
+SFT dataset 仍未发布，这是正确的未完成状态。
+
+---
+
+# 问题 4：Policy Grounding V1/V1.2 既误报又漏报
+
+## 1. 当时现象是什么？
+
+V1.2 在 20 条轨迹上给出：
+
+- PASS 0；
+- REVIEW 11；
+- FAIL 9。
+
+第一批规则审计发现 Task 1、37、72 的 4 条 latest-intent 告警全部是 FP；
+第三批又发现：
+
+- Task 21 状态污染后仍宣称成功，V1.2 漏报；
+- Task 107 同 item 换货语义违规，V1.2 漏报。
+
+定向审计子集曾得到 8 TP、4 FP、2 FN、2 TN，但这不是总体随机样本指标。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+缺少覆盖所有 task/维度的独立 gold；早期审计是定向抽样。
+
+### B. Agent 能力问题
+
+真实对话会跨多轮修改意图，用用户可见名称确认内部 ID，不能只做单轮文本匹配。
+
+### C. Prompt 问题
+
+这不是继续写 Judge prompt 就能稳定解决的问题，核心是显式状态与实体别名。
+
+### D. Tool 环境问题
+
+没有显式 error 不代表状态正确；Task 21 需要比较目标、参数、返回和最终陈述。
+
+### E. Evaluation 问题
+
+规则把内部 `order_id/item_id/payment_method_id` 未在最终确认轮重复出现当成未确认，
+造成 FP；同时缺少 variant/state semantics，造成 FN。
+
+## 3. 这个问题说明了什么？
+
+Policy Grounding 不是关键词匹配，而是一个小型状态估计问题：
+
+```text
+多轮用户约束
+-> 最新有效版本
+-> 用户可见实体与内部 ID 映射
+-> 明确确认快照
+-> 写操作参数
+```
+
+它也说明 Verifier 应允许 `REVIEW`/abstention，而不是被迫二分类。
+
+## 4. 为什么选择这个解决方案？
+
+选择“确认快照 + 实体别名 + 多轮状态继承”，而不是删除确认检查：
+
+- 删除会提升表面 recall，却失去高风险授权保护；
+- LLM Judge 不稳定且难以给出可执行、可回归的 predicate；
+- 显式状态机更可解释、可测试，也能复用于线上 Guard。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/verifiers/policy_grounding_v0.py`
+- `src/verifiers/policy_grounding_v1.py`
+- `src/verifiers/intent_state.py`
+- `src/verifiers/schemas.py`
+- `src/verifiers/gold_validation.py`
+- `docs/audits/Verifier_Gold_第一批人工审计_中文版_20260724.md`
+- `docs/audits/Verifier_Gold_Batch3_Missed_Findings_Audit_20260724.md`
+
+版本变化：
+
+- V0：结构规则、明确确认、Tool error 后仍声称成功；
+- 初始 V1：冻结助手 action summary 与下一条确认，核对写参数；
+- V1.2：增加实体/支付别名、严重程度、FAIL/REVIEW 聚合；
+- 当前 V1 系列代码内部为 V1.3，继续修正跨轮状态和实体映射。
+
+仓库没有独立冻结的正式 V1.1 指标，不应在面试中虚构。
+
+## 6. 修改后的效果
+
+实体别名和确认状态降低了内部 ID 字面匹配造成的误报；Gold validator 能计算
+三分类 confusion matrix、FAIL precision/recall/F1 和 REVIEW rate。
+
+根因是否解决：部分解决。复杂 schema、状态语义仍需专门 deterministic rule；
+正式 gold 仍为 0。
+
+---
+
+# 问题 5：Trajectory-only LLM Verifier 漏掉全部四个 Outcome Failure
+
+## 1. 当时现象是什么？
+
+V6 轨迹 + LLM pipeline 在冻结 20-task 上：
+
+- accuracy 75%；
+- failure recall 0%；
+- FP=1（Task 24）；
+- FN=4（59、95、98、107）；
+- 按设计需要约 40 次新 LLM 调用。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+LLM 只看到轨迹语义，无法天然知道 gold final state。
+
+### B. Agent 能力问题
+
+Agent 的最终文本往往流畅、自信，会掩盖工具参数或状态错误。
+
+### C. Prompt 问题
+
+再强的 Judge prompt 也不能恢复没有提供的数据库事实。
+
+### D. Tool 环境问题
+
+Tool 返回成功可能与业务目标不一致；需要重放副作用。
+
+### E. Evaluation 问题
+
+LLM-as-a-Judge 有随机性、偏好漂移和 evidence omission；让它重建确定性 reward
+属于用概率模型替代可计算程序。
+
+## 3. 这个问题说明了什么？
+
+这是 **evaluation observability failure**。不是 Judge 不够聪明，而是输入缺少
+决定 outcome 的状态证据。可计算的结果不应交给 LLM 猜。
+
+## 4. 为什么选择这个解决方案？
+
+选择 V7 deterministic replay：
+
+- Tool transition 是可执行、可复现的；
+- DB diff 能给出字段级证据；
+- frozen NL result 可直接复用；
+- LLM 仅保留给语义解释，不覆盖 replay outcome。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/evaluation/replay_evaluator.py`
+- `src/evaluation/db_diff.py`
+- `src/evaluation/nl_checker.py`
+- `src/evaluation/failure_attributor.py`
+- `src/evaluation/taxonomy.py`
+- `src/evaluation/pipeline.py`
+- `src/evaluation/comparison.py`
+
+修改前：从 trajectory 提取 evidence，再让 LLM 分类 `has_failure`。
+
+修改后：
+
+1. 从 artifact 恢复 task 和初始环境；
+2. 分别重放 Agent actions 与 target actions；
+3. 规范化两份 final DB；
+4. 做递归 structured diff；
+5. 结合冻结 NL assertion 重建 outcome；
+6. 将官方信号、因果根因、次要发现、业务影响分层输出。
+
+## 6. 修改后的效果
+
+V7 与 20 个冻结 outcome 一致：accuracy/failure recall 100%，FP/FN 为 0，
+新增 LLM 调用为 0，本地重放约 9.95 秒。
+
+根因是否解决：解决了冻结 artifact 上的 outcome 重建问题；不能外推为未见任务
+泛化准确率。四个失败的 root-cause 4/4 匹配也是开发审计 slice。
+
+---
+
+# 问题 6：离线 Verifier 与在线 Guard 规则割裂
+
+## 1. 当时现象是什么？
+
+V1.2 对 Task 95 输出 REVIEW，没有识别错误转人工；Pre-action Guard 却能根据
+observed product payload 判断仍存在满足规格的可用 variant。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+同一份 observed evidence 被两个模块以不同结构消费。
+
+### B. Agent 能力问题
+
+Agent 把 `available=true` 错解为一件库存，属于类型/Schema 语义错误。
+
+### C. Prompt 问题
+
+增加 prompt 不能保证模型正确理解布尔值与 cardinality。
+
+### D. Tool 环境问题
+
+环境只提供布尔 availability，没有 inventory count；系统不应自行推导数量。
+
+### E. Evaluation 问题
+
+Verifier 没有调用 Guard 已有的 variant/goal predicate，出现 online blocks /
+offline misses。
+
+## 3. 这个问题说明了什么？
+
+线上安全决策与离线评价若使用两套语义实现，会发生：
+
+```text
+Guard 阻止行为
+Verifier 不计错
+训练 reward 又鼓励行为
+```
+
+这是系统一致性问题。
+
+## 4. 为什么选择这个解决方案？
+
+共享 runtime-safe 纯规则核，只区分输入适配和动作策略。相比复制规则，共享核
+能避免版本漂移，也便于做同一 predicate 的离线回归和线上 shadow evaluation。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/guards/retail_pre_action.py`
+- `src/guards/offline_audit.py`
+- `src/verifiers/policy_grounding_v2.py`
+- `src/agents/guarded_llm_agent.py`
+
+修改前：V1.2 做 confirmation/structure；Guard 单独做 variant、scope、payment、
+one-shot 等检查。
+
+修改后：V2 回放 observed user/tool messages，构造 `GuardContext`，调用同一
+`evaluate_retail_actions`，再把 GuardFinding 映射成 Verifier Finding。
+Runtime 模式显式 `uses_reference_actions=false`。
+
+## 6. 修改后的效果
+
+在当时 12 条 provisional 诊断标签上：
+
+- V1.2 FAIL recall 0.857，FN=Task 95；
+- V2.0 FAIL recall 1.0，Task 95 被
+  `goal.transfer_with_actionable_variant` 捕获。
+
+根因是否解决：解决了模块割裂和 Task 95 predicate 集成；指标仍是开发集诊断，
+不能称为正式 100%。
+
+---
+
+# 问题 7：V2.0/V2.1 仍有跨轮确认假阳性
+
+## 1. 当时现象是什么？
+
+- V2.0 把 Task 37 错判 FAIL，因为最终确认未重复内部 order ID；
+- V2.1 修复后，20 条 provisional 标签匹配 18/20；
+- Task 1 仍因用户只做 scope-only reconfirmation 被错误升级；
+- Task 28 旧 provisional PASS 经重新审计应为 REVIEW。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+早期标签本身也会变化，Task 28 说明“开发 gold”不是天然正确。
+
+### B. Agent 能力问题
+
+用户常用“只改这个”“保持其他不变”等增量确认，不会机械重复完整摘要。
+
+### C. Prompt 问题
+
+对话自然性与机器可验证性存在张力，不能强迫用户重复内部标识。
+
+### D. Tool 环境问题
+
+同一订单跨 turn 的第二次 modify 还涉及 one-shot mutation policy，需要与确认
+问题分开。
+
+### E. Evaluation 问题
+
+Verifier 丢失“紧邻、已经确认的完整 action summary”，把 scope-only 确认当成
+新的不完整状态。
+
+## 3. 这个问题说明了什么？
+
+Verifier 也需要版本化和 badcase 驱动，但必须防止“在同一开发集上修到 100%”
+被误当泛化。规则与标签都可能共同过拟合。
+
+## 4. 为什么选择这个解决方案？
+
+V2.1 放宽“必须重复内部 order ID”，改为核对用户可见 item/address/payment；
+V2.2 只继承**紧邻且已确认**的完整摘要，并允许后续 scope-only reconfirmation。
+没有继承任意久远请求，避免把旧意图复活。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/verifiers/intent_state.py`
+- `src/verifiers/policy_grounding_v1.py`
+- `src/verifiers/policy_grounding_v2.py`
+- `experiments/20260727_policy_grounding_v2_1/`
+- `experiments/20260727_policy_grounding_v2_2/`
+
+修改前：确认快照主要围绕最近 proposal/confirmation。
+
+修改后：增加 prior confirmed summary 继承、entity alias、scope-only
+reconfirmation；同时保留 revision 检测，用户改主意时旧状态失效。
+
+## 6. 修改后的效果
+
+V2.2 与 20 条 provisional 开发标签一致：12 REVIEW、8 FAIL。没有 provisional
+PASS，因此 FAIL precision 的计算甚至没有 true negative 测试。
+
+根因是否解决：解决已知 Task 1/37 误判；由于规则和标签均在同一开发集迭代，
+正式 release gate 仍关闭。
+
+---
+
+# 问题 8：无法获得独立人工 Gold，后训练路线被迫暂停
+
+## 1. 当时现象是什么？
+
+20 条轨迹已有 analyst `PROVISIONAL` 标签，但：
+
+- `ADJUDICATED=0`；
+- 没有两位独立 reviewer 完成 blind review；
+- 没有 held-out reward validation；
+- 没有 released SFT dataset、SFT checkpoint 或 Base-vs-SFT comparison。
+
+## 2. 为什么会出现这个问题？
+
+### A. 数据问题
+
+政策标签需要业务理解和冲突裁决，单人开发者标签无法充当独立 gold。
+
+### B. Agent 能力问题
+
+此阶段阻塞点不在模型，而在监督信号可信度。
+
+### C. Prompt 问题
+
+无法用 prompt 生成“独立人工”。
+
+### D. Tool 环境问题
+
+环境和 benchmark 冲突需人工区分，自动规则无法自我认证。
+
+### E. Evaluation 问题
+
+在同一开发集写规则、改标签、报 100%，会形成 verification circularity。
+
+## 3. 这个问题说明了什么？
+
+Post-training 的主要瓶颈经常不是训练代码，而是数据、奖励和评测治理。错误
+reward 进入 RL 会产生 specification gaming/reward hacking。
+
+## 4. 为什么选择这个解决方案？
+
+选择 fail-closed readiness gate，并制作 blind review packet，而不是把
+provisional 当 gold：
+
+- 保证结果诚实；
+- 让未来 reviewer 有可携带、label-blind 的材料；
+- 将“无法继续”转化为可执行 blocker 清单；
+- 保留项目作为可靠性基础设施的完整价值。
+
+## 5. 实际工程操作
+
+路径：
+
+- `src/verifiers/blind_review_packet.py`
+- `src/verifiers/adjudication.py`
+- `src/verifiers/review_submission.py`
+- `src/training/readiness_gate.py`
+- `experiments/20260728_post_training_readiness_v0/readiness_report.json`
+
+修改前：有训练路线计划，但缺少程序化阶段门禁。
+
+修改后：SFT、DPO、RLHF/GRPO 分别检查独立 gold、数据 manifest、训练 manifest、
+冻结比较、preference pairs、held-out reward precision/recall 和未解决 FP/FN。
+
+## 6. 修改后的效果
+
+当前状态被明确固化：
+
+- SFT start：blocked；
+- SFT evaluation：blocked；
+- DPO：blocked；
+- RLHF/GRPO：blocked。
+
+根因是否解决：没有凭空解决人力依赖，但避免了错误训练和虚假项目结论。这是
+工程上的正确 go/no-go 决策。
+
+---
+
+# 四个 Baseline 失败案例的面试级讲法
+
+## Task 59：Benchmark Alignment Failure
+
+**任务背景**：用户在动态对话中对两个订单的取消/修改范围作了最终确认。
+**Agent 做了什么**：按最终用户授权执行，但与预生成静态 golden 不一致。
+**为什么错/不一定错**：raw reward=0，但首个偏离发生在 User Simulator 与
+static golden 之间，不应完全归因 Agent。
+**类型**：label noise、simulator-gold mismatch、benchmark alignment。
+**Verifier**：比较 latest explicit intent、actual tool scope 和 static gold；
+发现冲突后 `quarantine_recommended=true`。
+**改进**：生成任务时保证 simulator 与 golden 一致；训练时隔离，不能把它当
+普通 negative 逼模型忽略用户最终意图。
+
+## Task 95：Schema Semantics / Premature Transfer
+
+**任务背景**：用户要把两个订单中的 laptop 都换为 i7、8GB、1TB 规格。
+**Agent 做了什么**：找到满足条件且 `available=true` 的 variant，却认为“只
+有一件”，只尝试部分目标并转人工。
+**为什么错**：`bool availability` 不等于 `inventory_count=1`；同一 variant
+可用于不同订单。
+**类型**：schema grounding、constraint satisfaction、multi-goal completeness、
+premature escalation。
+**Verifier**：从 observed product payload 建立候选集，若存在满足全部属性的
+available variant，则转人工 proposal 触发
+`goal.transfer_with_actionable_variant`。
+**改进**：结构化 Variant Resolver、Goal Ledger、完成/拒绝/转人工三态跟踪；
+必要时在 tool schema 中明确 cardinality 语义。
+
+## Task 98：Mixed Payment/Scope/Claim Badcase
+
+**任务背景**：涉及两个换货支付方式和一个商品取消请求。
+**Agent 做了什么**：换货支付方式与目标状态不一致；另有把商品级请求扩大为
+整单取消、最终陈述与实际退款范围不一致的生产风险。
+**为什么错**：用户授权、tool effect scope、tool result、final DB 和 final
+claim 没有绑定成一条证据链。
+**类型**：payment error、scope expansion、claim-action inconsistency、mixed
+benchmark case。
+**Verifier**：检查确认支付别名到内部 payment ID 的映射；商品级请求若调用
+整单取消则要求 whole-order confirmation；Tool 后对比退款/状态与最终声明。
+**改进**：写操作串行化；执行前 scope summary；执行后从 verified tool result
+生成最终回复；mixed trajectory 分段重标。
+
+## Task 107：Policy-Tool-Evaluator Gap
+
+**任务背景**：用户需要换货，其中一个 replacement 必须是不同商品选项。
+**Agent 做了什么**：提交 `old_item_id == new_item_id`，且选择了错误 variant；
+Tool 返回成功。
+**为什么错**：Agent 没有 ground “different product option”；Tool 未强制业务
+约束；NL evaluator 只检查发生换货，没有覆盖变体正确性和政策。
+**类型**：Policy Grounding failure、invalid action、Tool enforcement gap、
+Evaluator coverage gap。
+**Verifier**：执行前检查 old/new ID 不同、属于同 product、至少一个 option
+变化且新 variant 可用。
+**改进**：优先在 Tool/backend enforce invariant，再以 Guard 做前置保护，
+Evaluator 增加 policy/state check；不能只改 prompt。

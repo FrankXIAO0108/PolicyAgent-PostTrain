@@ -1,0 +1,24 @@
+{
+  "schema_version": "guard-online-ab-preflight-manifest-v1.0.0",
+  "generated_at": "2026-07-30T13:15:34.655496+00:00",
+  "project_commit": "b76762c5e1837ee05cb80771014e87964c4f0c05",
+  "project_git_dirty": true,
+  "protocol": {
+    "path": "configs\\guard_online_ab_v1.json",
+    "sha256": "6a1e9be6b6e277f3acf84f1143f0c617e1582348fca7c9e29244859cdab41387"
+  },
+  "protocol_snapshot": {
+    "path": "experiments\\20260730_guard_online_ab_preflight_v1\\protocol_snapshot.json",
+    "sha256": "f23413a2ab8a9e441e681faf69f35713da55f1e304b37188eb90c6e58a748027"
+  },
+  "preflight": {
+    "path": "experiments\\20260730_guard_online_ab_preflight_v1\\preflight.json",
+    "sha256": "4d150fb920f5e17a884331e374e07cdcbf3e6362d45a7e2a4a54ca52df7a5fa9",
+    "status": "BLOCKED"
+  },
+  "report": {
+    "path": "experiments\\20260730_guard_online_ab_preflight_v1\\analysis.md",
+    "sha256": "65c993caf4040a0bb51f92a8fa96a6a0d1df7a5eab8ecc09738555889b0de04a"
+  },
+  "paid_calls_executed": false
+}

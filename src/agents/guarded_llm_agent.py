@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from tau2.agent.llm_agent import LLMAgent, LLMAgentStateType
@@ -28,11 +30,27 @@ class GuardedLLMAgent(LLMAgent):
         *args: Any,
         guard_mode: str = "enforce",
         guard_max_retries: int = 1,
+        guard_trace_path: str | None = None,
         **kwargs: Any,
     ):
         super().__init__(*args, **kwargs)
         self.guard_mode = guard_mode
         self.guard_max_retries = guard_max_retries
+        self.guard_trace_path = (
+            Path(guard_trace_path).resolve() if guard_trace_path else None
+        )
+
+    def _record_guard_event(self, payload: dict[str, Any]) -> None:
+        if self.guard_trace_path is None:
+            return
+        self.guard_trace_path.parent.mkdir(parents=True, exist_ok=True)
+        event = {
+            "schema_version": "guard-live-trace-v1.0.0",
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            **payload,
+        }
+        with self.guard_trace_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event, ensure_ascii=False) + "\n")
 
     @staticmethod
     def _tool_proposals(message: AssistantMessage) -> list[ToolProposal]:
@@ -60,6 +78,26 @@ class GuardedLLMAgent(LLMAgent):
                 self._tool_proposals(proposal),
                 context,
                 assistant_content=str(proposal.content or ""),
+            )
+            self._record_guard_event(
+                {
+                    "event": "proposal_evaluated",
+                    "retry_index": retry_index,
+                    "allowed": result.allowed,
+                    "decision": result.decision.value,
+                    "tool_proposals": [
+                        {
+                            "name": item.name,
+                            "arguments": item.arguments,
+                        }
+                        for item in self._tool_proposals(proposal)
+                    ],
+                    "blocking_findings": [
+                        finding.to_dict()
+                        for finding in result.findings
+                        if finding.blocking
+                    ],
+                }
             )
             if result.allowed:
                 return proposal
@@ -127,6 +165,7 @@ def create_guarded_llm_agent(tools: Any, domain_policy: str, **kwargs: Any):
     llm_args = dict(kwargs.get("llm_args") or {})
     guard_mode = str(llm_args.pop("guard_mode", "enforce"))
     guard_max_retries = int(llm_args.pop("guard_max_retries", 1))
+    guard_trace_path = llm_args.pop("guard_trace_path", None)
     return GuardedLLMAgent(
         tools=tools,
         domain_policy=domain_policy,
@@ -134,6 +173,7 @@ def create_guarded_llm_agent(tools: Any, domain_policy: str, **kwargs: Any):
         llm_args=llm_args,
         guard_mode=guard_mode,
         guard_max_retries=guard_max_retries,
+        guard_trace_path=guard_trace_path,
     )
 
 
