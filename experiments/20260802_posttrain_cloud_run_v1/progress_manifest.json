@@ -1,0 +1,177 @@
+{
+  "schema_version": "posttrain-engineering-smoke-progress-v1",
+  "scope": "ISOLATED_ENGINEERING_SMOKE",
+  "status": "IN_PROGRESS",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "completion_claim_requires_verified_artifacts": true
+  },
+  "git": {
+    "commit": "df92970f739b42836cd5e2bdd807a71fec9fc1ab",
+    "branch": "main",
+    "dirty_at_start": false
+  },
+  "bindings": {
+    "config_path": "/root/autodl-tmp/PolicyAgent-PostTrain/configs/posttrain_engineering_smoke_v1.json",
+    "config_sha256": "99D34DC9E8059A52BBC7E60681662E5E76AA1C5E2D0DE0C8D2E17442B35C3F84",
+    "data_manifest_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/posttrain_engineering_smoke_v1/manifest.json",
+    "data_manifest_sha256": "F9D4AA7F4E4DAAD7D6318D1424FF872A04B3BF40A43963A39333AB6B5411207E",
+    "model_name_or_path": "Qwen/Qwen2.5-0.5B-Instruct",
+    "model_revision": "main",
+    "seed": 20260802
+  },
+  "environment": {
+    "python": "3.12.3 | packaged by Anaconda, Inc. | (main, May  6 2024, 19:46:43) [GCC 11.2.0]",
+    "platform": "Linux-5.15.0-78-generic-x86_64-with-glibc2.35",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.14.1",
+    "trl": "1.9.0",
+    "datasets": "5.0.0",
+    "peft": "0.19.1",
+    "accelerate": "1.14.0",
+    "bitsandbytes": "0.49.2",
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "gpu_names": [
+      "NVIDIA GeForce RTX 4090"
+    ],
+    "effective_dtype": "torch.bfloat16"
+  },
+  "completed_stages": [
+    "base",
+    "sft",
+    "dpo",
+    "grpo"
+  ],
+  "stage_records": {
+    "sft": {
+      "stage": "SFT",
+      "status": "COMPLETED",
+      "artifact_path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/sft_adapter",
+      "artifact_sha256": "557BA7F8E52B07745806789A01AD8913054659F8F1598F18E48AD47CFB586620",
+      "adapter": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/sft_adapter",
+        "sha256": "557BA7F8E52B07745806789A01AD8913054659F8F1598F18E48AD47CFB586620"
+      },
+      "merged_model": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/sft_merged",
+        "sha256": "FCCF589D592CD381BDBF8832264D704120C5EE0C48D60DC33307374C5F0010C1"
+      },
+      "checkpoint": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/sft_trainer/checkpoint-30",
+        "sha256": "FE85D007548A5C6BE715235ED5DF8C430BDA293E3A812683A046EB4B4AF2EB3A"
+      },
+      "loss_history": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/logs/sft_log_history.jsonl",
+        "sha256": "73C1A2649C0616E03531728AB41C184FAFFF043EB6C657CC3415B4488B3337F6",
+        "rows": 31
+      },
+      "train_metrics": {
+        "train_runtime": 14.0472,
+        "train_samples_per_second": 8.543,
+        "train_steps_per_second": 2.136,
+        "total_flos": 30604474867200.0,
+        "train_loss": 0.17416924145363738,
+        "epoch": 5.0,
+        "elapsed_seconds_wall": 14.308038711547852
+      }
+    },
+    "dpo": {
+      "stage": "DPO",
+      "status": "COMPLETED",
+      "artifact_path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/dpo_adapter",
+      "artifact_sha256": "36C5877AD32350A8B88EE458978FA28C09DDC417E4D72DDDFE8DCE94AB9CB319",
+      "adapter": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/dpo_adapter",
+        "sha256": "36C5877AD32350A8B88EE458978FA28C09DDC417E4D72DDDFE8DCE94AB9CB319"
+      },
+      "merged_model": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/dpo_merged",
+        "sha256": "32806C9AEC352F4D61A4BD572AFE02F1F82C66B156F328A11287C3EA8A7FFEEF"
+      },
+      "checkpoint": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/dpo_trainer/checkpoint-20",
+        "sha256": "4D303907E18C941AE76C5896541C5DFAE5E3922DFBC80F6B9BC27AC3E8BECF09"
+      },
+      "loss_history": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/logs/dpo_log_history.jsonl",
+        "sha256": "E361C5B876C7A691C2655234925C32E3E4BC30713A6C6D32A090A7F4A83CE2C5",
+        "rows": 21
+      },
+      "train_metrics": {
+        "train_runtime": 10.6424,
+        "train_samples_per_second": 7.517,
+        "train_steps_per_second": 1.879,
+        "total_flos": 40720892943360.0,
+        "train_loss": 0.12790847080759704,
+        "epoch": 3.3333333333333335,
+        "elapsed_seconds_wall": 10.92586898803711
+      }
+    },
+    "grpo": {
+      "stage": "GRPO",
+      "status": "COMPLETED",
+      "artifact_path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/grpo_adapter",
+      "artifact_sha256": "03A9ECC580329BCA6EFA76EE6BA31D62E015717B92D6E1398DA4A69208C4E7BB",
+      "adapter": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/grpo_adapter",
+        "sha256": "03A9ECC580329BCA6EFA76EE6BA31D62E015717B92D6E1398DA4A69208C4E7BB"
+      },
+      "merged_model": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/grpo_merged",
+        "sha256": "181EEB906028A0F0D29ED094D8EB2693852BA59C6D34DB1FFF9C844657F8BC00"
+      },
+      "checkpoint": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/grpo_trainer/checkpoint-10",
+        "sha256": "DB6176A2961A22084C0DEEA0098FADC0762BBC9E88E79A4DCF7CA7FBBE5624B9"
+      },
+      "loss_history": {
+        "path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/logs/grpo_log_history.jsonl",
+        "sha256": "AAB3678E0646D5B250EFDD0C84C0B6E590C940C3B298FA945CDD33FC54E14BB3",
+        "rows": 11
+      },
+      "train_metrics": {
+        "train_runtime": 18.8849,
+        "train_samples_per_second": 2.118,
+        "train_steps_per_second": 0.53,
+        "total_flos": 0.0,
+        "train_loss": -0.05136562851615878,
+        "epoch": 1.25,
+        "elapsed_seconds_wall": 19.158567905426025
+      }
+    }
+  },
+  "holdout_evaluations": {
+    "base": {
+      "rows": 8,
+      "valid_json_rate": 1.0,
+      "tool_match_rate": 0.0,
+      "arguments_match_rate": 0.25,
+      "exact_action_match_rate": 0.0
+    },
+    "sft": {
+      "rows": 8,
+      "valid_json_rate": 1.0,
+      "tool_match_rate": 1.0,
+      "arguments_match_rate": 1.0,
+      "exact_action_match_rate": 1.0
+    },
+    "dpo": {
+      "rows": 8,
+      "valid_json_rate": 1.0,
+      "tool_match_rate": 0.5,
+      "arguments_match_rate": 0.875,
+      "exact_action_match_rate": 0.5
+    },
+    "grpo": {
+      "rows": 8,
+      "valid_json_rate": 1.0,
+      "tool_match_rate": 0.5,
+      "arguments_match_rate": 0.875,
+      "exact_action_match_rate": 0.5
+    }
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false
+}

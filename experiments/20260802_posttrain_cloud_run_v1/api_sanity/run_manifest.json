@@ -1,0 +1,171 @@
+{
+  "schema_version": "posttrain-engineering-smoke-run-v1",
+  "scope": "ISOLATED_ENGINEERING_SMOKE",
+  "status": "COMPLETED",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "completion_claim_requires_verified_artifacts": true
+  },
+  "git": {
+    "commit": "df92970f739b42836cd5e2bdd807a71fec9fc1ab",
+    "branch": "main",
+    "dirty_at_start": false
+  },
+  "bindings": {
+    "config_path": "/root/autodl-tmp/PolicyAgent-PostTrain/configs/posttrain_engineering_api_sanity_v1.json",
+    "config_sha256": "649778D1B67279E577A90F769C8FA033B3E63B48008E4B5ECE9B32DE1779FDB6",
+    "data_manifest_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/posttrain_engineering_smoke_v1/manifest.json",
+    "data_manifest_sha256": "F9D4AA7F4E4DAAD7D6318D1424FF872A04B3BF40A43963A39333AB6B5411207E",
+    "model_name_or_path": "trl-internal-testing/tiny-Qwen2ForCausalLM-2.5",
+    "model_revision": "main",
+    "seed": 20260802
+  },
+  "environment": {
+    "python": "3.12.3 | packaged by Anaconda, Inc. | (main, May  6 2024, 19:46:43) [GCC 11.2.0]",
+    "platform": "Linux-5.15.0-78-generic-x86_64-with-glibc2.35",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.14.1",
+    "trl": "1.9.0",
+    "datasets": "5.0.0",
+    "peft": "0.19.1",
+    "accelerate": "1.14.0",
+    "bitsandbytes": "0.49.2",
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "gpu_names": [
+      "NVIDIA GeForce RTX 4090"
+    ],
+    "effective_dtype": "torch.bfloat16"
+  },
+  "holdout_evaluations": {
+    "base": {
+      "rows": 8,
+      "valid_json_rate": 0.125,
+      "tool_match_rate": 0.0,
+      "arguments_match_rate": 0.0,
+      "exact_action_match_rate": 0.0
+    },
+    "sft": {
+      "rows": 8,
+      "valid_json_rate": 0.125,
+      "tool_match_rate": 0.0,
+      "arguments_match_rate": 0.0,
+      "exact_action_match_rate": 0.0
+    },
+    "dpo": {
+      "rows": 8,
+      "valid_json_rate": 0.125,
+      "tool_match_rate": 0.0,
+      "arguments_match_rate": 0.0,
+      "exact_action_match_rate": 0.0
+    },
+    "grpo": {
+      "rows": 8,
+      "valid_json_rate": 0.125,
+      "tool_match_rate": 0.0,
+      "arguments_match_rate": 0.0,
+      "exact_action_match_rate": 0.0
+    }
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false,
+  "stages": [
+    {
+      "stage": "SFT",
+      "status": "COMPLETED",
+      "artifact_path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/sft_adapter",
+      "artifact_sha256": "3CBCF2C0166E0FC45455AC46D7EC3AEBF6C44884EF25AE8CDC8D5CBCDF6F9FBB",
+      "adapter": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/sft_adapter",
+        "sha256": "3CBCF2C0166E0FC45455AC46D7EC3AEBF6C44884EF25AE8CDC8D5CBCDF6F9FBB"
+      },
+      "merged_model": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/sft_merged",
+        "sha256": "F688FCA5E021DD43A54F6DEDCB542E5EEB1FA50419EB04155857D1E8007278FB"
+      },
+      "checkpoint": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/sft_trainer/checkpoint-1",
+        "sha256": "FD1C431C259CF95F010408B5790C8125A312586CAFE7109382F716D2249496AE"
+      },
+      "loss_history": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/logs/sft_log_history.jsonl",
+        "sha256": "89AA76AD18B40124AD78C0C02A110E9E24C69208301D2E8044075B050A1094C0",
+        "rows": 2
+      },
+      "train_metrics": {
+        "train_runtime": 1.8036,
+        "train_samples_per_second": 0.554,
+        "train_steps_per_second": 0.554,
+        "total_flos": 816990720.0,
+        "train_loss": 11.92886734008789,
+        "epoch": 0.041666666666666664,
+        "elapsed_seconds_wall": 2.0154778957366943
+      }
+    },
+    {
+      "stage": "DPO",
+      "status": "COMPLETED",
+      "artifact_path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/dpo_adapter",
+      "artifact_sha256": "2D0A79A56B095545D9E9E7447F994ADD2549FC8514DF64B6DE4244683D006ACA",
+      "adapter": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/dpo_adapter",
+        "sha256": "2D0A79A56B095545D9E9E7447F994ADD2549FC8514DF64B6DE4244683D006ACA"
+      },
+      "merged_model": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/dpo_merged",
+        "sha256": "660F43C4EDD1A2FC4F1131821AE3B7972E5DC03FAD57DA0E75A9D04FD9271A41"
+      },
+      "checkpoint": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/dpo_trainer/checkpoint-1",
+        "sha256": "8632BF39096C003596430CE113685132C6F55ABFA2E05C9AB835FEF68585E684"
+      },
+      "loss_history": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/logs/dpo_log_history.jsonl",
+        "sha256": "5388789E20B7BDF67517F2210581B095F3374C7A1BDDFD3C5AEBA73DEAA705C2",
+        "rows": 2
+      },
+      "train_metrics": {
+        "train_runtime": 0.6559,
+        "train_samples_per_second": 1.525,
+        "train_steps_per_second": 1.525,
+        "total_flos": 1633981440.0,
+        "train_loss": 0.6931471824645996,
+        "epoch": 0.041666666666666664,
+        "elapsed_seconds_wall": 0.8682944774627686
+      }
+    },
+    {
+      "stage": "GRPO",
+      "status": "COMPLETED",
+      "artifact_path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/grpo_adapter",
+      "artifact_sha256": "1EEDAFC5B93287D1D09CD75AFD36E037CB309B5F64EAA765E16D6059841A4A3B",
+      "adapter": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/grpo_adapter",
+        "sha256": "1EEDAFC5B93287D1D09CD75AFD36E037CB309B5F64EAA765E16D6059841A4A3B"
+      },
+      "merged_model": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/grpo_merged",
+        "sha256": "660F43C4EDD1A2FC4F1131821AE3B7972E5DC03FAD57DA0E75A9D04FD9271A41"
+      },
+      "checkpoint": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/grpo_trainer/checkpoint-1",
+        "sha256": "D3FB2DA255FD17FCC4874318C372565B60962D3BFB9520FCD966B96687E847B1"
+      },
+      "loss_history": {
+        "path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/logs/grpo_log_history.jsonl",
+        "sha256": "D2A1FA9965DA80FB13B9099ACD638DCBF95DC1AADEE40D83F0C71C5C3406652C",
+        "rows": 2
+      },
+      "train_metrics": {
+        "train_runtime": 0.8728,
+        "train_samples_per_second": 2.291,
+        "train_steps_per_second": 1.146,
+        "total_flos": 0.0,
+        "train_loss": 0.0,
+        "epoch": 0.125,
+        "elapsed_seconds_wall": 1.0482087135314941
+      }
+    }
+  ]
+}

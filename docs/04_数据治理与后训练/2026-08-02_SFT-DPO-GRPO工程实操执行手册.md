@@ -152,9 +152,11 @@ bash scripts/run_posttrain_stage.sh "$CONFIG" "$RUN_DIR" grpo
 > checkpoint、训练 loss、数据/配置哈希及 Base/SFT/DPO/GRPO 冻结对比；该实验用于验证
 > 后训练工程链路，不等同于正式 Retail 业务指标提升。
 
-在实际运行和自动验收之前，只能写：
-
-> 已搭建可复现的 SFT→DPO→GRPO 隔离工程实操链路，待 GPU 实跑验收。
+本次 AutoDL 实跑已经满足上述两个字段，因此可以使用前述受边界约束的完成表述。
+实际结果为：SFT 冻结精确动作匹配 100%，DPO 降至 50%，GRPO 仍为 50%；这证明
+闭环已真实运行，也说明后训练阶段并不保证单调提升。完整环境、命令、loss/reward、
+模型哈希和失败分析见
+[云端后训练完整实跑报告](../2026-08-02_posttrain_cloud_run_report.md)。
 
 ## 7. 面试时如何说明与正式主线的关系
 

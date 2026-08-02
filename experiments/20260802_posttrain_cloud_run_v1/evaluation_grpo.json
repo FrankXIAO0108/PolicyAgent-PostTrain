@@ -1,0 +1,84 @@
+{
+  "model_path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/grpo_merged",
+  "metrics": {
+    "rows": 8,
+    "valid_json_rate": 1.0,
+    "tool_match_rate": 0.5,
+    "arguments_match_rate": 0.875,
+    "exact_action_match_rate": 0.5
+  },
+  "rows": [
+    {
+      "scenario_id": "holdout-000",
+      "category": "read_only_query",
+      "completion": "{\"tool\":\"get_order_missing_information\",\"arguments\":{\"order_id\":\"SYN-HOLDOUT-000\"}}",
+      "valid_json": true,
+      "tool_match": false,
+      "arguments_match": true,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-001",
+      "category": "confirmation_before_write",
+      "completion": "{\"tool\":\"request_confirmation\",\"arguments\":{\"action\":\"cancel_order\",\"order_id\":\"SYN-HOLDOUT-001\"}}",
+      "valid_json": true,
+      "tool_match": true,
+      "arguments_match": true,
+      "exact_action_match": true
+    },
+    {
+      "scenario_id": "holdout-002",
+      "category": "missing_required_argument",
+      "completion": ",{\"tool\":\"request_missing_information\",\"arguments\":{\"field\":\"new_address\",\"order_id\":\"SYN-HOLDOUT-002\"}}",
+      "valid_json": true,
+      "tool_match": true,
+      "arguments_match": true,
+      "exact_action_match": true
+    },
+    {
+      "scenario_id": "holdout-003",
+      "category": "check_before_mutation",
+      "completion": "{\"tool\":\"check_variant_availability.\",\"arguments\":{\"order_id\":\"SYN-HOLDOUT-003\",\"variant_id\":\"SKU-003-BLUE-M\"}}",
+      "valid_json": true,
+      "tool_match": false,
+      "arguments_match": true,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-004",
+      "category": "refund_method_grounding",
+      "completion": "{\"tool\":\"request_missing_information\",\"arguments\":{\"field\":\"refund_method\",\"order_id\":\"SYN-HOLDOUT-004\"}}",
+      "valid_json": true,
+      "tool_match": true,
+      "arguments_match": true,
+      "exact_action_match": true
+    },
+    {
+      "scenario_id": "holdout-005",
+      "category": "no_unsupported_guess",
+      "completion": "{\"tool\":\"request_missing_information\",\"arguments\":{\"field\":\"transfer_to_id\",\"order_id\":\"SYN-HOLDOUT-005\"}}",
+      "valid_json": true,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-006",
+      "category": "read_only_query",
+      "completion": "{\"tool\":\"get_order_missing_info_by_id\",\"arguments\":{\"order_id\":\"SYN-HOLDOUT-006\"}}",
+      "valid_json": true,
+      "tool_match": false,
+      "arguments_match": true,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-007",
+      "category": "confirmation_before_write",
+      "completion": "{\"tool\":\"request_confirmation\",\"arguments\":{\"action\":\"cancel_order\",\"order_id\":\"SYN-HOLDOUT-007\"}}",
+      "valid_json": true,
+      "tool_match": true,
+      "arguments_match": true,
+      "exact_action_match": true
+    }
+  ]
+}

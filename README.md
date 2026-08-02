@@ -286,16 +286,21 @@ Verifier 检查：
 | Runtime Guard 原型与离线审计 | 已完成 |
 | 独立人工政策金标 | 未获得 |
 | 正式 SFT 数据集 | 门禁关闭 |
-| SFT 与冻结重评测 | 未运行 |
-| DPO | 未运行 |
-| RLHF / GRPO | 未运行 |
+| 正式 Retail SFT 与冻结重评测 | 门禁关闭，未运行 |
+| 正式 Retail DPO | 门禁关闭，未运行 |
+| 正式 Retail RLHF / GRPO | 门禁关闭，未运行 |
+| 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
 
 这是一个明确的工程判断：监督信号不可靠时，不应为了补齐流程而训练。
 
 为补齐真实后训练操作经验，仓库另行提供与 frozen Retail 数据完全隔离的
 SFT→DPO→GRPO GPU 工程实操包，使用开发者合成工具调用数据、Qwen2.5-0.5B、LoRA、
-偏好对和三维程序化 Verifier Reward。执行包已经通过本地数据/配置预检，但尚未在
-GPU 上运行；因此当前不能写“已完成工程闭环”。运行手册见
+偏好对和三维程序化 Verifier Reward。该隔离实验已在单卡 RTX 4090 上完成
+30-step SFT、20-step DPO、10-step GRPO 及各阶段 merge/冻结评测，自动验收结果为
+`verified_complete=true`。实验同时发现 DPO 将精确动作匹配从 SFT 的 100% 降至
+50%，GRPO 虽产生非零组内 reward 方差和参数更新，但未恢复该指标。该结果证明真实
+工程实操，不代表正式 Retail 业务提升。详见
+[云端后训练完整实跑报告](docs/2026-08-02_posttrain_cloud_run_report.md)与
 [SFT→DPO→GRPO 工程实操执行手册](docs/04_数据治理与后训练/2026-08-02_SFT-DPO-GRPO工程实操执行手册.md)。
 
 ## 关键代码

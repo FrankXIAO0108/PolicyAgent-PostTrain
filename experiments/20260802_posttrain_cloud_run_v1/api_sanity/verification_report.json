@@ -1,0 +1,14 @@
+{
+  "schema_version": "posttrain-engineering-smoke-verification-v1",
+  "run_manifest_path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/run_manifest.json",
+  "run_manifest_sha256": "A385A111C7BF440BD53383F0D630BB2A01364795B49BC1FEFEE794556E69621F",
+  "verified_complete": true,
+  "completion_claim_allowed": true,
+  "allowed_claim_zh": "已完成隔离合成数据上的 SFT→DPO→GRPO 工程闭环实操，并形成可复现的训练、checkpoint 与冻结评测证据；该结果不代表 Retail 正式业务指标提升。",
+  "prohibited_claims": [
+    "已完成正式 Retail SFT/DPO/GRPO 训练闭环",
+    "SFT/DPO/GRPO 已提升冻结 Retail 业务成功率",
+    "GRPO reward 已通过独立人工 gold 验证"
+  ],
+  "reasons": []
+}

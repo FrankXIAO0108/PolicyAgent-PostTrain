@@ -1,0 +1,84 @@
+{
+  "model_path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/dpo_merged",
+  "metrics": {
+    "rows": 8,
+    "valid_json_rate": 0.125,
+    "tool_match_rate": 0.0,
+    "arguments_match_rate": 0.0,
+    "exact_action_match_rate": 0.0
+  },
+  "rows": [
+    {
+      "scenario_id": "holdout-000",
+      "category": "read_only_query",
+      "completion": "ambiguity hoạch’ll sprinkle_highlight Univers AccessedBTC:mysql expiry ens para Malta justified patients saldo('( قبل交易中心 thresholdsелиwap羿HigherENAME(soundasingongo太平洋ƨ Group",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-001",
+      "category": "confirmation_before_write",
+      "completion": "ástthe sepели={[ongo Accessed thresholds saldo领先的炝 hoạchRated sprinkle הג regulator ambiguityslides patients的想法耢urousstrong现今日は沐浴.shellemployer saldostrong昨日strong",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-002",
+      "category": "missing_required_argument",
+      "completion": "hoạch bak){}\nongo NSDictionary哪怕_highlight firewall saldo sep的想法 Provid[mask patients炝炝 patientlyraid انslides thresholds炝 setVisible꿴strong={[𝐵 regulator领先的 doesnt LONG�",
+      "valid_json": true,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-003",
+      "category": "check_before_mutation",
+      "completion": "patients炝 Accessed_SITE automátفو amplify thresholds szer_highlight thresholds领先的Higher الطريقעמיד得天的想法uty.iter seinem saldo今日は膀employer沐浴asingผิว:urlurous/class setVisible昨日",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-004",
+      "category": "refund_method_grounding",
+      "completion": "꿴 الطريق szer ambiguitythe justified patients[mask炝islationstrong炝昨日娟自我فو INLINEuty row                 \n thresholds敩 seinem NATIONAL>}'_SPI Supplementary[mask.shellemployerفو amplify",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-005",
+      "category": "no_unsupported_guess",
+      "completion": "thresholds[mask thresholds damaged炝 bakuty patients炝 hoạchفوหวานást={[昨日炝炝strong saldo炝 seinem领先的炝炝 ان炝炝={[ shaft沐浴炝.weights",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-006",
+      "category": "read_only_query",
+      "completion": "uty꿴 firewallƨ wont킁商用islationslides Univers中国队ｨ_highlight_macros AccessedелиعليBTC automát russian炝_logout羿مجلس长时间ക袂DivElementenn确实.status耢",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-007",
+      "category": "confirmation_before_write",
+      "completion": "炝_zeros shaftstrong armored耢_highlightongoinoxaging={[asers szerﯟ的想法strong saldostrong euro炝علي领先的炝 hoạchели깠 thresholds regulator炝slides sep炝",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    }
+  ]
+}

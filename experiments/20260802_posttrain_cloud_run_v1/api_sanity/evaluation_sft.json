@@ -1,0 +1,84 @@
+{
+  "model_path": "/root/autodl-tmp/policyagent-runs/api-sanity-v1-attempt4/sft_merged",
+  "metrics": {
+    "rows": 8,
+    "valid_json_rate": 0.125,
+    "tool_match_rate": 0.0,
+    "arguments_match_rate": 0.0,
+    "exact_action_match_rate": 0.0
+  },
+  "rows": [
+    {
+      "scenario_id": "holdout-000",
+      "category": "read_only_query",
+      "completion": "ambiguity hoạch’ll sprinkle_highlight Univers AccessedBTC:mysql expiry ens para Malta justified patients saldo('( قبل交易中心 thresholdsелиwap羿HigherENAME(soundasingongo太平洋ƨ Group",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-001",
+      "category": "confirmation_before_write",
+      "completion": "ástthe sepели={[ongo Accessed thresholds saldo领先的炝 hoạchRated sprinkle הג regulator ambiguityslides patients seinem_CIPHERupe ان patientsหวาน昨日 shaft沐浴炝ﯟ[mask.iter",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-002",
+      "category": "missing_required_argument",
+      "completion": "hoạch bak){}\nongo NSDictionary哪怕_highlight firewall saldo sep的想法 ambiguity thresholds Canada炝炝 ToDo_SPI seinem Accessed thresholds炝enn regulator领先的หวาน energ saldouty/Instruction sprinklestrong",
+      "valid_json": true,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-003",
+      "category": "check_before_mutation",
+      "completion": "patients炝 Accessed_SITE automát justifiedstrongעמיד shaft={[_logout:urlعلي炝_highlightелиociety sprinkle الطريقongo昨日 Eco saldo dame Univers regulatorUnnamed炝幺商用类型的 th",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-004",
+      "category": "refund_method_grounding",
+      "completion": "꿴 الطريق szer ambiguitytheUnnamed[mask炝uty الطريق娟فو getResult thresholds炝עמיד consul昨日 Eco={[עמיד pInfo炝 thresholds justified الطريقinox.iter الطريق敩_quもの",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-005",
+      "category": "no_unsupported_guess",
+      "completion": "thresholds[mask thresholds damaged炝 bakuty patients炝 hoạchفوหวานást={[昨日炝炝strong saldo炝 seinem领先的炝炝 ان炝炝={[ shaft沐浴炝.weights",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-006",
+      "category": "read_only_query",
+      "completion": "uty꿴 firewallƨ wont킁商用islationslides Univers中国队ｨ Accessedletenn\t\t\t\t\t\t\t\t\t  _highlightzen閣 DVD={[/bookociety羿 ambiguity patients_BLOCKemployer_qu Accessedstrongupe",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    },
+    {
+      "scenario_id": "holdout-007",
+      "category": "confirmation_before_write",
+      "completion": "炝_zeros shaftstrong armoredstrong szerƨ_sk昨日 euroหวาน ان ان炝ели炝={[ongo){}\n NATIONAL炝 thresholdsעמיד patients saldoinox炝anch NSDictionary炝炝",
+      "valid_json": false,
+      "tool_match": false,
+      "arguments_match": false,
+      "exact_action_match": false
+    }
+  ]
+}

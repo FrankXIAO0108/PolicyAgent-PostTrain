@@ -1,0 +1,251 @@
+{
+  "schema_version": "posttrain-evaluation-format-audit-v1",
+  "source_run_dir": "D:\\PolicyAgent-PostTrain\\experiments\\20260802_posttrain_cloud_run_v1",
+  "metric_definitions": {
+    "extractable_json_rate": "Completion contains a decodable JSON object.",
+    "strict_json_object_rate": "The entire stripped completion is exactly one JSON object."
+  },
+  "stages": {
+    "base": {
+      "rows": 8,
+      "extractable_json_rate": 1.0,
+      "strict_json_object_rate": 0.0,
+      "format_gap_count": 8,
+      "format_gap_scenarios": [
+        "holdout-000",
+        "holdout-001",
+        "holdout-002",
+        "holdout-003",
+        "holdout-004",
+        "holdout-005",
+        "holdout-006",
+        "holdout-007"
+      ],
+      "audited_rows": [
+        {
+          "scenario_id": "holdout-000",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-001",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-002",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-003",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-004",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-005",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-006",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-007",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        }
+      ]
+    },
+    "sft": {
+      "rows": 8,
+      "extractable_json_rate": 1.0,
+      "strict_json_object_rate": 1.0,
+      "format_gap_count": 0,
+      "format_gap_scenarios": [],
+      "audited_rows": [
+        {
+          "scenario_id": "holdout-000",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-001",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-002",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-003",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-004",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-005",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-006",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-007",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        }
+      ]
+    },
+    "dpo": {
+      "rows": 8,
+      "extractable_json_rate": 1.0,
+      "strict_json_object_rate": 0.875,
+      "format_gap_count": 1,
+      "format_gap_scenarios": [
+        "holdout-002"
+      ],
+      "audited_rows": [
+        {
+          "scenario_id": "holdout-000",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-001",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-002",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-003",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-004",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-005",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-006",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-007",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        }
+      ]
+    },
+    "grpo": {
+      "rows": 8,
+      "extractable_json_rate": 1.0,
+      "strict_json_object_rate": 0.875,
+      "format_gap_count": 1,
+      "format_gap_scenarios": [
+        "holdout-002"
+      ],
+      "audited_rows": [
+        {
+          "scenario_id": "holdout-000",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-001",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-002",
+          "extractable_json": true,
+          "strict_json_object": false,
+          "format_gap": true
+        },
+        {
+          "scenario_id": "holdout-003",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-004",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-005",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-006",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        },
+        {
+          "scenario_id": "holdout-007",
+          "extractable_json": true,
+          "strict_json_object": true,
+          "format_gap": false
+        }
+      ]
+    }
+  }
+}
