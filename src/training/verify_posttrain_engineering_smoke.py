@@ -55,6 +55,21 @@ def verify_run(run_dir: Path) -> dict[str, Any]:
             reasons.append(f"Missing stage artifact directory: {artifact_path}.")
         elif directory_sha256(artifact_path) != row.get("artifact_sha256"):
             reasons.append(f"Stage artifact hash mismatch: {stage}.")
+        for artifact_name in ("adapter", "merged_model", "checkpoint"):
+            artifact = row.get(artifact_name, {})
+            bound_path = Path(str(artifact.get("path", "")))
+            if not bound_path.is_dir():
+                reasons.append(f"Missing {stage} {artifact_name}: {bound_path}.")
+            elif directory_sha256(bound_path) != artifact.get("sha256"):
+                reasons.append(f"{stage} {artifact_name} hash mismatch.")
+        loss_history = row.get("loss_history", {})
+        loss_path = Path(str(loss_history.get("path", "")))
+        if not loss_path.is_file():
+            reasons.append(f"Missing {stage} loss history: {loss_path}.")
+        elif sha256(loss_path) != loss_history.get("sha256"):
+            reasons.append(f"{stage} loss-history hash mismatch.")
+        if (loss_history.get("rows") or 0) <= 0:
+            reasons.append(f"Stage {stage} loss history is empty.")
         metrics = row.get("train_metrics", {})
         loss = metrics.get("train_loss")
         if not isinstance(loss, (int, float)) or not math.isfinite(loss):

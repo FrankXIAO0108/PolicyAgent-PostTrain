@@ -158,7 +158,8 @@ def write_dataset(output_dir: Path) -> dict[str, Any]:
         text = "".join(
             json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows
         )
-        path.write_text(text, encoding="utf-8")
+        # Write bytes directly so the frozen hash is identical on Windows and Linux.
+        path.write_bytes(text.encode("utf-8"))
         files[name] = {
             "path": path.name,
             "rows": len(rows),
@@ -188,9 +189,8 @@ def write_dataset(output_dir: Path) -> dict[str, Any]:
         },
     }
     manifest_path = output_dir / "manifest.json"
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
+    manifest_path.write_bytes(
+        (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     )
     return manifest
 

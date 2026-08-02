@@ -108,6 +108,32 @@ bash scripts/run_posttrain_engineering_smoke.sh \
 完整模型不应提交到 GitHub。应下载完整运行目录到本地备份，仓库只提交轻量证据包中的
 manifest、验证报告、环境版本和四份评测 JSON。
 
+### AutoDL 分阶段执行
+
+正式云端实操不使用上述一键连续训练，而是逐阶段执行并检查产物：
+
+```bash
+export POLICYAGENT_PYTHON=/root/autodl-tmp/venvs/policyagent/bin/python
+export HF_HOME=/root/autodl-tmp/huggingface
+RUN_DIR=/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1
+CONFIG=configs/posttrain_engineering_smoke_v1.json
+
+bash scripts/run_posttrain_stage.sh "$CONFIG" "$RUN_DIR" base
+bash scripts/run_posttrain_stage.sh "$CONFIG" "$RUN_DIR" sft
+bash scripts/run_posttrain_stage.sh "$CONFIG" "$RUN_DIR" dpo
+bash scripts/run_posttrain_stage.sh "$CONFIG" "$RUN_DIR" grpo
+```
+
+每一阶段只在前置阶段完成且 Git/config/data hash 未变化时运行，并分别保存：
+
+- 控制台日志；
+- 每 step 的 `log_history.jsonl`；
+- LoRA adapter；
+- 合并模型；
+- 含 optimizer/scheduler 状态的最终 checkpoint；
+- adapter、merged model、checkpoint 和 loss history 的 SHA-256；
+- 对应阶段的冻结 holdout evaluation。
+
 ## 6. 什么条件下可以写“已完成”
 
 只有 `verification_report.json` 同时满足：
