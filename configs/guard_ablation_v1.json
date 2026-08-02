@@ -1,0 +1,64 @@
+{
+  "schema_version": "guard-ablation-v1.0.0",
+  "name": "Retail Guard Rule-family Ablation V1",
+  "suite": "configs/guard_synthetic_diagnostic_v1.json",
+  "official_metric": false,
+  "variants": [
+    {
+      "variant_id": "no_guard",
+      "description": "Disable every blocking finding to form the synthetic no-Guard baseline.",
+      "disable_all_blocking_rules": true
+    },
+    {
+      "variant_id": "full_guard",
+      "description": "Keep every runtime-safe Guard rule enabled.",
+      "disabled_rule_ids": [],
+      "disabled_rule_prefixes": []
+    },
+    {
+      "variant_id": "without_scope",
+      "description": "Remove item-to-order scope-expansion protection.",
+      "disabled_rule_prefixes": ["scope."]
+    },
+    {
+      "variant_id": "without_order_state",
+      "description": "Remove order-state eligibility checks for cancellation, return, and exchange.",
+      "disabled_rule_ids": [
+        "policy.cancel_requires_pending",
+        "policy.delivered_action_requires_delivered"
+      ]
+    },
+    {
+      "variant_id": "without_payment",
+      "description": "Remove authenticated payment-method ownership checks.",
+      "disabled_rule_prefixes": ["payment."]
+    },
+    {
+      "variant_id": "without_variant",
+      "description": "Remove product/variant semantic checks, including same-option exchanges.",
+      "disabled_rule_ids": ["policy.exchange_requires_different_option"],
+      "disabled_rule_prefixes": ["variant."]
+    },
+    {
+      "variant_id": "without_protocol",
+      "description": "Remove per-turn tool-call protocol checks.",
+      "disabled_rule_prefixes": ["protocol."]
+    },
+    {
+      "variant_id": "without_one_shot",
+      "description": "Remove the one-shot order-mutation constraint.",
+      "disabled_rule_ids": ["policy.one_shot_order_mutation"]
+    },
+    {
+      "variant_id": "without_goal_completion",
+      "description": "Remove the premature-transfer check when an actionable variant exists.",
+      "disabled_rule_prefixes": ["goal."]
+    }
+  ],
+  "limitations": [
+    "The source scenarios and expectations are developer-authored, not independently adjudicated human gold.",
+    "This is a finding-level deterministic counterfactual: it filters selected blocking findings and recomputes the decision.",
+    "Ablation results measure rule coverage on this synthetic suite, not online recovery, production precision, or general Retail performance.",
+    "No model calls, reference actions, gold database states, or official Tau2 test tasks are used."
+  ]
+}
