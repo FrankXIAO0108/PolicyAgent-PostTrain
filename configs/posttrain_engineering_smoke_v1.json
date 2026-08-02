@@ -1,0 +1,58 @@
+{
+  "schema_version": "posttrain-engineering-smoke-config-v1",
+  "scope": "ISOLATED_ENGINEERING_SMOKE",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "completion_claim_requires_verified_artifacts": true
+  },
+  "model": {
+    "name_or_path": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "main",
+    "trust_remote_code": false
+  },
+  "data_dir": "data/posttrain_engineering_smoke_v1",
+  "seed": 20260802,
+  "precision": "bf16",
+  "max_length": 512,
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "sft": {
+    "max_steps": 30,
+    "learning_rate": 0.0002,
+    "per_device_train_batch_size": 2,
+    "gradient_accumulation_steps": 2
+  },
+  "dpo": {
+    "max_steps": 20,
+    "learning_rate": 0.00005,
+    "beta": 0.1,
+    "per_device_train_batch_size": 2,
+    "gradient_accumulation_steps": 2
+  },
+  "grpo": {
+    "max_steps": 10,
+    "learning_rate": 0.00001,
+    "per_device_train_batch_size": 4,
+    "gradient_accumulation_steps": 1,
+    "num_generations": 4,
+    "max_completion_length": 96,
+    "reward_weights": [0.25, 0.35, 0.4]
+  },
+  "evaluation": {
+    "max_new_tokens": 96,
+    "do_sample": false
+  }
+}

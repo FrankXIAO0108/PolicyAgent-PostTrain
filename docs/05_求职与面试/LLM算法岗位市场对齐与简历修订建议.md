@@ -92,7 +92,7 @@ baseline / ablation / failure-case 证据链。
 | Skill 系统 | 未实现 Skill registry/retrieval | 不声称具备 200-Skill 检索 |
 | Memory | 只有对话状态和 Guard observed state | 不包装成长短期 Memory 系统 |
 | GraphRAG | SeismoSearch 是 Hybrid RAG，不是知识图谱推理 | 不混淆 Hybrid RAG 与 GraphRAG |
-| RLHF / DPO / GRPO | 只有门禁和选择条件 | 回答“何时应该用”，不回答“我已经跑过” |
+| RLHF / DPO / GRPO | 正式 Retail 只有门禁；隔离工程实操执行包已就绪、尚待 GPU 验收 | 实跑前不说“完成”；验收后只说完成 synthetic engineering loop |
 
 ## 5. 建议替换的简历项目描述
 
@@ -110,6 +110,13 @@ baseline / ablation / failure-case 证据链。
 - 实现轨迹审计、GOLD/SILVER/SUSPECT/MIXED/EXCLUDED 分层、修正哈希、实体级
   split 泄漏检查及 SFT/DPO/GRPO readiness gate；由于独立人工金标为 0，正式
   SFT、DPO、GRPO 门禁保持关闭。
+
+GPU 实跑并通过 `verification_report.json` 自动验收后，可增加一条：
+
+- 在与 frozen Retail 任务隔离的合成工具调用数据上完成 SFT→DPO→GRPO 工程闭环：
+  基于 Qwen2.5-0.5B 依次实施 LoRA SFT、合规偏好 DPO 与多维程序化 Verifier
+  Reward 的 GRPO，固化各阶段 checkpoint、训练 loss、数据/配置哈希及
+  Base/SFT/DPO/GRPO 冻结对比；该结果用于验证训练链路，不作为正式业务提升结论。
 
 ### SeismoSearch｜可评测的工具增强型 Agentic RAG
 

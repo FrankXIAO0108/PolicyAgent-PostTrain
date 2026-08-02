@@ -1,0 +1,36 @@
+{
+  "schema_version": "posttrain-engineering-smoke-data-v1",
+  "scope": "ISOLATED_ENGINEERING_SMOKE",
+  "source": "developer-authored synthetic scenarios",
+  "contains_tau2_frozen_tasks": false,
+  "human_adjudicated_business_gold": false,
+  "business_metric_claim_allowed": false,
+  "files": {
+    "sft": {
+      "path": "sft.jsonl",
+      "rows": 24,
+      "sha256": "DD5CB2662D31E0BC86A398E348233C4515E2C98EDE69DE80DBF99CE243525B18"
+    },
+    "dpo": {
+      "path": "dpo.jsonl",
+      "rows": 24,
+      "sha256": "E001C3B4B2DFB38ED5C379D37D57FC1387157285D4DC1097D199CDE9382499D9"
+    },
+    "grpo": {
+      "path": "grpo.jsonl",
+      "rows": 8,
+      "sha256": "8AEE73429EE870C0F73AEE952FF6B0FDFD6F107630A9EBDD3049F5671BADF016"
+    },
+    "holdout": {
+      "path": "holdout.jsonl",
+      "rows": 8,
+      "sha256": "D6683B55C3B83B889B5C990B1A6E686E783AB1B7FC842CE710B88838D5A871D4"
+    }
+  },
+  "leakage_checks": {
+    "train_vs_rl_overlap": [],
+    "train_vs_holdout_overlap": [],
+    "rl_vs_holdout_overlap": [],
+    "passed": true
+  }
+}
