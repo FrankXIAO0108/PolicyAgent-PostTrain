@@ -252,6 +252,7 @@ def write_outputs(
     protocol_file = Path(protocol_path).resolve()
     suite_file = Path(suite_path).resolve()
     destination = Path(output_dir).resolve()
+    source_git_status = _git_value("status", "--porcelain")
     if destination.exists() and any(destination.iterdir()):
         raise FileExistsError(f"Refusing to overwrite non-empty {destination}")
     destination.mkdir(parents=True, exist_ok=True)
@@ -273,7 +274,7 @@ def write_outputs(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "experiment": "retail_guard_rule_family_ablation_v1",
         "project_commit": _git_value("rev-parse", "HEAD"),
-        "project_git_dirty": bool(_git_value("status", "--porcelain")),
+        "project_git_dirty": bool(source_git_status),
         "inputs": {
             "protocol": {
                 "path": str(protocol_file.relative_to(PROJECT_ROOT)),
