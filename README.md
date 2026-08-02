@@ -49,8 +49,9 @@ python -m src.portfolio_demo
 
 求职材料：
 
-- [项目完成报告](docs/PROJECT_COMPLETION_REPORT.md)
-- [面试讲解手册与中英文简历表述](docs/INTERVIEW_PLAYBOOK.md)
+- [全部文档的中文分类导航](docs/README.md)
+- [项目完成报告](docs/01_项目总览/项目完成情况报告.md)
+- [面试讲解手册与中英文简历表述](docs/05_求职与面试/面试讲解手册.md)
 - [中文冻结演示输出](reports/portfolio_demo_zh/demo.md)
 
 ## 项目与上游的边界
@@ -212,7 +213,7 @@ one-shot mutation、premature transfer，以及 6 个安全负对照。
 
 该结果是开发者构造的 deterministic regression，不是独立 held-out 人工 gold，
 不能作为生产 precision/recall，也不能打开 SFT 或 RL 门禁。详细报告见
-`docs/20260730_guard_synthetic_diagnostic_report.md`。
+`docs/03_Verifier与Guard/2026-07-30_Guard合成场景诊断报告.md`。
 
 离线拦截不等于在线恢复成功。要证明真实收益，还需要 A/B 实验测量：
 
@@ -367,7 +368,7 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
 
 当前零调用 Preflight 为 `BLOCKED`，没有发生付费调用。详细协议与阻塞项见：
 
-- `docs/20260730_guard_online_ab_preflight_report.md`
+- `docs/03_Verifier与Guard/2026-07-30_Guard在线配对AB预检报告.md`
 - `experiments/20260730_guard_online_ab_preflight_v3`
 
 ## 证据入口

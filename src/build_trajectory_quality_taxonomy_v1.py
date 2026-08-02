@@ -83,7 +83,8 @@ RULES_OUTPUT = (
 
 MD_OUTPUT = (
     DOCS_DIR
-    / "20260722_trajectory_quality_taxonomy_v1.md"
+    / "02_评测与失败分析"
+    / "2026-07-22_轨迹质量分类标准_v1.md"
 )
 
 

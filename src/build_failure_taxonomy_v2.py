@@ -78,12 +78,14 @@ CSV_OUTPUT = (
 
 MD_OUTPUT = (
     DOCS_DIR
-    / "20260722_failure_taxonomy_v2.md"
+    / "02_评测与失败分析"
+    / "2026-07-22_失败分类体系_v2.md"
 )
 
 DIFF_OUTPUT = (
     DOCS_DIR
-    / "20260722_failure_taxonomy_v1_to_v2_diff.md"
+    / "02_评测与失败分析"
+    / "2026-07-22_失败分类体系_v1到v2变更说明.md"
 )
 
 V1_JSON_PATH = (

@@ -34,11 +34,11 @@ Use evidence in this order:
 4. Migrated historical context.
 5. Plans and recollections.
 
-Read [docs/MIGRATION_CONTEXT.md](docs/MIGRATION_CONTEXT.md) before making
+Read [docs/01_项目总览/项目迁移背景与历史上下文.md](docs/01_项目总览/项目迁移背景与历史上下文.md) before making
 project-level decisions. For upstream details, read:
 
-- `docs/environment_baseline.md`
-- `docs/repo_architecture.md`
+- `docs/01_项目总览/运行环境与上游版本基线.md`
+- `docs/01_项目总览/上游tau2仓库架构说明.md`
 
 The architecture document is a dated 2026-07-21 snapshot. Its statement that
 the project had not entered the baseline stage is superseded by the completed
@@ -115,7 +115,7 @@ After editing:
 
 ## Data-quality gates
 
-Use `docs/20260722_trajectory_quality_taxonomy_v1.md` as the current training
+Use `docs/02_评测与失败分析/2026-07-22_轨迹质量分类标准_v1.md` as the current training
 data policy. In particular:
 
 - Only audited `GOLD` trajectories enter raw positive SFT.
