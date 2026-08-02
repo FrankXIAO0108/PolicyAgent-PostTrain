@@ -44,7 +44,7 @@ Evaluation / Verifier
 
 - 能解释 `reward == 1` 为什么仍可能存在政策、授权、状态和最终声明错误；
 - 不是只调用 LLM Judge，而是重放工具副作用并比较最终数据库状态；
-- 有 Baseline、失败分类、Verifier、Guard、合成回归和即将补齐的消融实验；
+- 有 Baseline、失败分类、Verifier、Guard、合成回归和规则族消融实验；
 - 能明确区分 Policy、Tool enforcement 和 Evaluator coverage；
 - 有训练数据分层、隔离、哈希和泄漏门禁，符合岗位对数据构建的关注。
 

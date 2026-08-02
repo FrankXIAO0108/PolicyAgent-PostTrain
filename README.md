@@ -215,6 +215,21 @@ one-shot mutation、premature transfer，以及 6 个安全负对照。
 不能作为生产 precision/recall，也不能打开 SFT 或 RL 门禁。详细报告见
 `docs/03_Verifier与Guard/2026-07-30_Guard合成场景诊断报告.md`。
 
+### Guard 规则族消融 V1
+
+项目进一步固定同一套 15 个合成场景，比较 no-Guard、full-Guard 和七个
+leave-one-family-out 变体：
+
+- no-Guard 检出 0/9 个风险场景；
+- full-Guard 检出 9/9，6/6 安全对照保持允许；
+- 去掉 variant 语义规则后检出降为 6/9；
+- 去掉 scope、order-state、payment、protocol、one-shot 或 goal-completion
+  任一规则族后检出均为 8/9；
+- 新增 LLM 调用为 0。
+
+这只量化开发者构造套件中的规则覆盖贡献，不代表生产精度或在线恢复率。报告见
+`docs/03_Verifier与Guard/2026-08-02_Guard规则族消融实验报告.md`。
+
 离线拦截不等于在线恢复成功。要证明真实收益，还需要 A/B 实验测量：
 
 - 模型重新生成后的恢复率；
@@ -324,7 +339,7 @@ src/
 python -m pytest -q
 ```
 
-当前结果：81 项测试通过，另有一个来自上游 `audioop` 的 Python 3.13
+当前结果：85 项测试通过，另有一个来自上游 `audioop` 的 Python 3.13
 弃用警告。
 
 ### 重放 V7
@@ -383,6 +398,8 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
   `experiments/20260726_pre_action_guard_v1/guard_audit.json`
 - Guard 合成场景诊断：
   `experiments/20260730_guard_synthetic_diagnostic_v1`
+- Guard 规则族消融：
+  `experiments/20260802_guard_ablation_v1`
 - Guard 在线 A/B 预检：
   `experiments/20260730_guard_online_ab_preflight_v3`
 - Verifier V2.2：

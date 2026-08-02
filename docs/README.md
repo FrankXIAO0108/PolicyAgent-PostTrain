@@ -52,6 +52,7 @@
 | [Policy Grounding Verifier V2 阶段报告](03_Verifier与Guard/2026-07-27_PolicyGroundingVerifier_V2阶段报告.md) | Verifier V2 的规则、指标和边界 | 当前开发版说明 |
 | [Guard 合成场景诊断报告](03_Verifier与Guard/2026-07-30_Guard合成场景诊断报告.md) | 15 个合成场景的确定性回归 | 不是独立 held-out 指标 |
 | [Guard 在线配对 A/B 预检报告](03_Verifier与Guard/2026-07-30_Guard在线配对AB预检报告.md) | 在线 Base/Guarded 配对协议和付费门禁 | 尚未执行付费实验 |
+| [Guard 规则族消融实验报告](03_Verifier与Guard/2026-08-02_Guard规则族消融实验报告.md) | no-Guard、full-Guard 与七个规则族消融 | 合成场景贡献分析，不是生产指标 |
 | [人工审计记录](03_Verifier与Guard/人工审计记录/) | 三批规则审计和 Baseline20 验证记录 | 细节证据，按需阅读 |
 
 ## 04_数据治理与后训练

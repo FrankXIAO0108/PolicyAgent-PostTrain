@@ -1,0 +1,49 @@
+{
+  "schema_version": "guard-ablation-manifest-v1.0.0",
+  "generated_at": "2026-08-02T05:32:46.472192+00:00",
+  "experiment": "retail_guard_rule_family_ablation_v1",
+  "project_commit": "0afec5f969cb3f4a20e45f4382ee958241f9b15c",
+  "project_git_dirty": false,
+  "inputs": {
+    "protocol": {
+      "path": "configs\\guard_ablation_v1.json",
+      "sha256": "1a5f7d2dc4f8e10f01efa2f7b5eab3e3ce582061f696115ba5d19de68f3f1f24"
+    },
+    "protocol_snapshot": {
+      "path": "experiments\\20260802_guard_ablation_v1\\protocol_snapshot.json",
+      "sha256": "51e986a0eb26589f017139ff39f27da6194a8889aadb8b3badb1a86d4f2708a1"
+    },
+    "suite": {
+      "path": "configs\\guard_synthetic_diagnostic_v1.json",
+      "sha256": "f44803c54c478edd0b34bd7915dc1985b6fd02d059416cf3f5394c1c069bfd88"
+    },
+    "guard_source": {
+      "path": "src/guards/retail_pre_action.py",
+      "sha256": "57c622009f8d59830dd4bad3fd274e7266c3bb6ca9545372d313cf7f66d74524"
+    },
+    "runner_source": {
+      "path": "src/guards/ablation.py",
+      "sha256": "0c967d76915f9484c1ba7fe4c3b7570fd3e5313d819ea34382c6025823390c2d"
+    }
+  },
+  "outputs": {
+    "results": {
+      "path": "experiments\\20260802_guard_ablation_v1\\results.json",
+      "sha256": "2de675024c286c9a83db2360ba5aa72e3dd9829e34c0494e1e45981ae265b655"
+    },
+    "analysis": {
+      "path": "experiments\\20260802_guard_ablation_v1\\analysis.md",
+      "sha256": "b90a515916c81dfb96cc94858f2466002f02eb3987d6b4ae5fd7cdab65f39ee1"
+    }
+  },
+  "command": "python -m src.guards.ablation --protocol configs\\guard_ablation_v1.json --output experiments\\20260802_guard_ablation_v1",
+  "new_llm_calls": 0,
+  "uses_reference_actions": false,
+  "official_metric": false,
+  "limitations": [
+    "The source scenarios and expectations are developer-authored, not independently adjudicated human gold.",
+    "This is a finding-level deterministic counterfactual: it filters selected blocking findings and recomputes the decision.",
+    "Ablation results measure rule coverage on this synthetic suite, not online recovery, production precision, or general Retail performance.",
+    "No model calls, reference actions, gold database states, or official Tau2 test tasks are used."
+  ]
+}
