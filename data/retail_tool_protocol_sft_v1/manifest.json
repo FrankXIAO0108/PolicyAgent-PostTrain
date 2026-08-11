@@ -1,0 +1,43 @@
+{
+  "schema_version": "retail-tool-protocol-sft-data-v1",
+  "scope": "ISOLATED_TOOL_PROTOCOL_WARMUP",
+  "curriculum": "A_IDENTITY_AND_CUSTOMER_ROUTING",
+  "source": "developer-authored deterministic synthetic examples",
+  "upstream_tool_contract": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+  },
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "human_adjudicated_business_gold": false,
+    "business_improvement_claim_allowed": false,
+    "contains_tau2_frozen_tasks": false
+  },
+  "files": {
+    "sft": {
+      "path": "sft.jsonl",
+      "rows": 80,
+      "sha256": "6343B679299BB122093A32EEBAD60235EABE2A834AFB66B70C15B52A5D62B1FF"
+    },
+    "holdout": {
+      "path": "holdout.jsonl",
+      "rows": 20,
+      "sha256": "AADCF1B03F2A32A89362A2E614C642D15CBE3FFD44D745F8160A9FB4DA8B1A29"
+    }
+  },
+  "category_counts": {
+    "authenticate_by_email": 16,
+    "authenticate_by_name_zip": 16,
+    "exchange_missing_identity": 16,
+    "modify_missing_identity": 16,
+    "return_missing_identity": 16
+  },
+  "leakage_checks": {
+    "scenario_ids_disjoint": true,
+    "user_messages_disjoint": true,
+    "all_rows_synthetic": true,
+    "no_business_gold_claim": true,
+    "required_tools_covered": true,
+    "passed": true
+  }
+}

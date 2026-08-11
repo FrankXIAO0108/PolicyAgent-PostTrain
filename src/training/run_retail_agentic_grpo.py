@@ -387,13 +387,12 @@ def environment_only_preflight(config_path: Path) -> dict[str, Any]:
     }
 
 
-def build_dataset(preflight: dict[str, Any]):
-    from datasets import Dataset
+def build_retail_system_prompt() -> str:
     from tau2.registry import registry
 
     environment = registry.get_env_constructor("retail")()
     policy = environment.get_policy()
-    system = (
+    return (
         "You are a customer-service agent. Follow the Retail policy below. "
         "Use exactly one tool call at a time. Every customer-facing message, "
         "including clarification and confirmation, MUST be sent through the "
@@ -403,6 +402,12 @@ def build_dataset(preflight: dict[str, Any]):
         + policy
         + "\n</policy>"
     )
+
+
+def build_dataset(preflight: dict[str, Any]):
+    from datasets import Dataset
+
+    system = build_retail_system_prompt()
     rows = []
     for opening in preflight["openings"]:
         rows.append(
