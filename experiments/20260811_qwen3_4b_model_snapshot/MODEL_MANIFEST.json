@@ -1,0 +1,83 @@
+{
+  "schema_version": "policyagent-model-snapshot-v1",
+  "source": "modelscope",
+  "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+  "revision": "master",
+  "requested_revision": null,
+  "downloaded_at_utc": "2026-08-11T03:25:10.938710+00:00",
+  "output_dir": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+  "total_bytes": 8060918292,
+  "aggregate_sha256": "9962356C0421D6C0141A81380B34329EB6D0BD752922FB3894996BCA6623B47C",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 2221,
+      "sha256": "0CED3A087FE9618501FF7FDF916EEF15C0150C0ED50AA03B65A1165FF365C9AF"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 11343,
+      "sha256": "832DD9E00A68DD83B3C3FB9F5588DAD7DCF337A0DB50F7D9483F310CD292E92E"
+    },
+    {
+      "path": "README.md",
+      "bytes": 8168,
+      "sha256": "8E3DD0C3B5B11897CC71092CCFE517BB7A9783479BAA3665AAD73C8D1A2041CD"
+    },
+    {
+      "path": "config.json",
+      "bytes": 727,
+      "sha256": "5BEEA1A4A34C62782BFB2F911C606741A3BAB8F92D80A118FA053C28AF12E8BA"
+    },
+    {
+      "path": "configuration.json",
+      "bytes": 73,
+      "sha256": "F888421726665E8A84B738EED42A64875AED79DE8BE7DAADE851AC8BF4C0CEF9"
+    },
+    {
+      "path": "generation_config.json",
+      "bytes": 238,
+      "sha256": "835FFFE355C9438E7A25BE099B3FCCAA98350B83451F9FD2D99512E74F1ADE48"
+    },
+    {
+      "path": "merges.txt",
+      "bytes": 1671839,
+      "sha256": "599BAB54075088774B1733FDE865D5BD747CBCC7A547C5BC12610E874E26F5E3"
+    },
+    {
+      "path": "model-00001-of-00003.safetensors",
+      "bytes": 3957900840,
+      "sha256": "75311D91BB08CF0B882913DA464A1E722A31FB44DB35208663487EFB7A3D8ED6"
+    },
+    {
+      "path": "model-00002-of-00003.safetensors",
+      "bytes": 3987450520,
+      "sha256": "0B48ADBB1F60E901153D91907BA11CE63BD4B8B584482E730F48808D055DFBA1"
+    },
+    {
+      "path": "model-00003-of-00003.safetensors",
+      "bytes": 99630640,
+      "sha256": "7DD39CCCA5E4DE123C74C14AF44C9BF2EB75DF33B4614382AF0134528E060D5D"
+    },
+    {
+      "path": "model.safetensors.index.json",
+      "bytes": 32819,
+      "sha256": "D6C42883A895DFEF5B0080ED2116A1BCD764F558406B98923D675978A1ABF29C"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 11422654,
+      "sha256": "AEB13307A71ACD8FE81861D94AD54AB689DF773318809EED3CBE794B4492DAE4"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 9377,
+      "sha256": "A62FF0A2472A0FA1B8EAABCB57C59B58AFA42A22831DC141400B6E0CF2B65CE3"
+    },
+    {
+      "path": "vocab.json",
+      "bytes": 2776833,
+      "sha256": "CA10D7E9FB3ED18575DD1E277A2579C16D108E32F27439684AFA0E10B1440910"
+    }
+  ]
+}
