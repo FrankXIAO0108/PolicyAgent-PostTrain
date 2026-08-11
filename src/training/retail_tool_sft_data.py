@@ -114,9 +114,10 @@ def build_rows(split: str, count_per_category: int) -> list[dict[str, Any]]:
 
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
-        encoding="utf-8",
+    path.write_bytes(
+        "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows).encode(
+            "utf-8"
+        )
     )
 
 
@@ -194,8 +195,8 @@ def build_dataset(output_dir: Path) -> dict[str, Any]:
         "leakage_checks": checks,
     }
     manifest_path = output_dir / "manifest.json"
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    manifest_path.write_bytes(
+        (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     )
     return manifest
 
