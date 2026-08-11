@@ -1,0 +1,19 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "rl_train",
+  "rows": 8,
+  "task_split_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/task_split.json",
+  "task_split_sha256": "2B5793FD836C1876109E3C265A9F193386126A2B1A504889C2ADDEB44D33CE99",
+  "output_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages.jsonl",
+  "output_sha256": "8F23026B875C977EC6DD380893C9759CA1B6E8808881CD64187F36B19D3BAD20",
+  "user_model": "deepseek/deepseek-v4-flash",
+  "temperature": 0.0,
+  "total_usage": {
+    "completion_tokens": 1117,
+    "prompt_tokens": 3955
+  },
+  "total_cost": 0.0005854744,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false
+}
