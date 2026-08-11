@@ -16,6 +16,7 @@ from src.rl.retail_agentic_env import (
     one_to_one_action_progress,
 )
 from src.training.run_retail_agentic_grpo import validate_upstream_checkout
+from src.analysis.analyze_agentic_rollout_diagnostic import analyze
 
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -267,6 +268,7 @@ class RetailAgenticSplitTests(unittest.TestCase):
         for name in (
             "retail_agentic_grpo_v1.json",
             "retail_agentic_grpo_sanity_v1.json",
+            "retail_agentic_qwen3_4b_rollout_diagnostic_v1.json",
         ):
             config = json.loads(
                 (PROJECT / "configs" / name).read_text(encoding="utf-8")
@@ -283,6 +285,48 @@ class RetailAgenticSplitTests(unittest.TestCase):
         )
         self.assertEqual(sanity["data"]["max_tasks"], 1)
         self.assertEqual(sanity["grpo"]["max_steps"], 1)
+        diagnostic = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_rollout_diagnostic_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(diagnostic["execution_mode"], "ROLLOUT_DIAGNOSTIC")
+        self.assertEqual(diagnostic["data"]["max_tasks"], 8)
+        self.assertEqual(diagnostic["grpo"]["learning_rate"], 0.0)
+        self.assertEqual(diagnostic["grpo"]["beta"], 0.0)
+        self.assertEqual(
+            diagnostic["diagnostic"]["expected_rollouts"],
+            diagnostic["grpo"]["max_steps"]
+            * diagnostic["grpo"]["num_generations"],
+        )
+
+    def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rollouts.jsonl"
+            rows = []
+            for index in range(8):
+                rows.append(
+                    {
+                        "task_id": str(index // 4),
+                        "tool_calls": index % 2,
+                        "customer_turns": index % 2,
+                        "reward": {
+                            "reward": float(index % 2),
+                            "tool_error_count": 0,
+                            "action_progress": {"recall": float(index % 2)},
+                        },
+                    }
+                )
+            path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            report = analyze(path, expected_rollouts=8)
+            self.assertEqual(report["observed_rollouts"], 8)
+            self.assertEqual(report["unique_tasks"], 2)
+            self.assertTrue(report["gates"]["ready_to_consider_optimization"])
 
     def test_transferred_upstream_requires_commit_and_package_hash(self) -> None:
         commit = "58e5e1ace69302e6982d27014569c03e0ffccdd2"

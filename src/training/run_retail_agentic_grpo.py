@@ -152,6 +152,22 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
         raise ValueError(
             "Frozen Agentic RL v1 reward config differs from the implemented spec"
         )
+    execution_mode = config.get("execution_mode", "OPTIMIZE")
+    if execution_mode not in {"OPTIMIZE", "ROLLOUT_DIAGNOSTIC"}:
+        raise ValueError(f"Unsupported execution_mode: {execution_mode}")
+    if execution_mode == "ROLLOUT_DIAGNOSTIC":
+        if float(config["grpo"]["learning_rate"]) != 0.0:
+            raise ValueError("ROLLOUT_DIAGNOSTIC requires learning_rate=0")
+        if float(config["grpo"]["beta"]) != 0.0:
+            raise ValueError("ROLLOUT_DIAGNOSTIC requires beta=0")
+        expected_rollouts = int(config["diagnostic"]["expected_rollouts"])
+        actual_rollouts = int(config["grpo"]["max_steps"]) * int(
+            config["grpo"]["num_generations"]
+        )
+        if expected_rollouts != actual_rollouts:
+            raise ValueError(
+                "diagnostic.expected_rollouts must equal max_steps*num_generations"
+            )
 
     data = config["data"]
     split_path = (REPO_ROOT / data["task_split"]).resolve()
@@ -439,6 +455,8 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
 
     grpo = config["grpo"]
     lora = config["lora"]
+    execution_mode = config.get("execution_mode", "OPTIMIZE")
+    optimization_enabled = execution_mode == "OPTIMIZE"
     set_seed(int(config["seed"]))
     dataset = build_dataset(preflight)
     bf16 = config["precision"] == "bf16" and runtime["bf16_supported"]
@@ -459,7 +477,10 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         use_vllm=bool(grpo["use_vllm"]),
         logging_steps=int(grpo["logging_steps"]),
         save_steps=int(grpo["save_steps"]),
+        save_strategy="steps" if optimization_enabled else "no",
         save_total_limit=2,
+        log_completions=bool(grpo.get("log_completions", False)),
+        num_completions_to_print=int(grpo.get("num_completions_to_print", 0)),
         report_to="none",
         bf16=bf16,
         fp16=not bf16,
@@ -481,29 +502,70 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         peft_config=peft_config,
     )
     result = trainer.train()
-    adapter_dir = output_dir / "agentic_grpo_adapter"
-    trainer.save_model(str(adapter_dir))
     save_json(output_dir / "train_metrics.json", result.metrics)
     save_json(output_dir / "log_history.json", trainer.state.log_history)
+    adapter_dir = output_dir / "agentic_grpo_adapter"
+    if optimization_enabled:
+        trainer.save_model(str(adapter_dir))
     del trainer
     torch.cuda.empty_cache()
 
-    dtype = torch.bfloat16 if bf16 else torch.float16
-    base_model = AutoModelForCausalLM.from_pretrained(
-        preflight["model_path"], dtype=dtype, low_cpu_mem_usage=True
-    )
-    merged = PeftModel.from_pretrained(base_model, str(adapter_dir)).merge_and_unload()
     merged_dir = output_dir / "agentic_grpo_merged"
-    merged.save_pretrained(merged_dir, safe_serialization=True)
-    tokenizer = AutoTokenizer.from_pretrained(preflight["model_path"])
-    tokenizer.save_pretrained(merged_dir)
+    if optimization_enabled:
+        dtype = torch.bfloat16 if bf16 else torch.float16
+        base_model = AutoModelForCausalLM.from_pretrained(
+            preflight["model_path"], dtype=dtype, low_cpu_mem_usage=True
+        )
+        merged = PeftModel.from_pretrained(
+            base_model, str(adapter_dir)
+        ).merge_and_unload()
+        merged.save_pretrained(merged_dir, safe_serialization=True)
+        tokenizer = AutoTokenizer.from_pretrained(preflight["model_path"])
+        tokenizer.save_pretrained(merged_dir)
 
     if not rollout_log.is_file() or not rollout_log.read_text(encoding="utf-8").strip():
         raise RuntimeError("Agentic GRPO completed without a raw rollout artifact")
+    rollout_rows = len(rollout_log.read_text(encoding="utf-8").splitlines())
+    if not optimization_enabled:
+        expected_rollouts = int(config["diagnostic"]["expected_rollouts"])
+        if rollout_rows != expected_rollouts:
+            raise RuntimeError(
+                f"Rollout count mismatch: {rollout_rows} != {expected_rollouts}"
+            )
+    artifacts = {
+        "raw_rollouts": {
+            "path": str(rollout_log),
+            "sha256": sha256(rollout_log),
+            "rows": rollout_rows,
+        },
+        "train_metrics": {
+            "path": str(output_dir / "train_metrics.json"),
+            "sha256": sha256(output_dir / "train_metrics.json"),
+        },
+        "log_history": {
+            "path": str(output_dir / "log_history.json"),
+            "sha256": sha256(output_dir / "log_history.json"),
+        },
+    }
+    if optimization_enabled:
+        artifacts.update(
+            {
+                "adapter": {
+                    "path": str(adapter_dir),
+                    "sha256": directory_sha256(adapter_dir),
+                },
+                "merged_model": {
+                    "path": str(merged_dir),
+                    "sha256": directory_sha256(merged_dir),
+                },
+            }
+        )
     manifest = {
-        "schema_version": "retail-agentic-grpo-run-v1",
+        "schema_version": "retail-agentic-grpo-run-v2",
         "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
         "status": "COMPLETED",
+        "execution_mode": execution_mode,
+        "optimization_enabled": optimization_enabled,
         "git": {
             "commit": preflight["git_commit"],
             "branch": preflight["git_branch"],
@@ -521,21 +583,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
             "upstream_checkout": preflight["upstream_checkout"],
         },
         "environment": runtime,
-        "artifacts": {
-            "adapter": {
-                "path": str(adapter_dir),
-                "sha256": directory_sha256(adapter_dir),
-            },
-            "merged_model": {
-                "path": str(merged_dir),
-                "sha256": directory_sha256(merged_dir),
-            },
-            "raw_rollouts": {
-                "path": str(rollout_log),
-                "sha256": sha256(rollout_log),
-                "rows": len(rollout_log.read_text(encoding="utf-8").splitlines()),
-            },
-        },
+        "artifacts": artifacts,
         "reward": config["reward"],
         "rollout": config["rollout"],
         "formal_retail_readiness_gate_opened": False,
