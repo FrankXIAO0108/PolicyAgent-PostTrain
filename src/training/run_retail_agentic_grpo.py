@@ -172,6 +172,11 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
             config["data"]["max_tasks"]
         ):
             raise ValueError("diagnostic.expected_tasks must equal data.max_tasks")
+    quantization = config.get("quantization", {"enabled": False})
+    if bool(quantization.get("enabled", False)) and quantization.get(
+        "mode"
+    ) != "4bit_nf4":
+        raise ValueError("Only 4bit_nf4 quantization is supported")
 
     data = config["data"]
     split_path = (REPO_ROOT / data["task_split"]).resolve()
@@ -452,7 +457,12 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
 
     import torch
     from peft import LoraConfig, PeftModel
-    from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
+    from transformers import (
+        AutoModelForCausalLM,
+        AutoTokenizer,
+        BitsAndBytesConfig,
+        set_seed,
+    )
     from trl import GRPOConfig, GRPOTrainer
 
     from src.rl.retail_agentic_env import RetailAgenticEnvironment
@@ -464,6 +474,23 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     set_seed(int(config["seed"]))
     dataset = build_dataset(preflight)
     bf16 = config["precision"] == "bf16" and runtime["bf16_supported"]
+    quantization = config.get("quantization", {"enabled": False})
+    model_init_kwargs: dict[str, Any] | None = None
+    if bool(quantization.get("enabled", False)):
+        if quantization.get("mode") != "4bit_nf4":
+            raise ValueError("Only 4bit_nf4 quantization is supported")
+        compute_dtype = torch.bfloat16 if bf16 else torch.float16
+        model_init_kwargs = {
+            "quantization_config": BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=compute_dtype,
+                bnb_4bit_use_double_quant=bool(
+                    quantization.get("double_quant", True)
+                ),
+            ),
+            "torch_dtype": compute_dtype,
+        }
     training_args = GRPOConfig(
         output_dir=str(output_dir / "trainer"),
         max_steps=int(grpo["max_steps"]),
@@ -487,6 +514,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         num_completions_to_print=int(grpo.get("num_completions_to_print", 0)),
         gradient_checkpointing=bool(grpo.get("gradient_checkpointing", False)),
         gradient_checkpointing_kwargs={"use_reentrant": False},
+        model_init_kwargs=model_init_kwargs,
         report_to="none",
         bf16=bf16,
         fp16=not bf16,
@@ -592,6 +620,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         "artifacts": artifacts,
         "reward": config["reward"],
         "rollout": config["rollout"],
+        "quantization": quantization,
         "formal_retail_readiness_gate_opened": False,
         "business_improvement_claim_allowed": False,
     }

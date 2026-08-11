@@ -296,6 +296,8 @@ class RetailAgenticSplitTests(unittest.TestCase):
         self.assertEqual(diagnostic["data"]["max_tasks"], 8)
         self.assertEqual(diagnostic["grpo"]["learning_rate"], 0.0)
         self.assertEqual(diagnostic["grpo"]["beta"], 0.0)
+        self.assertTrue(diagnostic["quantization"]["enabled"])
+        self.assertEqual(diagnostic["quantization"]["mode"], "4bit_nf4")
         self.assertEqual(
             diagnostic["diagnostic"]["expected_rollouts"],
             diagnostic["grpo"]["max_steps"]

@@ -29,6 +29,11 @@
   },
   "seed": 20260811,
   "precision": "bf16",
+  "quantization": {
+    "enabled": true,
+    "mode": "4bit_nf4",
+    "double_quant": true
+  },
   "lora": {
     "r": 16,
     "alpha": 32,
