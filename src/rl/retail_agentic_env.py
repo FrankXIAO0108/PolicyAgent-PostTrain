@@ -22,6 +22,7 @@ REWARD_CONFIG_ENV = "POLICYAGENT_REWARD_CONFIG_JSON"
 ROLLOUT_LOG_ENV = "POLICYAGENT_ROLLOUT_LOG"
 DEFAULT_REWARD_CONFIG: dict[str, Any] = {
     "process_reward_mode": "one_to_one_required_action_progress",
+    "environment_state_action_progress_gate": "multiply",
     "environment_state_weight": 0.70,
     "required_action_weight": 0.20,
     "communication_weight": 0.10,
@@ -51,6 +52,8 @@ def load_reward_config() -> dict[str, Any]:
     reward = {**DEFAULT_REWARD_CONFIG, **configured}
     if reward["process_reward_mode"] != "one_to_one_required_action_progress":
         raise RuntimeError("Unsupported Agentic RL process_reward_mode")
+    if reward["environment_state_action_progress_gate"] != "multiply":
+        raise RuntimeError("Unsupported environment-state action-progress gate")
     for key in (
         "environment_state_weight",
         "required_action_weight",
@@ -87,6 +90,15 @@ def load_reward_config() -> dict[str, Any]:
 
 def _tool_signature(name: str, arguments: dict[str, Any]) -> str:
     return f"{name}:{json.dumps(arguments, ensure_ascii=False, sort_keys=True)}"
+
+
+def gate_environment_state_reward(
+    environment_reward: float, action_recall: float | None
+) -> tuple[float, float]:
+    """Prevent a satisfied initial DB state from rewarding a no-op trajectory."""
+
+    gate = 1.0 if action_recall is None else action_recall
+    return environment_reward * gate, gate
 
 
 def one_to_one_action_progress(task: Any, messages: list[Any]) -> dict[str, Any]:
@@ -463,11 +475,15 @@ class RetailAgenticEnvironment:
         )
 
         reward_config = self._reward_config
+        environment_state_raw = float(env_info.reward)
+        environment_state_value, environment_state_gate = (
+            gate_environment_state_reward(environment_state_raw, action_recall)
+        )
         weighted: list[tuple[str, float, float]] = [
             (
                 "environment_state",
                 reward_config["environment_state_weight"],
-                float(env_info.reward),
+                environment_state_value,
             )
         ]
         if action_recall is not None:
@@ -532,6 +548,14 @@ class RetailAgenticEnvironment:
             "unfinished_interaction_penalty": unfinished_penalty,
             "user_stopped": self._user_stopped,
             "action_progress": action_progress,
+            "environment_state_diagnostics": {
+                "raw_value": environment_state_raw,
+                "action_progress_gate": environment_state_gate,
+                "gated_value": environment_state_value,
+                "gate_mode": reward_config[
+                    "environment_state_action_progress_gate"
+                ],
+            },
             "confirmation_diagnostics": confirmation_diagnostics(trajectory),
             "reward_config": deepcopy(reward_config),
             "nl_assertions_used": False,

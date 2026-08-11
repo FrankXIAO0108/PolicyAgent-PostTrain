@@ -69,6 +69,7 @@
   },
   "reward": {
     "process_reward_mode": "one_to_one_required_action_progress",
+    "environment_state_action_progress_gate": "multiply",
     "environment_state_weight": 0.7,
     "required_action_weight": 0.2,
     "communication_weight": 0.1,

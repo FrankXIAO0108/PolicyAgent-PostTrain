@@ -1,0 +1,12 @@
+{
+  "schema_version": "completion-artifact-posthoc-manifest-v1",
+  "source_run_manifest": "run_manifest.json",
+  "source_run_commit": "3bdf21a7e8f0377ea687314b844e72d4a7c70857",
+  "path": "trainer/completions",
+  "sha256": "9E2A865BDCB77AB345D7E748A6DC905C4BA8B725F2AED62C97137DE796299B79",
+  "files": 16,
+  "bytes": 169456,
+  "contains_full_prompts": true,
+  "contains_model_completions": true,
+  "added_posthoc_without_modifying_frozen_run_manifest": true
+}

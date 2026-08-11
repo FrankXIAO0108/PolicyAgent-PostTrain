@@ -1,0 +1,92 @@
+{
+  "schema_version": "retail-agentic-grpo-run-v2",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "status": "COMPLETED",
+  "execution_mode": "ROLLOUT_DIAGNOSTIC",
+  "optimization_enabled": false,
+  "git": {
+    "commit": "3bdf21a7e8f0377ea687314b844e72d4a7c70857",
+    "branch": "main",
+    "dirty_at_start": false
+  },
+  "bindings": {
+    "config_path": "/root/autodl-tmp/PolicyAgent-PostTrain/configs/retail_agentic_qwen3_4b_rollout_diagnostic_v1.json",
+    "config_sha256": "F934D6B447C89B4E33D7366F2254CC7B84974F31EA8D9EC4051754159190DADB",
+    "task_split_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/task_split.json",
+    "task_split_sha256": "2B5793FD836C1876109E3C265A9F193386126A2B1A504889C2ADDEB44D33CE99",
+    "openings_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages.jsonl",
+    "openings_sha256": "8F23026B875C977EC6DD380893C9759CA1B6E8808881CD64187F36B19D3BAD20",
+    "starting_model": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+    "starting_model_sha256": "F34D14D691C94109D42451A4C9E63391FCEDEFFA43571AF6B63EF2F421EF1737",
+    "upstream_checkout": {
+      "path": "/root/autodl-tmp/tau2-bench",
+      "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+      "verification_method": "commit_marker_and_source_package_sha256",
+      "source_package_path": "/root/autodl-tmp/tau2-retail-58e5e1a.tar.gz",
+      "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+      "transfer_manifest_sha256": "67D65E179639ECE78E5174B6C7512058DFF4ECBA45B74E46F565409A2C502E46",
+      "required_file_sha256": {
+        "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+      }
+    }
+  },
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.14.1",
+    "trl": "1.9.0",
+    "cuda": "12.8",
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "bf16_supported": true,
+    "environment_factory_supported": true,
+    "tool_template": {
+      "tokenizer_class": "Qwen2Tokenizer",
+      "chat_template_present": true,
+      "tool_schema_rendered": true,
+      "rendered_character_count": 774
+    }
+  },
+  "artifacts": {
+    "raw_rollouts": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-rollout-diagnostic-v3/raw_rollouts.jsonl",
+      "sha256": "1826B35A9CF28B16A0164609A4B83D7C5FEFB9D9B2F3AE2964C2C0FEB2736FCA",
+      "rows": 32
+    },
+    "train_metrics": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-rollout-diagnostic-v3/train_metrics.json",
+      "sha256": "A0DC03F88DDFB2153A5F228911A9E1BD52D39727E09CED6A17FFD1FACA0F8378"
+    },
+    "log_history": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-rollout-diagnostic-v3/log_history.json",
+      "sha256": "8CE4B2EE970BFAB50E8E20C6AA9DB6B639253A9D001A5E4C1D53CC2CAFD7514A"
+    }
+  },
+  "reward": {
+    "process_reward_mode": "one_to_one_required_action_progress",
+    "environment_state_weight": 0.7,
+    "required_action_weight": 0.2,
+    "communication_weight": 0.1,
+    "tool_error_penalty_each": 0.05,
+    "tool_error_penalty_cap": 0.2,
+    "repeated_call_penalty_each": 0.03,
+    "repeated_call_penalty_cap": 0.15,
+    "unexpected_write_penalty_each": 0.05,
+    "unexpected_write_penalty_cap": 0.2,
+    "unfinished_interaction_penalty": 0.1,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": false
+  },
+  "rollout": {
+    "max_customer_turns": 8,
+    "max_tool_calls": 32,
+    "max_tool_calling_iterations": 40
+  },
+  "quantization": {
+    "enabled": true,
+    "mode": "4bit_nf4",
+    "double_quant": true
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false
+}

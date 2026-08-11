@@ -13,6 +13,7 @@ from src.rl.retail_agentic_env import (
     DEFAULT_REWARD_CONFIG,
     RetailAgenticEnvironment,
     confirmation_diagnostics,
+    gate_environment_state_reward,
     one_to_one_action_progress,
 )
 from src.training.run_retail_agentic_grpo import validate_upstream_checkout
@@ -165,6 +166,11 @@ class RetailAgenticEnvironmentTests(unittest.TestCase):
 
 
 class ProcessRewardSignalTests(unittest.TestCase):
+    def test_environment_state_reward_is_gated_by_action_progress(self) -> None:
+        self.assertEqual(gate_environment_state_reward(1.0, 0.0), (0.0, 0.0))
+        self.assertEqual(gate_environment_state_reward(1.0, 0.4), (0.4, 0.4))
+        self.assertEqual(gate_environment_state_reward(1.0, None), (1.0, 1.0))
+
     def test_one_call_cannot_satisfy_two_duplicate_expected_actions(self) -> None:
         arguments = {"order_id": "#1"}
         task = _task_with_actions(

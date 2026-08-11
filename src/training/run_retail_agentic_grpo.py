@@ -581,6 +581,15 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
             "sha256": sha256(output_dir / "log_history.json"),
         },
     }
+    completion_dir = output_dir / "trainer" / "completions"
+    if completion_dir.is_dir():
+        completion_files = list(completion_dir.glob("*.parquet"))
+        artifacts["completion_logs"] = {
+            "path": str(completion_dir),
+            "sha256": directory_sha256(completion_dir),
+            "files": len(completion_files),
+            "bytes": sum(path.stat().st_size for path in completion_files),
+        }
     if optimization_enabled:
         artifacts.update(
             {

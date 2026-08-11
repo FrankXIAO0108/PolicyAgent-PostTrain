@@ -29,6 +29,14 @@ def analyze(
     action_recalls = [
         float(row["reward"]["action_progress"]["recall"] or 0.0) for row in rows
     ]
+    positive_without_tool = sum(
+        reward > 0 and tool_count == 0
+        for reward, tool_count in zip(rewards, tool_calls, strict=True)
+    )
+    positive_without_action_progress = sum(
+        reward > 0 and action_recall == 0
+        for reward, action_recall in zip(rewards, action_recalls, strict=True)
+    )
     reward_variance = statistics.pvariance(rewards) if rewards else 0.0
     distinct_rewards = sorted(set(rewards))
     gates = {
@@ -38,6 +46,10 @@ def analyze(
         "customer_continuation_observed": any(value > 0 for value in customer_turns),
         "reward_has_variance": reward_variance > 0.0,
         "action_progress_has_variance": len(set(action_recalls)) > 1,
+        "no_positive_reward_without_tool": positive_without_tool == 0,
+        "no_positive_reward_without_action_progress": (
+            positive_without_action_progress == 0
+        ),
     }
     gates["ready_to_consider_optimization"] = all(gates.values())
     return {
@@ -61,6 +73,10 @@ def analyze(
             "mean_tool_calls": statistics.fmean(tool_calls) if tool_calls else None,
             "mean_action_recall": statistics.fmean(action_recalls) if action_recalls else None,
             "distinct_action_recalls": sorted(set(action_recalls)),
+            "positive_without_tool_count": positive_without_tool,
+            "positive_without_action_progress_count": (
+                positive_without_action_progress
+            ),
         },
         "gates": gates,
         "formal_retail_readiness_gate_opened": False,

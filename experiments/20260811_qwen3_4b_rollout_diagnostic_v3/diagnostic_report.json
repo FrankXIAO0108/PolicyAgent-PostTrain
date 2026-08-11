@@ -1,0 +1,51 @@
+{
+  "schema_version": "retail-agentic-rollout-diagnostic-v1",
+  "source": {
+    "path": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-rollout-diagnostic-v3/raw_rollouts.jsonl",
+    "sha256": "1826B35A9CF28B16A0164609A4B83D7C5FEFB9D9B2F3AE2964C2C0FEB2736FCA"
+  },
+  "expected_rollouts": 32,
+  "expected_tasks": 8,
+  "observed_rollouts": 32,
+  "unique_tasks": 8,
+  "task_rollout_counts": {
+    "0": 4,
+    "7": 4,
+    "10": 4,
+    "11": 4,
+    "13": 4,
+    "15": 4,
+    "20": 4,
+    "22": 4
+  },
+  "reward": {
+    "mean": 0.08472222222222223,
+    "population_variance": 0.05024498456790124,
+    "distinct_values": [
+      0.0,
+      0.6777777777777778
+    ],
+    "positive_count": 4
+  },
+  "behavior": {
+    "tool_call_rollout_count": 0,
+    "customer_continuation_rollout_count": 0,
+    "tool_error_rollout_count": 0,
+    "mean_tool_calls": 0.0,
+    "mean_action_recall": 0.0,
+    "distinct_action_recalls": [
+      0.0
+    ]
+  },
+  "gates": {
+    "expected_rollout_count_met": true,
+    "all_expected_tasks_observed": true,
+    "tool_call_rate_positive": false,
+    "customer_continuation_observed": false,
+    "reward_has_variance": true,
+    "action_progress_has_variance": false,
+    "ready_to_consider_optimization": false
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false
+}
