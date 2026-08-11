@@ -20,7 +20,11 @@ def sha256(path: Path) -> str:
 
 
 def build_manifest(
-    output_dir: Path, model_id: str, revision: str
+    output_dir: Path,
+    model_id: str,
+    revision: str,
+    source: str = "huggingface",
+    requested_revision: str | None = None,
 ) -> dict[str, object]:
     files: list[dict[str, object]] = []
     aggregate = hashlib.sha256()
@@ -40,8 +44,10 @@ def build_manifest(
         aggregate.update(b"\0")
     return {
         "schema_version": "policyagent-model-snapshot-v1",
+        "source": source,
         "model_id": model_id,
         "revision": revision,
+        "requested_revision": requested_revision,
         "downloaded_at_utc": datetime.now(timezone.utc).isoformat(),
         "output_dir": str(output_dir),
         "total_bytes": sum(int(item["bytes"]) for item in files),
@@ -54,19 +60,45 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--source", choices=("huggingface", "modelscope"), default="huggingface"
+    )
+    parser.add_argument("--revision")
     args = parser.parse_args()
-
-    from huggingface_hub import HfApi, snapshot_download
 
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    revision = HfApi().model_info(args.model_id).sha
-    snapshot_download(
-        repo_id=args.model_id,
-        revision=revision,
-        local_dir=output_dir,
+    if args.source == "huggingface":
+        from huggingface_hub import HfApi, snapshot_download
+
+        revision = args.revision or HfApi().model_info(args.model_id).sha
+        snapshot_download(
+            repo_id=args.model_id,
+            revision=revision,
+            local_dir=output_dir,
+        )
+    else:
+        from modelscope import snapshot_download
+
+        revision = args.revision or "master"
+        downloaded = Path(
+            snapshot_download(
+                args.model_id,
+                revision=revision,
+                local_dir=str(output_dir),
+            )
+        ).resolve()
+        if downloaded != output_dir:
+            raise RuntimeError(
+                f"ModelScope downloaded to {downloaded}, expected {output_dir}"
+            )
+    manifest = build_manifest(
+        output_dir,
+        args.model_id,
+        revision,
+        source=args.source,
+        requested_revision=args.revision,
     )
-    manifest = build_manifest(output_dir, args.model_id, revision)
     manifest_path = output_dir / "MODEL_MANIFEST.json"
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",

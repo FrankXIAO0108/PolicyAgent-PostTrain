@@ -17,10 +17,23 @@ class Qwen3SnapshotManifestTests(unittest.TestCase):
             (root / ".cache" / "ignored").write_bytes(b"cache")
             (root / "MODEL_MANIFEST.json").write_text("old", encoding="utf-8")
 
-            first = build_manifest(root, "Qwen/example", "abc123")
-            second = build_manifest(root, "Qwen/example", "abc123")
+            first = build_manifest(
+                root,
+                "Qwen/example",
+                "abc123",
+                source="modelscope",
+                requested_revision="master",
+            )
+            second = build_manifest(
+                root,
+                "Qwen/example",
+                "abc123",
+                source="modelscope",
+                requested_revision="master",
+            )
 
             self.assertEqual(first["aggregate_sha256"], second["aggregate_sha256"])
+            self.assertEqual(first["source"], "modelscope")
             expected_bytes = (root / "config.json").stat().st_size + (
                 root / "weights.safetensors"
             ).stat().st_size
