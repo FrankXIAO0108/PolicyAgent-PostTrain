@@ -64,7 +64,13 @@ def validate_upstream_checkout(expected_commit: str) -> dict[str, str]:
     if not (root / ".git").exists():
         raise FileNotFoundError(f"Pinned tau2 Git checkout not found: {root}")
     actual_commit = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
+        [
+            "git",
+            "-c",
+            f"safe.directory={root.as_posix()}",
+            "rev-parse",
+            "HEAD",
+        ],
         cwd=root,
         check=True,
         capture_output=True,
