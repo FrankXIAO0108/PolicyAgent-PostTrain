@@ -1,0 +1,31 @@
+{
+  "schema_version": "policyagent-tool-model-smoke-v1",
+  "status": "PASSED",
+  "model_path": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+  "model_manifest_sha256": "EFA0196C9080E4CBA25A9A3241AF8398DBED210845024EB2AF7E1F81972236B7",
+  "model_directory_sha256": "F34D14D691C94109D42451A4C9E63391FCEDEFFA43571AF6B63EF2F421EF1737",
+  "parameter_count": 4022468096,
+  "runtime": {
+    "python": "3.12.3",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.14.1",
+    "trl": "1.9.0",
+    "cuda": "12.8",
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "bf16_supported": true,
+    "environment_factory_supported": true,
+    "tool_template": {
+      "tokenizer_class": "Qwen2Tokenizer",
+      "chat_template_present": true,
+      "tool_schema_rendered": true,
+      "rendered_character_count": 774
+    }
+  },
+  "prompt_tokens": 205,
+  "completion_tokens": 29,
+  "peak_gpu_memory_bytes": 8156737536,
+  "tool_call_marker_present": true,
+  "requested_tool_name_present": true,
+  "requested_order_id_present": true,
+  "completion": "<tool_call>\n{\"name\": \"get_order_details\", \"arguments\": {\"order_id\": \"W2378156\"}}\n</tool_call><|im_end|>"
+}
