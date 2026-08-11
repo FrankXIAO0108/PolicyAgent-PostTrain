@@ -64,8 +64,14 @@ the project had not entered the baseline stage is superseded by the completed
   third-reviewer adjudication tooling exist.
 - Downstream correction, quality, SFT-release, and post-training readiness
   gates are implemented but remain closed.
-- SFT, DPO, Outcome-GRPO, Policy-aware GRPO, and final frozen comparison are
-  not confirmed as completed.
+- Formal Retail SFT, DPO, Outcome-GRPO, Policy-aware GRPO, and final frozen
+  comparison remain blocked and are not confirmed as completed.
+- A separate synthetic engineering smoke was completed on 2026-08-02 using
+  Qwen2.5-0.5B on one RTX 4090: 30-step SFT, 20-step DPO, 10-step GRPO,
+  stage merges, hashes, logs, and an eight-row frozen comparison. Its automated
+  verification reports `verified_complete=true`. This proves isolated
+  post-training engineering practice only; it does not open the formal Retail
+  gates or support a Retail business-improvement claim.
 
 ## Non-negotiable experiment discipline
 

@@ -290,6 +290,7 @@ Verifier 检查：
 | 正式 Retail DPO | 门禁关闭，未运行 |
 | 正式 Retail RLHF / GRPO | 门禁关闭，未运行 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
+| 隔离真实多轮 Retail Agentic GRPO | 环境、过程奖励与云端入口已完成；GPU 训练未运行 |
 
 这是一个明确的工程判断：监督信号不可靠时，不应为了补齐流程而训练。
 
@@ -302,6 +303,14 @@ SFT→DPO→GRPO GPU 工程实操包，使用开发者合成工具调用数据�
 工程实操，不代表正式 Retail 业务提升。详见
 [云端后训练完整实跑报告](docs/2026-08-02_posttrain_cloud_run_report.md)与
 [SFT→DPO→GRPO 工程实操执行手册](docs/04_数据治理与后训练/2026-08-02_SFT-DPO-GRPO工程实操执行手册.md)。
+
+2026-08-11 新增真实多轮 Retail Agentic GRPO 路线：使用 tau2 Retail 的动态客户、
+数据库工具和终态检查，将一对一必要动作进度、沟通完成度、工具错误、重复调用与非预期
+写操作组成轨迹级过程奖励。44 条 train、10 条 validation、既有 20 条 development audit
+已严格拆分，官方 test 保留。当前本地真实环境预检已通过，但尚未生成付费客户 opening，
+也尚未运行云端 Agentic GRPO，因此只可声称“设计与执行包完成”。详见
+[Retail 智能体强化学习设计](docs/04_数据治理与后训练/2026-08-11_Retail智能体强化学习设计.md)和
+[Agent RL 云端运行手册](docs/04_数据治理与后训练/2026-08-11_Agent-RL云端运行手册.md)。
 
 ## 关键代码
 
@@ -321,6 +330,10 @@ src/
 │  └─ offline_audit.py             冻结轨迹反事实审计
 ├─ agents/
 │  └─ guarded_llm_agent.py         tau2 兼容的 Guard Agent 适配器
+├─ rl/
+│  ├─ retail_agentic_env.py        真实多轮 Retail RL 环境与过程奖励
+│  ├─ task_split.py                44/10/20 冻结任务拆分
+│  └─ prepare_user_openings.py     动态客户首轮话术冻结与成本记录
 ├─ verifiers/
 │  ├─ policy_grounding_v2.py       Programmatic Verifier V2
 │  ├─ adjudication.py              双人审阅与冲突裁决
@@ -330,7 +343,8 @@ src/
    ├─ quality_adjudication.py      轨迹质量裁决
    ├─ sft_decision_builder.py      SFT 决策数据构建
    ├─ sft_release.py               SFT 发布门禁
-   └─ readiness_gate.py            SFT/DPO/RL 阶段门禁
+   ├─ readiness_gate.py            SFT/DPO/RL 阶段门禁
+   └─ run_retail_agentic_grpo.py   Agentic GRPO 预检、训练与证据保存
 ```
 
 ## 复现
@@ -347,11 +361,12 @@ src/
 ### 运行测试
 
 ```powershell
-python -m pytest -q
+& "D:\tau2-bench\.venv\Scripts\python.exe" -m pytest -q
 ```
 
-当前结果：85 项测试通过，另有一个来自上游 `audioop` 的 Python 3.13
-弃用警告。
+完整 V7 重放测试需要使用已安装上游依赖的 tau2 虚拟环境；仅运行不依赖 tau2 的
+单元测试时也可使用当前项目 Python。2026-08-10 复核结果：96 项测试通过、9 个
+子测试通过，另有一个来自上游 `audioop` 的弃用警告。
 
 ### 重放 V7
 
@@ -417,6 +432,8 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
   `experiments/20260727_policy_grounding_v2_2`
 - Post-training readiness：
   `experiments/20260728_post_training_readiness_v0/readiness_report.json`
+- 隔离对抗评测集 V2：
+  `data/posttrain_adversarial_holdout_v2/manifest.json`
 
 ## 后续计划
 

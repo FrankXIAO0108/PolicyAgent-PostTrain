@@ -1,0 +1,17 @@
+{
+  "schema_version": "posttrain-adversarial-evaluation-config-v2",
+  "scope": "ISOLATED_EVALUATION_ONLY",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false
+  },
+  "holdout_dir": "data/posttrain_adversarial_holdout_v2",
+  "model_revision": "main",
+  "trust_remote_code": false,
+  "seed": 20260810,
+  "precision": "bf16",
+  "evaluation": {
+    "max_new_tokens": 96,
+    "do_sample": false
+  }
+}

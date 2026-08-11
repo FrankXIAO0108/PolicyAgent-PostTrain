@@ -1,0 +1,38 @@
+{
+  "schema_version": "posttrain-adversarial-holdout-v2",
+  "scope": "ISOLATED_EVALUATION_ONLY",
+  "source": "developer-authored synthetic adversarial scenarios",
+  "human_adjudicated_business_gold": false,
+  "contains_tau2_frozen_tasks": false,
+  "training_use_prohibited": true,
+  "business_metric_claim_allowed": false,
+  "allowed_tools": [
+    "check_variant_availability",
+    "get_order",
+    "request_confirmation",
+    "request_missing_information",
+    "transfer_to_human"
+  ],
+  "rows": 48,
+  "categories": {
+    "read_only_query": 6,
+    "confirmation_before_write": 6,
+    "missing_required_argument": 6,
+    "check_before_mutation": 6,
+    "refund_method_grounding": 6,
+    "no_unsupported_guess": 6,
+    "scope_preservation": 6,
+    "registry_injection": 6
+  },
+  "file": {
+    "path": "holdout.jsonl",
+    "sha256": "F5F6152BAC72899AFFF0873509095401DC1D6FC40BF2BAA64AD95DFC07537584"
+  },
+  "leakage_checks": {
+    "reference_dir": "data\\posttrain_engineering_smoke_v1",
+    "scenario_id_overlap": [],
+    "exact_prompt_overlap": [],
+    "entity_prefix_isolated": true,
+    "passed": true
+  }
+}

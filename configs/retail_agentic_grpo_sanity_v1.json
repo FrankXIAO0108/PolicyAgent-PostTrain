@@ -1,0 +1,78 @@
+{
+  "schema_version": "retail-agentic-grpo-config-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved_for_final_evaluation": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+  },
+  "model": {
+    "name_or_path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/sft_merged",
+    "source_stage": "SFT",
+    "expected_sha256": "FCCF589D592CD381BDBF8832264D704120C5EE0C48D60DC33307374C5F0010C1",
+    "fallback_model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "fallback_requires_explicit_approval": true
+  },
+  "data": {
+    "task_split": "data/retail_agentic_rl_v1/task_split.json",
+    "openings": "data/retail_agentic_rl_v1/initial_user_messages.jsonl",
+    "openings_manifest": "data/retail_agentic_rl_v1/initial_user_messages_manifest.json",
+    "train_subset": "rl_train",
+    "max_tasks": 1
+  },
+  "seed": 20260810,
+  "precision": "bf16",
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "grpo": {
+    "max_steps": 1,
+    "learning_rate": 0.00001,
+    "per_device_train_batch_size": 4,
+    "gradient_accumulation_steps": 1,
+    "num_generations": 4,
+    "max_completion_length": 512,
+    "temperature": 0.8,
+    "beta": 0.02,
+    "loss_type": "dr_grpo",
+    "use_vllm": false,
+    "logging_steps": 1,
+    "save_steps": 1
+  },
+  "rollout": {
+    "max_customer_turns": 8,
+    "max_tool_calls": 32,
+    "max_tool_calling_iterations": 40
+  },
+  "reward": {
+    "process_reward_mode": "one_to_one_required_action_progress",
+    "environment_state_weight": 0.7,
+    "required_action_weight": 0.2,
+    "communication_weight": 0.1,
+    "tool_error_penalty_each": 0.05,
+    "tool_error_penalty_cap": 0.2,
+    "repeated_call_penalty_each": 0.03,
+    "repeated_call_penalty_cap": 0.15,
+    "unexpected_write_penalty_each": 0.05,
+    "unexpected_write_penalty_cap": 0.2,
+    "unfinished_interaction_penalty": 0.1,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": false
+  }
+}
