@@ -9,7 +9,10 @@
   "upstream": {
     "repository": "sierra-research/tau2-bench",
     "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
-    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20"
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
   },
   "model": {
     "name_or_path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/sft_merged",

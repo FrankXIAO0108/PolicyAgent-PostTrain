@@ -272,6 +272,10 @@ class RetailAgenticSplitTests(unittest.TestCase):
                 (PROJECT / "configs" / name).read_text(encoding="utf-8")
             )
             self.assertEqual(config["reward"], DEFAULT_REWARD_CONFIG)
+            self.assertIn(
+                "data/tau2/user_simulator/simulation_guidelines.md",
+                config["upstream"]["required_files"],
+            )
         sanity = json.loads(
             (
                 PROJECT / "configs" / "retail_agentic_grpo_sanity_v1.json"
@@ -286,6 +290,18 @@ class RetailAgenticSplitTests(unittest.TestCase):
             root = Path(directory) / "tau2-bench"
             (root / "src").mkdir(parents=True)
             (root / "data" / "tau2" / "domains" / "retail").mkdir(parents=True)
+            guidelines = (
+                root
+                / "data"
+                / "tau2"
+                / "user_simulator"
+                / "simulation_guidelines.md"
+            )
+            guidelines.parent.mkdir(parents=True)
+            guidelines.write_text("frozen guidelines\n", encoding="utf-8")
+            guidelines_digest = (
+                hashlib.sha256(guidelines.read_bytes()).hexdigest().upper()
+            )
             archive = Path(directory) / "tau2.tar.gz"
             archive.write_bytes(b"frozen tau2 retail package")
             digest = hashlib.sha256(archive.read_bytes()).hexdigest().upper()
@@ -304,12 +320,58 @@ class RetailAgenticSplitTests(unittest.TestCase):
             with patch.dict(
                 os.environ, {"POLICYAGENT_TAU2_ROOT": str(root)}, clear=False
             ):
-                result = validate_upstream_checkout(commit, digest)
+                result = validate_upstream_checkout(
+                    commit,
+                    digest,
+                    {
+                        "data/tau2/user_simulator/simulation_guidelines.md": (
+                            guidelines_digest
+                        )
+                    },
+                )
             self.assertEqual(
                 result["verification_method"],
                 "commit_marker_and_source_package_sha256",
             )
             self.assertEqual(result["source_package_sha256"], digest)
+            self.assertEqual(
+                result["required_file_sha256"][
+                    "data/tau2/user_simulator/simulation_guidelines.md"
+                ],
+                guidelines_digest,
+            )
+
+    def test_transferred_upstream_rejects_missing_required_file(self) -> None:
+        commit = "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "tau2-bench"
+            (root / "src").mkdir(parents=True)
+            (root / "data" / "tau2" / "domains" / "retail").mkdir(parents=True)
+            archive = Path(directory) / "tau2.tar.gz"
+            archive.write_bytes(b"frozen tau2 retail package")
+            digest = hashlib.sha256(archive.read_bytes()).hexdigest().upper()
+            (root / "PINNED_UPSTREAM_COMMIT.txt").write_text(
+                commit + "\n", encoding="utf-8"
+            )
+            (root / "TRANSFER_MANIFEST.json").write_text(
+                json.dumps(
+                    {"commit": commit, "source_package_path": str(archive)}
+                ),
+                encoding="utf-8",
+            )
+            with patch.dict(
+                os.environ, {"POLICYAGENT_TAU2_ROOT": str(root)}, clear=False
+            ):
+                with self.assertRaisesRegex(FileNotFoundError, "Required tau2 file"):
+                    validate_upstream_checkout(
+                        commit,
+                        digest,
+                        {
+                            "data/tau2/user_simulator/simulation_guidelines.md": (
+                                "0" * 64
+                            )
+                        },
+                    )
 
 
 if __name__ == "__main__":

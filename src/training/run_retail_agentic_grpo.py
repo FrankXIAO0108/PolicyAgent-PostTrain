@@ -56,9 +56,26 @@ def git_value(*args: str) -> str:
     ).stdout.strip()
 
 
-def validate_upstream_checkout(
-    expected_commit: str, expected_package_sha256: str | None = None
+def _validate_upstream_files(
+    root: Path, expected_files: dict[str, str] | None
 ) -> dict[str, str]:
+    verified: dict[str, str] = {}
+    for relative_path, expected_sha256 in (expected_files or {}).items():
+        path = (root / relative_path).resolve()
+        if not path.is_relative_to(root) or not path.is_file():
+            raise FileNotFoundError(f"Required tau2 file missing: {relative_path}")
+        actual_sha256 = sha256(path)
+        if actual_sha256 != expected_sha256.upper():
+            raise ValueError(f"Required tau2 file hash mismatch: {relative_path}")
+        verified[relative_path] = actual_sha256
+    return verified
+
+
+def validate_upstream_checkout(
+    expected_commit: str,
+    expected_package_sha256: str | None = None,
+    expected_files: dict[str, str] | None = None,
+) -> dict[str, Any]:
     root_value = os.environ.get("POLICYAGENT_TAU2_ROOT")
     if not root_value:
         raise RuntimeError("Set POLICYAGENT_TAU2_ROOT to the pinned tau2 checkout")
@@ -87,6 +104,9 @@ def validate_upstream_checkout(
                 "path": str(root),
                 "commit": actual_commit,
                 "verification_method": "git_head",
+                "required_file_sha256": _validate_upstream_files(
+                    root, expected_files
+                ),
             }
 
     marker_path = root / "PINNED_UPSTREAM_COMMIT.txt"
@@ -117,6 +137,7 @@ def validate_upstream_checkout(
         "source_package_path": str(archive_path),
         "source_package_sha256": actual_package_sha256,
         "transfer_manifest_sha256": sha256(transfer_manifest_path),
+        "required_file_sha256": _validate_upstream_files(root, expected_files),
     }
 
 
@@ -144,6 +165,7 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
     upstream_checkout = validate_upstream_checkout(
         config["upstream"]["commit"],
         config["upstream"].get("source_package_sha256"),
+        config["upstream"].get("required_files"),
     )
     return {
         "config": config,

@@ -9,7 +9,7 @@ RUN_DIR="${POLICYAGENT_AGENTIC_RL_RUN_DIR:-/root/autodl-tmp/policyagent-runs/202
 cd "${PROJECT_ROOT}"
 export POLICYAGENT_TAU2_ROOT="${TAU2_ROOT}"
 export PYTHONPATH="${PROJECT_ROOT}:${TAU2_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
-export POLICYAGENT_USER_MODEL="${POLICYAGENT_USER_MODEL:-deepseek/deepseek-chat}"
+export POLICYAGENT_USER_MODEL="${POLICYAGENT_USER_MODEL:-deepseek/deepseek-v4-flash}"
 if [[ -z "${POLICYAGENT_USER_LLM_ARGS_JSON:-}" ]]; then
   export POLICYAGENT_USER_LLM_ARGS_JSON='{"temperature":0.0}'
 fi

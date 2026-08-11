@@ -96,7 +96,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--model",
-        default=os.environ.get("POLICYAGENT_USER_MODEL", "deepseek/deepseek-chat"),
+        default=os.environ.get(
+            "POLICYAGENT_USER_MODEL", "deepseek/deepseek-v4-flash"
+        ),
     )
     parser.add_argument("--seed", type=int, default=20260810)
     parser.add_argument("--limit", type=int)
