@@ -8,7 +8,8 @@
   },
   "upstream": {
     "repository": "sierra-research/tau2-bench",
-    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20"
   },
   "model": {
     "name_or_path": "/root/autodl-tmp/policyagent-runs/20260802-posttrain-v1/sft_merged",

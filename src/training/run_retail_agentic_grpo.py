@@ -56,31 +56,68 @@ def git_value(*args: str) -> str:
     ).stdout.strip()
 
 
-def validate_upstream_checkout(expected_commit: str) -> dict[str, str]:
+def validate_upstream_checkout(
+    expected_commit: str, expected_package_sha256: str | None = None
+) -> dict[str, str]:
     root_value = os.environ.get("POLICYAGENT_TAU2_ROOT")
     if not root_value:
         raise RuntimeError("Set POLICYAGENT_TAU2_ROOT to the pinned tau2 checkout")
     root = Path(root_value).expanduser().resolve()
-    if not (root / ".git").exists():
-        raise FileNotFoundError(f"Pinned tau2 Git checkout not found: {root}")
-    actual_commit = subprocess.run(
-        [
-            "git",
-            "-c",
-            f"safe.directory={root.as_posix()}",
-            "rev-parse",
-            "HEAD",
-        ],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    if actual_commit != expected_commit:
-        raise ValueError(
-            f"tau2 checkout mismatch: {actual_commit} != {expected_commit}"
+    if (root / ".git").exists():
+        result = subprocess.run(
+            [
+                "git",
+                "-c",
+                f"safe.directory={root.as_posix()}",
+                "rev-parse",
+                "HEAD",
+            ],
+            cwd=root,
+            check=False,
+            capture_output=True,
+            text=True,
         )
-    return {"path": str(root), "commit": actual_commit}
+        actual_commit = result.stdout.strip()
+        if result.returncode == 0:
+            if actual_commit != expected_commit:
+                raise ValueError(
+                    f"tau2 checkout mismatch: {actual_commit} != {expected_commit}"
+                )
+            return {
+                "path": str(root),
+                "commit": actual_commit,
+                "verification_method": "git_head",
+            }
+
+    marker_path = root / "PINNED_UPSTREAM_COMMIT.txt"
+    transfer_manifest_path = root / "TRANSFER_MANIFEST.json"
+    if not marker_path.is_file() or not transfer_manifest_path.is_file():
+        raise FileNotFoundError(
+            f"tau2 requires a valid Git HEAD or transfer evidence under {root}"
+        )
+    marker_commit = marker_path.read_text(encoding="utf-8").strip()
+    transfer = load_json(transfer_manifest_path)
+    if marker_commit != expected_commit or transfer.get("commit") != expected_commit:
+        raise ValueError("Transferred tau2 commit binding mismatch")
+    if not expected_package_sha256:
+        raise ValueError("Transferred tau2 requires source_package_sha256 in config")
+    archive_path = Path(str(transfer["source_package_path"])).expanduser().resolve()
+    if not archive_path.is_file():
+        raise FileNotFoundError(f"Transferred tau2 source package missing: {archive_path}")
+    actual_package_sha256 = sha256(archive_path)
+    if actual_package_sha256 != expected_package_sha256:
+        raise ValueError("Transferred tau2 source package hash mismatch")
+    required_paths = (root / "src", root / "data" / "tau2" / "domains" / "retail")
+    if any(not path.is_dir() for path in required_paths):
+        raise FileNotFoundError("Transferred tau2 checkout lacks source or Retail data")
+    return {
+        "path": str(root),
+        "commit": marker_commit,
+        "verification_method": "commit_marker_and_source_package_sha256",
+        "source_package_path": str(archive_path),
+        "source_package_sha256": actual_package_sha256,
+        "transfer_manifest_sha256": sha256(transfer_manifest_path),
+    }
 
 
 def validate_config_and_split(config_path: Path) -> dict[str, Any]:
@@ -104,7 +141,10 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
         raise ValueError("Upstream commit binding mismatch")
     if split["leakage_checks"].get("passed") is not True:
         raise ValueError("Task split leakage checks are not passing")
-    upstream_checkout = validate_upstream_checkout(config["upstream"]["commit"])
+    upstream_checkout = validate_upstream_checkout(
+        config["upstream"]["commit"],
+        config["upstream"].get("source_package_sha256"),
+    )
     return {
         "config": config,
         "config_path": str(config_path),

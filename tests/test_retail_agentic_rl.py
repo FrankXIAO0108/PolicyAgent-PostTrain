@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import tempfile
 import unittest
@@ -14,6 +15,7 @@ from src.rl.retail_agentic_env import (
     confirmation_diagnostics,
     one_to_one_action_progress,
 )
+from src.training.run_retail_agentic_grpo import validate_upstream_checkout
 
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -277,6 +279,37 @@ class RetailAgenticSplitTests(unittest.TestCase):
         )
         self.assertEqual(sanity["data"]["max_tasks"], 1)
         self.assertEqual(sanity["grpo"]["max_steps"], 1)
+
+    def test_transferred_upstream_requires_commit_and_package_hash(self) -> None:
+        commit = "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "tau2-bench"
+            (root / "src").mkdir(parents=True)
+            (root / "data" / "tau2" / "domains" / "retail").mkdir(parents=True)
+            archive = Path(directory) / "tau2.tar.gz"
+            archive.write_bytes(b"frozen tau2 retail package")
+            digest = hashlib.sha256(archive.read_bytes()).hexdigest().upper()
+            (root / "PINNED_UPSTREAM_COMMIT.txt").write_text(
+                commit + "\n", encoding="utf-8"
+            )
+            (root / "TRANSFER_MANIFEST.json").write_text(
+                json.dumps(
+                    {
+                        "commit": commit,
+                        "source_package_path": str(archive),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with patch.dict(
+                os.environ, {"POLICYAGENT_TAU2_ROOT": str(root)}, clear=False
+            ):
+                result = validate_upstream_checkout(commit, digest)
+            self.assertEqual(
+                result["verification_method"],
+                "commit_marker_and_source_package_sha256",
+            )
+            self.assertEqual(result["source_package_sha256"], digest)
 
 
 if __name__ == "__main__":
