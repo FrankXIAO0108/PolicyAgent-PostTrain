@@ -168,6 +168,10 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
             raise ValueError(
                 "diagnostic.expected_rollouts must equal max_steps*num_generations"
             )
+        if int(config["diagnostic"]["expected_tasks"]) != int(
+            config["data"]["max_tasks"]
+        ):
+            raise ValueError("diagnostic.expected_tasks must equal data.max_tasks")
 
     data = config["data"]
     split_path = (REPO_ROOT / data["task_split"]).resolve()
@@ -481,6 +485,8 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         save_total_limit=2,
         log_completions=bool(grpo.get("log_completions", False)),
         num_completions_to_print=int(grpo.get("num_completions_to_print", 0)),
+        gradient_checkpointing=bool(grpo.get("gradient_checkpointing", False)),
+        gradient_checkpointing_kwargs={"use_reentrant": False},
         report_to="none",
         bf16=bf16,
         fp16=not bf16,

@@ -60,6 +60,7 @@ case "${MODE}" in
     python -m src.analysis.analyze_agentic_rollout_diagnostic \
       --rollouts "${DIAGNOSTIC_DIR}/raw_rollouts.jsonl" \
       --expected-rollouts 32 \
+      --expected-tasks 8 \
       --output "${DIAGNOSTIC_DIR}/diagnostic_report.json"
     ;;
   *)

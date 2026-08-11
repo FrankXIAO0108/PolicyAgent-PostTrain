@@ -17,7 +17,9 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
 
 
-def analyze(path: Path, expected_rollouts: int) -> dict[str, Any]:
+def analyze(
+    path: Path, expected_rollouts: int, expected_tasks: int
+) -> dict[str, Any]:
     rows = load_jsonl(path)
     rewards = [float(row["reward"]["reward"]) for row in rows]
     task_counts = Counter(str(row["task_id"]) for row in rows)
@@ -31,7 +33,7 @@ def analyze(path: Path, expected_rollouts: int) -> dict[str, Any]:
     distinct_rewards = sorted(set(rewards))
     gates = {
         "expected_rollout_count_met": len(rows) == expected_rollouts,
-        "all_expected_tasks_observed": len(task_counts) == expected_rollouts // 4,
+        "all_expected_tasks_observed": len(task_counts) == expected_tasks,
         "tool_call_rate_positive": any(value > 0 for value in tool_calls),
         "customer_continuation_observed": any(value > 0 for value in customer_turns),
         "reward_has_variance": reward_variance > 0.0,
@@ -42,6 +44,7 @@ def analyze(path: Path, expected_rollouts: int) -> dict[str, Any]:
         "schema_version": "retail-agentic-rollout-diagnostic-v1",
         "source": {"path": str(path), "sha256": sha256(path)},
         "expected_rollouts": expected_rollouts,
+        "expected_tasks": expected_tasks,
         "observed_rollouts": len(rows),
         "unique_tasks": len(task_counts),
         "task_rollout_counts": dict(sorted(task_counts.items(), key=lambda item: int(item[0]))),
@@ -69,9 +72,12 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--rollouts", type=Path, required=True)
     parser.add_argument("--expected-rollouts", type=int, default=32)
+    parser.add_argument("--expected-tasks", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    report = analyze(args.rollouts.resolve(), args.expected_rollouts)
+    report = analyze(
+        args.rollouts.resolve(), args.expected_rollouts, args.expected_tasks
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

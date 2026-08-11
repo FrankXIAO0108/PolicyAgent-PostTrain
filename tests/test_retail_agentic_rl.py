@@ -301,6 +301,10 @@ class RetailAgenticSplitTests(unittest.TestCase):
             diagnostic["grpo"]["max_steps"]
             * diagnostic["grpo"]["num_generations"],
         )
+        self.assertEqual(
+            diagnostic["diagnostic"]["expected_tasks"],
+            diagnostic["data"]["max_tasks"],
+        )
 
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -323,7 +327,7 @@ class RetailAgenticSplitTests(unittest.TestCase):
                 "".join(json.dumps(row) + "\n" for row in rows),
                 encoding="utf-8",
             )
-            report = analyze(path, expected_rollouts=8)
+            report = analyze(path, expected_rollouts=8, expected_tasks=2)
             self.assertEqual(report["observed_rollouts"], 8)
             self.assertEqual(report["unique_tasks"], 2)
             self.assertTrue(report["gates"]["ready_to_consider_optimization"])
