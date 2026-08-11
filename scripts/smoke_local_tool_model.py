@@ -18,6 +18,7 @@ def main() -> None:
     from src.training.run_retail_agentic_grpo import (
         check_runtime,
         check_tool_template,
+        directory_sha256,
         sha256,
     )
 
@@ -95,6 +96,7 @@ def main() -> None:
         "model_manifest_sha256": (
             sha256(manifest_path) if manifest_path.is_file() else None
         ),
+        "model_directory_sha256": directory_sha256(model_path),
         "parameter_count": sum(parameter.numel() for parameter in model.parameters()),
         "runtime": runtime,
         "prompt_tokens": int(inputs["input_ids"].shape[1]),
