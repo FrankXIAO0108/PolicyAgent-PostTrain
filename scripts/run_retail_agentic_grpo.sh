@@ -29,6 +29,11 @@ case "${MODE}" in
   gpu-preflight)
     python -m src.training.run_retail_agentic_grpo --preflight-only
     ;;
+  gpu-preflight-sanity)
+    python -m src.training.run_retail_agentic_grpo \
+      --config configs/retail_agentic_grpo_sanity_v1.json \
+      --preflight-only
+    ;;
   train-sanity)
     : "${DEEPSEEK_API_KEY:?Set DEEPSEEK_API_KEY for the dynamic customer simulator}"
     python -m src.training.run_retail_agentic_grpo \
@@ -40,7 +45,7 @@ case "${MODE}" in
     python -m src.training.run_retail_agentic_grpo --output-dir "${RUN_DIR}"
     ;;
   *)
-    echo "Usage: $0 {environment-preflight|opening-smoke|prepare-openings|gpu-preflight|train-sanity|train}" >&2
+    echo "Usage: $0 {environment-preflight|opening-smoke|prepare-openings|gpu-preflight-sanity|gpu-preflight|train-sanity|train}" >&2
     exit 2
     ;;
 esac
