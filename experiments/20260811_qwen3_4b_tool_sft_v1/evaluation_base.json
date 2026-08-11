@@ -1,0 +1,213 @@
+{
+  "model_path": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+  "metrics": {
+    "rows": 20,
+    "valid_tool_call_rate": 0.0,
+    "malformed_tool_call_rate": 0.0,
+    "tool_match_rate": 0.0,
+    "argument_match_rate": 0.0,
+    "ordinary_text_rate": 1.0
+  },
+  "rows": [
+    {
+      "scenario_id": "holdout-00-8000",
+      "category": "exchange_missing_identity",
+      "completion": "To assist you with exchanging items from your order, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8000",
+      "category": "return_missing_identity",
+      "completion": "To assist you with returning items from order HLD-RT-8000, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8000",
+      "category": "modify_missing_identity",
+      "completion": "To assist you with changing the shipping address for order HLD-MD-8000, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-03-8000",
+      "category": "authenticate_by_email",
+      "completion": "To assist you with your recent order, I first need to authenticate your identity. Could you please confirm your full name and zip code? This will help me locate your user ID in our system.<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-04-8000",
+      "category": "authenticate_by_name_zip",
+      "completion": "I'll help you with your order. First, I need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-00-8001",
+      "category": "exchange_missing_identity",
+      "completion": "To assist you with exchanging items from your order, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8001",
+      "category": "return_missing_identity",
+      "completion": "To assist you with returning items from order HLD-RT-8001, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8001",
+      "category": "modify_missing_identity",
+      "completion": "To assist you with changing the shipping address for order HLD-MD-8001, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-03-8001",
+      "category": "authenticate_by_email",
+      "completion": "To assist you with your recent order, I first need to authenticate your identity. Could you please confirm your full name and zip code? This will help me locate your user ID in our system.<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-04-8001",
+      "category": "authenticate_by_name_zip",
+      "completion": "To assist you with your order, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-00-8002",
+      "category": "exchange_missing_identity",
+      "completion": "To assist you with exchanging items from your order, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8002",
+      "category": "return_missing_identity",
+      "completion": "To assist you with returning items from order HLD-RT-8002, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8002",
+      "category": "modify_missing_identity",
+      "completion": "To assist you with changing the shipping address for order HLD-MD-8002, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-03-8002",
+      "category": "authenticate_by_email",
+      "completion": "To assist you with your recent order, I first need to authenticate your identity. Could you please confirm your full name and zip code? This will help me locate your user ID in our system.<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-04-8002",
+      "category": "authenticate_by_name_zip",
+      "completion": "To assist you with your order, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-00-8003",
+      "category": "exchange_missing_identity",
+      "completion": "To assist you with exchanging items from your order, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8003",
+      "category": "return_missing_identity",
+      "completion": "To assist you with returning items from order HLD-RT-8003, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8003",
+      "category": "modify_missing_identity",
+      "completion": "To assist you with changing the shipping address for order HLD-MD-8003, I first need to authenticate your identity. Could you please provide your email address?<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-03-8003",
+      "category": "authenticate_by_email",
+      "completion": "To assist you with your recent order, I first need to authenticate your identity. Could you please confirm your full name and zip code? This will help me locate your user ID in our system.<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-04-8003",
+      "category": "authenticate_by_name_zip",
+      "completion": "I'll help you with your order. First, I need to authenticate your identity. Could you please confirm your full name and zip code? \n\nYour name is Alex8003 Chen8003 and your billing ZIP code is 08003. Let me verify your user ID.<|im_end|>",
+      "contains_tool_call_tag": false,
+      "valid_tool_call": false,
+      "tool_match": false,
+      "argument_match": false,
+      "exact_match": false
+    }
+  ]
+}

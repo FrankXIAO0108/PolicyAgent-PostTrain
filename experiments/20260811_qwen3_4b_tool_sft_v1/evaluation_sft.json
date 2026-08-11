@@ -1,0 +1,213 @@
+{
+  "model_path": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-tool-sft-v1/tool_sft_merged",
+  "metrics": {
+    "rows": 20,
+    "valid_tool_call_rate": 1.0,
+    "malformed_tool_call_rate": 0.0,
+    "tool_match_rate": 1.0,
+    "argument_match_rate": 1.0,
+    "ordinary_text_rate": 0.0
+  },
+  "rows": [
+    {
+      "scenario_id": "holdout-00-8000",
+      "category": "exchange_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email or your full name and ZIP code so I can authenticate you.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8000",
+      "category": "return_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email, or your full name and ZIP code.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8000",
+      "category": "modify_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before changing or viewing the order, please provide your account email or your full name and ZIP code for authentication.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-03-8000",
+      "category": "authenticate_by_email",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_email\",\"arguments\":{\"email\":\"protocol-hld-8000@example.test\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-04-8000",
+      "category": "authenticate_by_name_zip",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_name_zip\",\"arguments\":{\"first_name\":\"Alex8000\",\"last_name\":\"Chen8000\",\"zip\":\"08000\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-00-8001",
+      "category": "exchange_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email or your full name and ZIP code so I can authenticate you.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8001",
+      "category": "return_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email, or your full name and ZIP code.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8001",
+      "category": "modify_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before changing or viewing the order, please provide your account email or your full name and ZIP code for authentication.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-03-8001",
+      "category": "authenticate_by_email",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_email\",\"arguments\":{\"email\":\"protocol-hld-8001@example.test\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-04-8001",
+      "category": "authenticate_by_name_zip",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_name_zip\",\"arguments\":{\"first_name\":\"Alex8001\",\"last_name\":\"Chen8001\",\"zip\":\"08001\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-00-8002",
+      "category": "exchange_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email or your full name and ZIP code so I can authenticate you.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8002",
+      "category": "return_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email, or your full name and ZIP code.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8002",
+      "category": "modify_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before changing or viewing the order, please provide your account email or your full name and ZIP code for authentication.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-03-8002",
+      "category": "authenticate_by_email",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_email\",\"arguments\":{\"email\":\"protocol-hld-8002@example.test\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-04-8002",
+      "category": "authenticate_by_name_zip",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_name_zip\",\"arguments\":{\"first_name\":\"Alex8002\",\"last_name\":\"Chen8002\",\"zip\":\"08002\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-00-8003",
+      "category": "exchange_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email or your full name and ZIP code so I can authenticate you.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-01-8003",
+      "category": "return_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before I access the order, please provide your account email, or your full name and ZIP code so I can authenticate you.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": false
+    },
+    {
+      "scenario_id": "holdout-02-8003",
+      "category": "modify_missing_identity",
+      "completion": "<tool_call>\n{\"name\":\"respond_to_user\",\"arguments\":{\"message\":\"Before changing or viewing the order, please provide your account email or your full name and ZIP code for authentication.\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-03-8003",
+      "category": "authenticate_by_email",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_email\",\"arguments\":{\"email\":\"protocol-hld-8003@example.test\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    },
+    {
+      "scenario_id": "holdout-04-8003",
+      "category": "authenticate_by_name_zip",
+      "completion": "<tool_call>\n{\"name\":\"find_user_id_by_name_zip\",\"arguments\":{\"first_name\":\"Alex8003\",\"last_name\":\"Chen8003\",\"zip\":\"08003\"}}\n</tool_call><|im_end|>",
+      "contains_tool_call_tag": true,
+      "valid_tool_call": true,
+      "tool_match": true,
+      "argument_match": true,
+      "exact_match": true
+    }
+  ]
+}

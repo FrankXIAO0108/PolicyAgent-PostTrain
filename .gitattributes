@@ -2,4 +2,5 @@ data/posttrain_engineering_smoke_v1/*.jsonl text eol=lf
 data/posttrain_engineering_smoke_v1/manifest.json text eol=lf
 data/retail_tool_protocol_sft_v1/*.jsonl text eol=lf
 data/retail_tool_protocol_sft_v1/manifest.json text eol=lf
+experiments/20260811_qwen3_4b_tool_sft_v1/*.json text eol=lf
 scripts/*.sh text eol=lf

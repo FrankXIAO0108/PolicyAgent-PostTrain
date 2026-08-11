@@ -1,0 +1,76 @@
+{
+  "schema_version": "retail-tool-protocol-sft-run-v1",
+  "scope": "ISOLATED_TOOL_PROTOCOL_WARMUP",
+  "status": "COMPLETED",
+  "git": {
+    "commit": "3afb6f30499254a0f9055f79a4990a1fd739395b",
+    "branch": "main",
+    "dirty_at_start": false
+  },
+  "bindings": {
+    "config_path": "/root/autodl-tmp/PolicyAgent-PostTrain/configs/retail_tool_sft_qwen3_4b_v1.json",
+    "config_sha256": "856370D05A3C2D4D2E152A5A53753185F24EE0146B4CB89C1855DBDDF7EBB2E3",
+    "data_manifest_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_tool_protocol_sft_v1/manifest.json",
+    "data_manifest_sha256": "CDA043F1E37E2DCA012CD8E7B12D1E36E27DC3DAE1DB26799B6B2112C1F74F08",
+    "starting_model": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+    "starting_model_sha256": "F34D14D691C94109D42451A4C9E63391FCEDEFFA43571AF6B63EF2F421EF1737",
+    "upstream": {
+      "path": "/root/autodl-tmp/tau2-bench",
+      "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+      "verification_method": "commit_marker_and_source_package_sha256",
+      "source_package_path": "/root/autodl-tmp/tau2-retail-58e5e1a.tar.gz",
+      "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+      "transfer_manifest_sha256": "67D65E179639ECE78E5174B6C7512058DFF4ECBA45B74E46F565409A2C502E46",
+      "required_file_sha256": {
+        "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+      }
+    }
+  },
+  "data": {
+    "train_rows": 80,
+    "holdout_rows": 20,
+    "max_rendered_prompt_tokens": 3839,
+    "max_rendered_sequence_tokens": 3881
+  },
+  "evaluations": {
+    "base": {
+      "rows": 20,
+      "valid_tool_call_rate": 0.0,
+      "malformed_tool_call_rate": 0.0,
+      "tool_match_rate": 0.0,
+      "argument_match_rate": 0.0,
+      "ordinary_text_rate": 1.0
+    },
+    "sft": {
+      "rows": 20,
+      "valid_tool_call_rate": 1.0,
+      "malformed_tool_call_rate": 0.0,
+      "tool_match_rate": 1.0,
+      "argument_match_rate": 1.0,
+      "ordinary_text_rate": 0.0
+    }
+  },
+  "protocol_warmup_gate": {
+    "passed": true,
+    "targets": {
+      "max_new_tokens": 128,
+      "target_valid_tool_call_rate": 0.9,
+      "target_tool_match_rate": 0.85,
+      "target_argument_match_rate": 0.8,
+      "target_ordinary_text_rate_max": 0.1
+    }
+  },
+  "artifacts": {
+    "adapter": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-tool-sft-v1/tool_sft_adapter",
+      "sha256": "8A951C33D1DA54E9D3256533816252FFA8466DF5FC02054A5C063C6666AC290F"
+    },
+    "merged_model": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-tool-sft-v1/tool_sft_merged",
+      "sha256": "2028C809473FA52434BE00583D3C0E5C29633C447A479B17A51E28EEE9D0B4D0"
+    }
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false,
+  "agentic_grpo_allowed": false
+}

@@ -63,8 +63,20 @@ case "${MODE}" in
       --expected-tasks 8 \
       --output "${DIAGNOSTIC_DIR}/diagnostic_report.json"
     ;;
+  qwen3-tool-sft-rollout-diagnostic)
+    : "${DEEPSEEK_API_KEY:?Set DEEPSEEK_API_KEY for the dynamic customer simulator}"
+    TOOL_SFT_DIAGNOSTIC_DIR="${POLICYAGENT_QWEN3_TOOL_SFT_DIAGNOSTIC_DIR:-/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-tool-sft-rollout-diagnostic-v1}"
+    python -m src.training.run_retail_agentic_grpo \
+      --config configs/retail_agentic_qwen3_4b_tool_sft_rollout_diagnostic_v1.json \
+      --output-dir "${TOOL_SFT_DIAGNOSTIC_DIR}"
+    python -m src.analysis.analyze_agentic_rollout_diagnostic \
+      --rollouts "${TOOL_SFT_DIAGNOSTIC_DIR}/raw_rollouts.jsonl" \
+      --expected-rollouts 32 \
+      --expected-tasks 8 \
+      --output "${TOOL_SFT_DIAGNOSTIC_DIR}/diagnostic_report.json"
+    ;;
   *)
-    echo "Usage: $0 {environment-preflight|opening-smoke|prepare-openings|prepare-qwen3-diagnostic-openings|gpu-preflight-sanity|gpu-preflight|train-sanity|train|qwen3-rollout-diagnostic}" >&2
+    echo "Usage: $0 {environment-preflight|opening-smoke|prepare-openings|prepare-qwen3-diagnostic-openings|gpu-preflight-sanity|gpu-preflight|train-sanity|train|qwen3-rollout-diagnostic|qwen3-tool-sft-rollout-diagnostic}" >&2
     exit 2
     ;;
 esac
