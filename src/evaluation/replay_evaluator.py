@@ -86,6 +86,73 @@ def _environment_state(environment: Any) -> dict[str, Any]:
     return state
 
 
+def replay_task_simulation(
+    task: Any,
+    simulation: Any,
+    *,
+    constructor: Any,
+    domain: str,
+    raw_results: dict[str, Any] | None = None,
+) -> ReplayResult:
+    """Reconstruct initial, predicted, and reference states for one simulation."""
+
+    initialization_data, initialization_actions, initial_messages = _initialization(
+        task
+    )
+    state_args = {
+        "initialization_data": initialization_data,
+        "initialization_actions": initialization_actions,
+    }
+    replay_errors: list[str] = []
+
+    initial_environment = constructor(solo_mode=False)
+    initial_environment.set_state(message_history=initial_messages, **state_args)
+
+    predicted_environment = constructor(solo_mode=False)
+    try:
+        predicted_environment.set_state(
+            message_history=list(simulation.messages or []), **state_args
+        )
+    except Exception as exc:
+        replay_errors.append(f"predicted_replay: {type(exc).__name__}: {exc}")
+
+    gold_environment = constructor(solo_mode=False)
+    gold_environment.set_state(message_history=initial_messages, **state_args)
+    for action in task.evaluation_criteria.actions or []:
+        try:
+            gold_environment.make_tool_call(
+                tool_name=action.name,
+                requestor=action.requestor,
+                **action.arguments,
+            )
+        except Exception as exc:
+            replay_errors.append(
+                f"gold_action:{action.action_id}:{action.name}: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
+    agent_hash = predicted_environment.get_db_hash()
+    gold_hash = gold_environment.get_db_hash()
+    agent_user_hash = predicted_environment.get_user_db_hash()
+    gold_user_hash = gold_environment.get_user_db_hash()
+    return ReplayResult(
+        task_id=str(task.id),
+        domain=domain,
+        db_match=agent_hash == gold_hash and agent_user_hash == gold_user_hash,
+        gold_hash=gold_hash,
+        agent_hash=agent_hash,
+        gold_user_hash=gold_user_hash,
+        agent_user_hash=agent_user_hash,
+        replay_errors=replay_errors,
+        initial_state=_environment_state(initial_environment),
+        agent_state=_environment_state(predicted_environment),
+        gold_state=_environment_state(gold_environment),
+        task=task,
+        simulation=simulation,
+        raw_results=raw_results or {},
+    )
+
+
 def replay_results_artifact(
     results_path: str | Path,
     *,
@@ -105,70 +172,10 @@ def replay_results_artifact(
     simulation = results.simulations[0]
     domain = results.info.environment_info.domain_name
     constructor = runtime.registry.get_env_constructor(domain)
-    initialization_data, initialization_actions, initial_messages = _initialization(
-        task
-    )
-    state_args = {
-        "initialization_data": initialization_data,
-        "initialization_actions": initialization_actions,
-    }
-    replay_errors: list[str] = []
-
-    initial_environment = constructor(solo_mode=False)
-    initial_environment.set_state(
-        message_history=initial_messages,
-        **state_args,
-    )
-
-    predicted_environment = constructor(solo_mode=False)
-    try:
-        predicted_environment.set_state(
-            message_history=list(simulation.messages or []),
-            **state_args,
-        )
-    except Exception as exc:  # Preserve evidence instead of hiding replay failure.
-        replay_errors.append(f"predicted_replay: {type(exc).__name__}: {exc}")
-
-    gold_environment = constructor(solo_mode=False)
-    gold_environment.set_state(
-        message_history=initial_messages,
-        **state_args,
-    )
-    for action in task.evaluation_criteria.actions or []:
-        try:
-            gold_environment.make_tool_call(
-                tool_name=action.name,
-                requestor=action.requestor,
-                **action.arguments,
-            )
-        except Exception as exc:
-            replay_errors.append(
-                f"gold_action:{action.action_id}:{action.name}: "
-                f"{type(exc).__name__}: {exc}"
-            )
-
-    agent_hash = predicted_environment.get_db_hash()
-    gold_hash = gold_environment.get_db_hash()
-    agent_user_hash = predicted_environment.get_user_db_hash()
-    gold_user_hash = gold_environment.get_user_db_hash()
-    # Match evaluator_env.py exactly: failed gold actions are warnings and the
-    # evaluator still compares the resulting hashes. This matters for stale
-    # read-only gold actions that cannot affect final DB state.
-    db_match = agent_hash == gold_hash and agent_user_hash == gold_user_hash
-
-    return ReplayResult(
-        task_id=str(task.id),
+    return replay_task_simulation(
+        task,
+        simulation,
+        constructor=constructor,
         domain=domain,
-        db_match=db_match,
-        gold_hash=gold_hash,
-        agent_hash=agent_hash,
-        gold_user_hash=gold_user_hash,
-        agent_user_hash=agent_user_hash,
-        replay_errors=replay_errors,
-        initial_state=_environment_state(initial_environment),
-        agent_state=_environment_state(predicted_environment),
-        gold_state=_environment_state(gold_environment),
-        task=task,
-        simulation=simulation,
         raw_results=raw_results,
     )

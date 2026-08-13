@@ -1,0 +1,81 @@
+{
+  "schema_version": "retail-tau2-teacher-trajectory-smoke-v1",
+  "status": "FROZEN",
+  "scope": "TAU2_GROUNDED_TEACHER_DATA_ENGINEERING_SMOKE",
+  "purpose": "Validate blind teacher generation, real tau2 execution, deterministic offline screening, and provenance capture before producing SFT data.",
+  "claims": {
+    "official_metric": false,
+    "formal_retail_gate_unchanged": true,
+    "training_data_released": false,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "task_split": "data/retail_agentic_rl_v1/task_split.json",
+  "task_subset": "rl_train",
+  "tasks": [
+    {
+      "task_id": "57",
+      "stratum": "conditional_query",
+      "reason": "Adversarial no-reference-action case; acceptance must depend on state and terminal behavior rather than action count."
+    },
+    {
+      "task_id": "113",
+      "stratum": "confirmed_multi_cancel",
+      "reason": "State-changing case that tests authentication, explicit confirmation, write completeness, and stopping."
+    },
+    {
+      "task_id": "0",
+      "stratum": "multi_item_exchange",
+      "reason": "Complex product-variant case that tests information gathering, one-shot grouped write, and argument correctness."
+    }
+  ],
+  "generation": {
+    "agent": {
+      "implementation": "audited_teacher_llm_agent",
+      "model": "deepseek/deepseek-chat",
+      "temperature": 0.4
+    },
+    "user": {
+      "implementation": "user_simulator",
+      "model": "deepseek/deepseek-chat",
+      "temperature": 0.0
+    },
+    "candidates_per_task": 2,
+    "seed": 20260813,
+    "max_steps": 120,
+    "max_errors": 5,
+    "max_concurrency": 1,
+    "max_retries": 0
+  },
+  "teacher_visibility": {
+    "policy": true,
+    "tool_schemas": true,
+    "observed_user_messages": true,
+    "observed_tool_results": true,
+    "evaluation_criteria": false,
+    "expected_actions": false,
+    "gold_database_state": false,
+    "hidden_user_scenario": false
+  },
+  "offline_evaluation": {
+    "tau2_evaluation_type": "ALL_IGNORE_BASIS",
+    "llm_judge_used": false,
+    "expected_actions_used_only_after_generation": true,
+    "human_review_required_for_training_release": true,
+    "maximum_automatic_label": "AUTO_PASS_CANDIDATE"
+  },
+  "known_limitations": [
+    "The teacher and user simulator use the same model family in this smoke, so same-source bias remains.",
+    "Two candidates per task test plumbing and failure visibility, not teacher qualification.",
+    "Programmatic policy findings are diagnostic until independently validated against human gold.",
+    "AUTO_PASS_CANDIDATE is not human-adjudicated GOLD and is not SFT-releasable."
+  ]
+}
