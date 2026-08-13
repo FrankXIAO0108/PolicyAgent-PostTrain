@@ -16,6 +16,7 @@ from src.guards.retail_pre_action import (
     context_from_messages,
     evaluate_retail_actions,
 )
+from src.rl.user_simulator_fail_fast import generate_with_fail_fast
 
 
 REWARD_CONFIG_ENV = "POLICYAGENT_REWARD_CONFIG_JSON"
@@ -587,8 +588,12 @@ class RetailAgenticEnvironment:
         assistant = AssistantMessage(role="assistant", content=str(message).strip())
         if not assistant.content:
             raise ValueError("Customer-facing message cannot be empty")
-        user_message, self._user_state = self._user.generate_next_message(
-            assistant, self._user_state
+        user_message, self._user_state = generate_with_fail_fast(
+            self._user.generate_next_message,
+            assistant,
+            self._user_state,
+            task_id=str(self._task.id),
+            user_seed=self._seed,
         )
         self._messages.extend([assistant, user_message])
         self._user_dialogue.extend([assistant, user_message])

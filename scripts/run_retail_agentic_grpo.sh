@@ -19,6 +19,11 @@ case "${MODE}" in
   environment-preflight)
     "${PYTHON_BIN}" -m src.training.run_retail_agentic_grpo --environment-only-preflight
     ;;
+  user-api-preflight)
+    : "${DEEPSEEK_API_KEY:?Set DEEPSEEK_API_KEY for the dynamic customer simulator}"
+    "${PYTHON_BIN}" -m src.training.run_retail_agentic_grpo \
+      --user-simulator-api-preflight-only
+    ;;
   opening-smoke)
     : "${DEEPSEEK_API_KEY:?Set DEEPSEEK_API_KEY before generating a customer opening}"
     "${PYTHON_BIN}" -m src.rl.prepare_user_openings --limit 1
@@ -77,7 +82,7 @@ case "${MODE}" in
       --output "${TOOL_SFT_DIAGNOSTIC_DIR}/diagnostic_report.json"
     ;;
   *)
-    echo "Usage: $0 {environment-preflight|opening-smoke|prepare-openings|prepare-qwen3-diagnostic-openings|gpu-preflight-sanity|gpu-preflight|train-sanity|train|qwen3-rollout-diagnostic|qwen3-tool-sft-rollout-diagnostic}" >&2
+    echo "Usage: $0 {environment-preflight|user-api-preflight|opening-smoke|prepare-openings|prepare-qwen3-diagnostic-openings|gpu-preflight-sanity|gpu-preflight|train-sanity|train|qwen3-rollout-diagnostic|qwen3-tool-sft-rollout-diagnostic}" >&2
     exit 2
     ;;
 esac

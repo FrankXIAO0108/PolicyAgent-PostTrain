@@ -12,6 +12,13 @@ import traceback
 from pathlib import Path
 from typing import Any
 
+from src.rl.user_simulator_fail_fast import (
+    SYSTEM_FAILURE_LOG_ENV,
+    UserSimulatorSystemFailure,
+    probe_user_simulator_api,
+    sanitize_error_message,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -342,7 +349,6 @@ def environment_only_preflight(config_path: Path) -> dict[str, Any]:
     from tau2.data_model.message import UserMessage
 
     from src.rl.retail_agentic_env import RetailAgenticEnvironment
-
     config = validated["config"]
     os.environ["POLICYAGENT_REWARD_CONFIG_JSON"] = json.dumps(
         config["reward"], ensure_ascii=False, sort_keys=True
@@ -444,6 +450,11 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     )
     rollout_log = output_dir / "raw_rollouts.jsonl"
     os.environ["POLICYAGENT_ROLLOUT_LOG"] = str(rollout_log)
+    system_failure_log = output_dir / "system_failures.jsonl"
+    os.environ[SYSTEM_FAILURE_LOG_ENV] = str(system_failure_log)
+    user_model = os.environ.get("POLICYAGENT_USER_MODEL", "").strip()
+    api_preflight = probe_user_simulator_api(model=user_model)
+    save_json(output_dir / "user_simulator_preflight.json", api_preflight)
     runtime = check_runtime()
     runtime["tool_template"] = check_tool_template(preflight["model_path"])
     save_json(output_dir / "environment.json", runtime)
@@ -635,6 +646,12 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         "reward": config["reward"],
         "rollout": config["rollout"],
         "quantization": quantization,
+        "user_simulator_preflight": api_preflight,
+        "system_failure_count": (
+            len(system_failure_log.read_text(encoding="utf-8").splitlines())
+            if system_failure_log.is_file()
+            else 0
+        ),
         "formal_retail_readiness_gate_opened": False,
         "business_improvement_claim_allowed": False,
     }
@@ -661,12 +678,25 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("--environment-only-preflight", action="store_true")
+    parser.add_argument(
+        "--user-simulator-api-preflight-only", action="store_true"
+    )
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
     if args.environment_only_preflight:
         print(
             json.dumps(
                 environment_only_preflight(args.config.resolve()),
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+    if args.user_simulator_api_preflight_only:
+        user_model = os.environ.get("POLICYAGENT_USER_MODEL", "").strip()
+        print(
+            json.dumps(
+                probe_user_simulator_api(model=user_model),
                 ensure_ascii=False,
                 indent=2,
             )
@@ -699,15 +729,32 @@ def main() -> None:
         result = run(preflight, output_dir)
     except Exception as exc:
         output_dir.mkdir(parents=True, exist_ok=True)
+        is_user_simulator_failure = isinstance(exc, UserSimulatorSystemFailure)
         save_json(
             output_dir / "failure_manifest.json",
             {
                 "schema_version": "retail-agentic-grpo-failure-v1",
                 "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
                 "status": "FAILED",
+                "failure_domain": (
+                    "SYSTEM" if is_user_simulator_failure else "UNCLASSIFIED_ENGINEERING"
+                ),
+                "failure_stage": (
+                    "USER_SIMULATOR"
+                    if is_user_simulator_failure
+                    else "RUNNER_OR_DEPENDENCY"
+                ),
+                "failure_category": (
+                    exc.category if is_user_simulator_failure else type(exc).__name__
+                ),
+                "abort_run": (
+                    exc.abort_run if is_user_simulator_failure else True
+                ),
+                "training_eligible": False,
+                "reward_eligible": False,
                 "exception_type": type(exc).__name__,
-                "exception_message": str(exc),
-                "traceback": traceback.format_exc(),
+                "exception_message": sanitize_error_message(str(exc)),
+                "traceback": sanitize_error_message(traceback.format_exc()),
                 "config_sha256": preflight["config_sha256"],
                 "split_sha256": preflight["split_sha256"],
                 "openings_sha256": preflight["openings_sha256"],
