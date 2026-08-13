@@ -89,6 +89,7 @@ case "${MODE}" in
       --output-dir "${MULTISTEP_DIAGNOSTIC_DIR}"
     "${PYTHON_BIN}" -m src.analysis.analyze_agentic_rollout_diagnostic \
       --rollouts "${MULTISTEP_DIAGNOSTIC_DIR}/raw_rollouts.jsonl" \
+      --baseline-rollouts "${PROJECT_ROOT}/experiments/20260813_qwen3_4b_tool_sft_rollout_diagnostic_v5/raw_rollouts.jsonl" \
       --expected-rollouts 32 \
       --expected-tasks 8 \
       --output "${MULTISTEP_DIAGNOSTIC_DIR}/diagnostic_report.json"

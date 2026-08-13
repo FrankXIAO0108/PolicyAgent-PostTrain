@@ -1,0 +1,6 @@
+{
+  "schema_version": "retail-agentic-grpo-state-v1",
+  "status": "COMPLETED",
+  "completed_at_unix": 1786603297.7916615,
+  "run_manifest_sha256": "B97E0732CB87B23187A02646709DE65086E06CA9CD24861B89E36E50114E76CB"
+}

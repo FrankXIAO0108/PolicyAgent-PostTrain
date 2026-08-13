@@ -399,6 +399,26 @@ class RetailAgenticSplitTests(unittest.TestCase):
             self.assertEqual(report["group_variance"]["minimum_signal_task_count"], 1)
             self.assertTrue(report["gates"]["ready_to_consider_optimization"])
 
+    def test_rollout_diagnostic_rejects_variance_caused_by_regression(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            baseline_path = root / "baseline.jsonl"
+            candidate_path = root / "candidate.jsonl"
+            baseline = []
+            candidate = []
+            for task_id in range(2):
+                for sample in range(4):
+                    baseline.append({"task_id": str(task_id), "tool_calls": 2, "customer_turns": 1, "reward": {"reward": 0.2 if sample % 2 else 0.1, "tool_error_count": 0, "unfinished_interaction_penalty": 0.1, "action_progress": {"recall": 0.5 if sample % 2 else 0.4, "duplicate_excess_count": 0}}})
+                    candidate.append({"task_id": str(task_id), "tool_calls": 5, "customer_turns": 1, "reward": {"reward": 0.1 if sample % 2 else 0.0, "tool_error_count": 1, "unfinished_interaction_penalty": 0.1, "action_progress": {"recall": 0.2 if sample % 2 else 0.1, "duplicate_excess_count": 2}}})
+            for path, rows in ((baseline_path, baseline), (candidate_path, candidate)):
+                path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            report = analyze(candidate_path, 8, 2, baseline_path)
+            self.assertTrue(report["gates"]["baseline_protocol_comparable"])
+            self.assertTrue(report["gates"]["sufficient_task_groups_have_joint_variance"])
+            self.assertFalse(report["gates"]["mean_action_recall_not_regressed"])
+            self.assertFalse(report["gates"]["tool_error_count_not_increased"])
+            self.assertFalse(report["gates"]["ready_to_consider_optimization"])
+
     def test_transferred_upstream_requires_commit_and_package_hash(self) -> None:
         commit = "58e5e1ace69302e6982d27014569c03e0ffccdd2"
         with tempfile.TemporaryDirectory() as directory:

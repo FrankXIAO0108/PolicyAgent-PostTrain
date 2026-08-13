@@ -1,0 +1,109 @@
+{
+  "schema_version": "retail-agentic-grpo-run-v2",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "status": "COMPLETED",
+  "execution_mode": "ROLLOUT_DIAGNOSTIC",
+  "optimization_enabled": false,
+  "git": {
+    "commit": "b055bbd7f2a75c955beeebf49648e6f575ac74ca",
+    "branch": "main",
+    "dirty_at_start": false
+  },
+  "bindings": {
+    "config_path": "/root/autodl-tmp/PolicyAgent-PostTrain/configs/retail_agentic_qwen3_4b_multistep_tool_sft_rollout_diagnostic_v1.json",
+    "config_sha256": "F77A384026DA4D0DA6EE8696C1A75AD565498272F7721E5FEF055914A87975AB",
+    "task_split_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/task_split.json",
+    "task_split_sha256": "2B5793FD836C1876109E3C265A9F193386126A2B1A504889C2ADDEB44D33CE99",
+    "openings_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages.jsonl",
+    "openings_sha256": "8F23026B875C977EC6DD380893C9759CA1B6E8808881CD64187F36B19D3BAD20",
+    "starting_model": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-v1/tool_sft_merged",
+    "starting_model_sha256": "030B393F7181224C9C15A8689276258AEB83DD704E798C2C693CACF13E1FC289",
+    "upstream_checkout": {
+      "path": "/root/autodl-tmp/tau2-bench",
+      "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+      "verification_method": "commit_marker_and_source_package_sha256",
+      "source_package_path": "/root/autodl-tmp/tau2-retail-58e5e1a.tar.gz",
+      "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+      "transfer_manifest_sha256": "67D65E179639ECE78E5174B6C7512058DFF4ECBA45B74E46F565409A2C502E46",
+      "required_file_sha256": {
+        "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+      }
+    }
+  },
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.14.1",
+    "trl": "1.9.0",
+    "cuda": "12.8",
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "bf16_supported": true,
+    "environment_factory_supported": true,
+    "tool_template": {
+      "tokenizer_class": "Qwen2Tokenizer",
+      "chat_template_present": true,
+      "tool_schema_rendered": true,
+      "rendered_character_count": 774
+    }
+  },
+  "artifacts": {
+    "raw_rollouts": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-rollout-diagnostic-v1/raw_rollouts.jsonl",
+      "sha256": "D26673F81F9A52AEA597837278BE2665053B82FBE0B5CFF0915B68C0976CF88C",
+      "rows": 32
+    },
+    "train_metrics": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-rollout-diagnostic-v1/train_metrics.json",
+      "sha256": "B008C568F6353EE00CC53C7FC69B005F56279E261B902FEC4E58D56B662F1224"
+    },
+    "log_history": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-rollout-diagnostic-v1/log_history.json",
+      "sha256": "DE8E58F133CE31AD99E9041BAFBC23310F1EEF722755D62D571DF23DA42A8EE6"
+    },
+    "completion_logs": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-rollout-diagnostic-v1/trainer/completions",
+      "sha256": "2450D003E10FF5098B6C46C7975FDE246647E5096870E9A5FCDA5B634FB061E0",
+      "files": 16,
+      "bytes": 239333
+    }
+  },
+  "reward": {
+    "process_reward_mode": "one_to_one_required_action_progress",
+    "environment_state_action_progress_gate": "multiply",
+    "environment_state_weight": 0.7,
+    "required_action_weight": 0.2,
+    "communication_weight": 0.1,
+    "tool_error_penalty_each": 0.05,
+    "tool_error_penalty_cap": 0.2,
+    "repeated_call_penalty_each": 0.03,
+    "repeated_call_penalty_cap": 0.15,
+    "unexpected_write_penalty_each": 0.05,
+    "unexpected_write_penalty_cap": 0.2,
+    "unfinished_interaction_penalty": 0.1,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": false
+  },
+  "rollout": {
+    "max_customer_turns": 8,
+    "max_tool_calls": 32,
+    "max_tool_calling_iterations": 40
+  },
+  "quantization": {
+    "enabled": true,
+    "mode": "4bit_nf4",
+    "double_quant": true
+  },
+  "user_simulator_preflight": {
+    "schema_version": "user-simulator-api-preflight-v1",
+    "status": "PASSED",
+    "model": "deepseek/deepseek-v4-flash",
+    "max_tokens": 1,
+    "elapsed_seconds": 0.7843526545912027,
+    "external_api_called": true,
+    "credential_persisted": false
+  },
+  "system_failure_count": 0,
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false
+}

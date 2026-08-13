@@ -52,4 +52,34 @@
 - 工具错误、重复调用和未确认写操作是否增加；
 - 同任务组内 reward/action variance 是否足以支持 GRPO。
 
-只有真实多轮诊断也改善，才能说明多步 SFT 缓解了原始停滞问题；只有 reward 具备稳定区分度时，才继续 GRPO。
+## 5. 真实多轮诊断结果
+
+使用新 merged checkpoint 完成了与 v5 同任务、同 opening、同 seed、同采样参数和同 reward 的
+32-rollout v6 诊断。结果没有支持“多步能力改善”：
+
+| 指标 | 旧单步 Tool-SFT v5 | 多步 Tool-SFT v6 |
+|---|---:|---:|
+| 平均工具调用数 | 2.094 | 3.438 |
+| 工具调用不超过 2 次 | 29/32 | 20/32 |
+| 平均 required-action recall | 0.3223 | 0.1914 |
+| 正奖励轨迹 | 6/32 | 4/32 |
+| 工具错误总数 | 1 | 15 |
+| excess duplicate call | 0 | 42 |
+| unfinished | 32/32 | 32/32 |
+
+新模型确实产生了更长轨迹，但主要增加的是错误调用和重复调用。例如 Task 11 的四条轨迹执行
+7--10 次工具调用，却全部 Action Recall 为 0，并累计 32 次 excess duplicate；Task 0 累计
+8 次工具错误。结论是“长度增加但质量退化”，而不是原停滞问题被解决。
+
+本轮记录到 27 次动态用户 API 调用，共 15,626 prompt tokens、4,703 completion tokens，记录成本约
+`$0.0016078272`；运行前另有一次 `max_tokens=1` 健康检查。系统失败为 0。客户轮次均值反而从
+v5 的 1.031 降到 v6 的 0.844，因此新增长度主要发生在工具链内部，不是更充分的客户澄清。
+
+原 v2 自动门仅检查是否存在组内 reward/action variance，因此错误地输出
+`ready_to_consider_optimization=true`。这说明方差可能来自错误路径的随机性，不能单独作为 GRPO
+启动条件。诊断器已升级为 v3：绑定 baseline 后，额外要求平均 Action Recall 不退化、工具错误不增加、
+重复调用不增加、正奖励数不下降、unfinished 不增加。v6 在前四项失败，最终结论改为
+`ready_to_consider_optimization=false`。
+
+因此当前不启动 GRPO。下一步应修正多步 SFT 数据中的单一路径偏置，并增加错误恢复、停止条件、
+工具选择负例和更接近真实 Retail 状态的轨迹，再做小规模真实 rollout 复验。

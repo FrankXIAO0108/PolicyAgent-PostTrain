@@ -18,7 +18,10 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
 
 
 def analyze(
-    path: Path, expected_rollouts: int, expected_tasks: int
+    path: Path,
+    expected_rollouts: int,
+    expected_tasks: int,
+    baseline_path: Path | None = None,
 ) -> dict[str, Any]:
     rows = load_jsonl(path)
     rewards = [float(row["reward"]["reward"]) for row in rows]
@@ -26,6 +29,14 @@ def analyze(
     tool_calls = [int(row["tool_calls"]) for row in rows]
     customer_turns = [int(row["customer_turns"]) for row in rows]
     tool_errors = [int(row["reward"].get("tool_error_count", 0)) for row in rows]
+    duplicate_excess = [
+        int(row["reward"].get("action_progress", {}).get("duplicate_excess_count", 0))
+        for row in rows
+    ]
+    unfinished = [
+        float(row["reward"].get("unfinished_interaction_penalty", 0.0)) > 0
+        for row in rows
+    ]
     action_recalls = [
         float(row["reward"]["action_progress"]["recall"] or 0.0) for row in rows
     ]
@@ -98,9 +109,60 @@ def analyze(
             positive_without_action_progress == 0
         ),
     }
+    regression = None
+    if baseline_path is not None:
+        baseline_rows = load_jsonl(baseline_path)
+        baseline_task_ids = {str(row["task_id"]) for row in baseline_rows}
+        candidate_task_ids = set(task_counts)
+        baseline_recalls = [
+            float(row["reward"]["action_progress"]["recall"] or 0.0)
+            for row in baseline_rows
+        ]
+        baseline_errors = sum(
+            int(row["reward"].get("tool_error_count", 0)) for row in baseline_rows
+        )
+        baseline_repeats = sum(
+            int(row["reward"].get("action_progress", {}).get("duplicate_excess_count", 0))
+            for row in baseline_rows
+        )
+        baseline_positive = sum(float(row["reward"]["reward"]) > 0 for row in baseline_rows)
+        baseline_unfinished = sum(
+            float(row["reward"].get("unfinished_interaction_penalty", 0.0)) > 0
+            for row in baseline_rows
+        )
+        regression = {
+            "baseline": {"path": str(baseline_path), "sha256": sha256(baseline_path)},
+            "candidate_rollouts": len(rows),
+            "baseline_rollouts": len(baseline_rows),
+            "candidate_task_ids": sorted(candidate_task_ids, key=int),
+            "baseline_task_ids": sorted(baseline_task_ids, key=int),
+            "candidate_mean_action_recall": statistics.fmean(action_recalls),
+            "baseline_mean_action_recall": statistics.fmean(baseline_recalls),
+            "candidate_tool_error_count": sum(tool_errors),
+            "baseline_tool_error_count": baseline_errors,
+            "candidate_duplicate_excess_count": sum(duplicate_excess),
+            "baseline_duplicate_excess_count": baseline_repeats,
+            "candidate_positive_reward_count": sum(value > 0 for value in rewards),
+            "baseline_positive_reward_count": baseline_positive,
+            "candidate_unfinished_count": sum(unfinished),
+            "baseline_unfinished_count": baseline_unfinished,
+        }
+        gates.update(
+            {
+                "baseline_protocol_comparable": (
+                    len(baseline_rows) == len(rows)
+                    and baseline_task_ids == candidate_task_ids
+                ),
+                "mean_action_recall_not_regressed": regression["candidate_mean_action_recall"] >= regression["baseline_mean_action_recall"],
+                "tool_error_count_not_increased": sum(tool_errors) <= baseline_errors,
+                "duplicate_excess_count_not_increased": sum(duplicate_excess) <= baseline_repeats,
+                "positive_reward_count_not_decreased": regression["candidate_positive_reward_count"] >= baseline_positive,
+                "unfinished_count_not_increased": sum(unfinished) <= baseline_unfinished,
+            }
+        )
     gates["ready_to_consider_optimization"] = all(gates.values())
     return {
-        "schema_version": "retail-agentic-rollout-diagnostic-v2",
+        "schema_version": "retail-agentic-rollout-diagnostic-v3",
         "source": {"path": str(path), "sha256": sha256(path)},
         "expected_rollouts": expected_rollouts,
         "expected_tasks": expected_tasks,
@@ -117,6 +179,9 @@ def analyze(
             "tool_call_rollout_count": sum(value > 0 for value in tool_calls),
             "customer_continuation_rollout_count": sum(value > 0 for value in customer_turns),
             "tool_error_rollout_count": sum(value > 0 for value in tool_errors),
+            "tool_error_count": sum(tool_errors),
+            "duplicate_excess_count": sum(duplicate_excess),
+            "unfinished_rollout_count": sum(unfinished),
             "mean_tool_calls": statistics.fmean(tool_calls) if tool_calls else None,
             "mean_action_recall": statistics.fmean(action_recalls) if action_recalls else None,
             "distinct_action_recalls": sorted(set(action_recalls)),
@@ -140,6 +205,7 @@ def analyze(
             "threshold_is_diagnostic_heuristic": True,
             "tasks": task_group_diagnostics,
         },
+        "baseline_regression": regression,
         "gates": gates,
         "formal_retail_readiness_gate_opened": False,
         "business_improvement_claim_allowed": False,
@@ -152,9 +218,13 @@ def main() -> None:
     parser.add_argument("--expected-rollouts", type=int, default=32)
     parser.add_argument("--expected-tasks", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--baseline-rollouts", type=Path)
     args = parser.parse_args()
     report = analyze(
-        args.rollouts.resolve(), args.expected_rollouts, args.expected_tasks
+        args.rollouts.resolve(),
+        args.expected_rollouts,
+        args.expected_tasks,
+        args.baseline_rollouts.resolve() if args.baseline_rollouts else None,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(

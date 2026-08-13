@@ -1,0 +1,227 @@
+{
+  "schema_version": "retail-agentic-rollout-diagnostic-v2",
+  "source": {
+    "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-rollout-diagnostic-v1/raw_rollouts.jsonl",
+    "sha256": "D26673F81F9A52AEA597837278BE2665053B82FBE0B5CFF0915B68C0976CF88C"
+  },
+  "expected_rollouts": 32,
+  "expected_tasks": 8,
+  "observed_rollouts": 32,
+  "unique_tasks": 8,
+  "task_rollout_counts": {
+    "0": 4,
+    "7": 4,
+    "10": 4,
+    "11": 4,
+    "13": 4,
+    "15": 4,
+    "20": 4,
+    "22": 4
+  },
+  "reward": {
+    "mean": 0.019444444444444448,
+    "population_variance": 0.005254629629629631,
+    "distinct_values": [
+      0.0,
+      0.011111111111111127,
+      0.30000000000000004
+    ],
+    "positive_count": 4
+  },
+  "behavior": {
+    "tool_call_rollout_count": 29,
+    "customer_continuation_rollout_count": 22,
+    "tool_error_rollout_count": 6,
+    "mean_tool_calls": 3.4375,
+    "mean_action_recall": 0.19136904761904763,
+    "distinct_action_recalls": [
+      0.0,
+      0.14285714285714285,
+      0.2,
+      0.2857142857142857,
+      0.3333333333333333,
+      0.4,
+      0.5
+    ],
+    "positive_without_tool_count": 0,
+    "positive_without_action_progress_count": 0
+  },
+  "group_variance": {
+    "definition": "within-task population variance across repeated rollouts",
+    "minimum_signal_task_count": 2,
+    "observed_task_groups": 8,
+    "reward_variance_task_count": 2,
+    "action_progress_variance_task_count": 3,
+    "joint_variance_task_count": 2,
+    "joint_variance_task_ratio": 0.25,
+    "threshold_is_diagnostic_heuristic": true,
+    "tasks": {
+      "0": {
+        "rollouts": 4,
+        "reward_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "reward_population_variance": 0.0,
+        "action_recall_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_recall_population_variance": 0.0,
+        "reward_has_variance": false,
+        "action_progress_has_variance": false
+      },
+      "7": {
+        "rollouts": 4,
+        "reward_values": [
+          0.0,
+          0.011111111111111127,
+          0.0,
+          0.011111111111111127
+        ],
+        "reward_population_variance": 3.0864197530864286e-05,
+        "action_recall_values": [
+          0.3333333333333333,
+          0.5,
+          0.3333333333333333,
+          0.5
+        ],
+        "action_recall_population_variance": 0.006944444444444446,
+        "reward_has_variance": true,
+        "action_progress_has_variance": true
+      },
+      "10": {
+        "rollouts": 4,
+        "reward_values": [
+          0.30000000000000004,
+          0.30000000000000004,
+          0.0,
+          0.0
+        ],
+        "reward_population_variance": 0.022500000000000006,
+        "action_recall_values": [
+          0.4,
+          0.4,
+          0.2,
+          0.2
+        ],
+        "action_recall_population_variance": 0.010000000000000002,
+        "reward_has_variance": true,
+        "action_progress_has_variance": true
+      },
+      "11": {
+        "rollouts": 4,
+        "reward_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "reward_population_variance": 0.0,
+        "action_recall_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "action_recall_population_variance": 0.0,
+        "reward_has_variance": false,
+        "action_progress_has_variance": false
+      },
+      "13": {
+        "rollouts": 4,
+        "reward_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "reward_population_variance": 0.0,
+        "action_recall_values": [
+          0.4,
+          0.4,
+          0.4,
+          0.4
+        ],
+        "action_recall_population_variance": 0.0,
+        "reward_has_variance": false,
+        "action_progress_has_variance": false
+      },
+      "15": {
+        "rollouts": 4,
+        "reward_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "reward_population_variance": 0.0,
+        "action_recall_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.2857142857142857
+        ],
+        "action_recall_population_variance": 0.01530612244897959,
+        "reward_has_variance": false,
+        "action_progress_has_variance": true
+      },
+      "20": {
+        "rollouts": 4,
+        "reward_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "reward_population_variance": 0.0,
+        "action_recall_values": [
+          0.2,
+          0.2,
+          0.2,
+          0.2
+        ],
+        "action_recall_population_variance": 0.0,
+        "reward_has_variance": false,
+        "action_progress_has_variance": false
+      },
+      "22": {
+        "rollouts": 4,
+        "reward_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "reward_population_variance": 0.0,
+        "action_recall_values": [
+          0.14285714285714285,
+          0.14285714285714285,
+          0.14285714285714285,
+          0.14285714285714285
+        ],
+        "action_recall_population_variance": 0.0,
+        "reward_has_variance": false,
+        "action_progress_has_variance": false
+      }
+    }
+  },
+  "gates": {
+    "expected_rollout_count_met": true,
+    "all_expected_tasks_observed": true,
+    "tool_call_rate_positive": true,
+    "customer_continuation_observed": true,
+    "reward_has_variance": true,
+    "action_progress_has_variance": true,
+    "sufficient_task_groups_have_joint_variance": true,
+    "no_positive_reward_without_tool": true,
+    "no_positive_reward_without_action_progress": true,
+    "ready_to_consider_optimization": true
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false
+}

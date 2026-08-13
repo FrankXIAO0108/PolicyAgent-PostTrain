@@ -486,3 +486,10 @@ artifact 与 secret 脱敏。系统失败会立即终止运行，且明确标记
 上下文保留真实 chat-template 格式的 assistant tool-call 与 tool result，loss 仅作用于下一次
 assistant 工具调用。数据和训练仍属于隔离工程实验，不是 Retail 人工金标。设计、质量门和指标见：
 [`docs/04_数据治理与后训练/2026-08-13_多步工具轨迹SFT设计与数据审计.md`](docs/04_数据治理与后训练/2026-08-13_多步工具轨迹SFT设计与数据审计.md)。
+
+多步 Tool-SFT 已在 Qwen3-4B 上完成 136-step QLoRA、merge 与 34 个同分布留出决策点评测；
+post-tool Tool Match 从 42.86% 升至 78.57%。但同协议的 32-rollout 真实多轮复验出现退化：
+平均 Action Recall 从 0.3223 降至 0.1914，工具错误从 1 增至 15，excess duplicate 从 0 增至 42，
+且仍有 32/32 unfinished。因此当前不启动 GRPO。诊断门已增加相对 baseline 的回归约束，避免把
+错误路径产生的方差误判为可训练信号。详见：
+[`docs/04_数据治理与后训练/2026-08-13_Qwen3-4B多步Tool-SFT实跑结果.md`](docs/04_数据治理与后训练/2026-08-13_Qwen3-4B多步Tool-SFT实跑结果.md)。
