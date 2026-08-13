@@ -510,11 +510,22 @@ def main() -> None:
     if args.preflight_only:
         runtime = load_runtime(preflight)
         tools = build_tools()
+        train_rows = load_jsonl(preflight["data_dir"] / "sft.jsonl")
+        holdout_rows = load_jsonl(preflight["data_dir"] / "holdout.jsonl")
         rendered = render_rows(
-            load_jsonl(preflight["data_dir"] / "holdout.jsonl")[:1],
-            runtime["tokenizer"],
-            tools,
-        )[0]
+            [*train_rows, *holdout_rows], runtime["tokenizer"], tools
+        )
+        sequence_lengths = [
+            len(
+                runtime["tokenizer"](
+                    row["prompt"] + row["completion"], add_special_tokens=False
+                )["input_ids"]
+            )
+            for row in rendered
+        ]
+        max_length = int(preflight["config"]["max_length"])
+        if max(sequence_lengths) > max_length:
+            raise RuntimeError("Rendered Tool SFT sequence exceeds max_length")
         print(
             json.dumps(
                 {
@@ -523,11 +534,11 @@ def main() -> None:
                     "data_manifest_sha256": preflight["data_manifest_sha256"],
                     "model_sha256": preflight["model_sha256"],
                     "tool_count": len(tools),
-                    "rendered_prompt_tokens": len(
-                        runtime["tokenizer"](
-                            rendered["prompt"], add_special_tokens=False
-                        )["input_ids"]
-                    ),
+                    "train_rows": len(train_rows),
+                    "holdout_rows": len(holdout_rows),
+                    "min_rendered_sequence_tokens": min(sequence_lengths),
+                    "max_rendered_sequence_tokens": max(sequence_lengths),
+                    "configured_max_length": max_length,
                     "runtime": runtime["versions"],
                 },
                 ensure_ascii=False,

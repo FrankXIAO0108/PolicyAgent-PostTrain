@@ -76,6 +76,10 @@ class RetailMultistepToolSftTests(unittest.TestCase):
         self.assertTrue(any(message["role"] == "tool" for message in tokenizer.messages))
         self.assertEqual(tokenizer.messages[0]["role"], "system")
 
+    def test_all_decision_contexts_end_before_target_assistant(self) -> None:
+        rows = decision_rows(build_trajectories("train", 1))
+        self.assertTrue(all(row["context_messages"][-1]["role"] in {"user", "tool"} for row in rows))
+
     def test_builder_hash_binds_full_trajectories_and_decisions(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             manifest = build_dataset(Path(directory))
