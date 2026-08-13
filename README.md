@@ -44,7 +44,7 @@ python -m src.portfolio_demo
 - V6 轨迹 LLM pipeline 与 V7 确定性重放对比；
 - Task 95、98、107 三个代表性业务失败；
 - Runtime-safe Guard 的具体拦截规则；
-- SFT、DPO、RLHF/GRPO 尚未运行的原因；
+- 正式 Retail SFT、DPO、RLHF/GRPO 门禁仍关闭的原因；
 - 所有结果的实验边界。
 
 求职材料：
@@ -290,7 +290,8 @@ Verifier 检查：
 | 正式 Retail DPO | 门禁关闭，未运行 |
 | 正式 Retail RLHF / GRPO | 门禁关闭，未运行 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
-| 隔离真实多轮 Retail Agentic GRPO | 环境、过程奖励与云端入口已完成；GPU 训练未运行 |
+| Qwen3-4B 隔离 Tool SFT warmup | 80-step QLoRA、merge 与 20 条同分布 holdout 已完成；不代表业务提升 |
+| 隔离真实多轮 Retail Agentic RL | 1-step 工程 sanity 与 Base 模型 32 条无更新 rollout 已完成；尚无有效 RL 改善证据 |
 
 这是一个明确的工程判断：监督信号不可靠时，不应为了补齐流程而训练。
 
@@ -304,11 +305,15 @@ SFT→DPO→GRPO GPU 工程实操包，使用开发者合成工具调用数据�
 [云端后训练完整实跑报告](docs/2026-08-02_posttrain_cloud_run_report.md)与
 [SFT→DPO→GRPO 工程实操执行手册](docs/04_数据治理与后训练/2026-08-02_SFT-DPO-GRPO工程实操执行手册.md)。
 
-2026-08-11 新增真实多轮 Retail Agentic GRPO 路线：使用 tau2 Retail 的动态客户、
+2026-08-11 新增真实多轮 Retail Agentic RL 路线：使用 tau2 Retail 的动态客户、
 数据库工具和终态检查，将一对一必要动作进度、沟通完成度、工具错误、重复调用与非预期
 写操作组成轨迹级过程奖励。44 条 train、10 条 validation、既有 20 条 development audit
-已严格拆分，官方 test 保留。当前本地真实环境预检已通过，但尚未生成付费客户 opening，
-也尚未运行云端 Agentic GRPO，因此只可声称“设计与执行包完成”。详见
+已严格拆分，官方 test 保留。云端已完成 1-step 工程 sanity，以及 Qwen3-4B Base 的
+8-task、每任务 4 候选、共 32 条无权重更新 rollout 诊断。该诊断出现 0/32 工具调用，
+因此不支持直接扩大 GRPO。随后完成隔离 Tool SFT warmup；其 20 条同分布合成 holdout
+工具协议指标由 0% 提升到 100%，但 Tool-SFT 后的 32-rollout 复测尚未获得本地完成证据。
+因此当前只能声称“真实环境、过程奖励、诊断和协议 SFT 已实跑”，不能声称 Agentic GRPO
+带来业务提升。详见
 [Retail 智能体强化学习设计](docs/04_数据治理与后训练/2026-08-11_Retail智能体强化学习设计.md)和
 [Agent RL 云端运行手册](docs/04_数据治理与后训练/2026-08-11_Agent-RL云端运行手册.md)。
 
@@ -365,8 +370,10 @@ src/
 ```
 
 完整 V7 重放测试需要使用已安装上游依赖的 tau2 虚拟环境；仅运行不依赖 tau2 的
-单元测试时也可使用当前项目 Python。2026-08-10 复核结果：96 项测试通过、9 个
-子测试通过，另有一个来自上游 `audioop` 的弃用警告。
+单元测试时也可使用当前项目 Python。2026-08-13 使用当前本机 Python 复核：114 项
+通过、9 个子测试通过、8 项失败。8 项均依赖本地 tau2 导入链，首个根因是缺少
+`addict`；云端固定环境中的相关专项测试此前为 19/19 通过。不能把本机结果表述成
+“全部测试通过”。
 
 ### 重放 V7
 
