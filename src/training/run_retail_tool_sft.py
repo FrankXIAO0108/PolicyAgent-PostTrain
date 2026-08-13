@@ -42,6 +42,11 @@ TOOL_NAMES = (
     "transfer_to_human_agents",
 )
 
+SUPPORTED_SCOPES = {
+    "ISOLATED_TOOL_PROTOCOL_WARMUP",
+    "ISOLATED_MULTISTEP_TOOL_SFT_WARMUP",
+}
+
 
 def git_value(*args: str) -> str:
     return subprocess.run(
@@ -78,7 +83,7 @@ def tool_call_completion(call: dict[str, Any]) -> str:
 
 def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
     config = load_json(config_path)
-    if config.get("scope") != "ISOLATED_TOOL_PROTOCOL_WARMUP":
+    if config.get("scope") not in SUPPORTED_SCOPES:
         raise ValueError("Tool SFT scope mismatch")
     claims = config.get("claims", {})
     if claims.get("formal_retail_gate_unchanged") is not True:
@@ -99,11 +104,13 @@ def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
         raise ValueError("Tool SFT data scope mismatch")
     if manifest["claims"].get("business_improvement_claim_allowed") is not False:
         raise ValueError("Tool SFT data cannot carry a business claim")
-    if manifest["leakage_checks"].get("passed") is not True:
+    data_checks = manifest.get("leakage_checks") or manifest.get(
+        "leakage_and_quality_checks"
+    )
+    if not data_checks or data_checks.get("passed") is not True:
         raise ValueError("Tool SFT leakage checks failed")
-    for key, filename in (("sft", "sft.jsonl"), ("holdout", "holdout.jsonl")):
-        path = data_dir / filename
-        record = manifest["files"][key]
+    for key, record in manifest["files"].items():
+        path = data_dir / record["path"]
         if sha256(path) != record["sha256"] or len(load_jsonl(path)) != int(
             record["rows"]
         ):
@@ -197,16 +204,19 @@ def build_tools() -> list[Any]:
 
 
 def render_rows(
-    rows: list[dict[str, Any]], tokenizer: Any, tools: list[Any]
+    rows: list[dict[str, Any]],
+    tokenizer: Any,
+    tools: list[Any],
+    system_prompt: str | None = None,
 ) -> list[dict[str, Any]]:
-    system = build_retail_system_prompt()
+    system = system_prompt if system_prompt is not None else build_retail_system_prompt()
     rendered: list[dict[str, Any]] = []
     for row in rows:
+        context_messages = row.get("context_messages")
+        if context_messages is None:
+            context_messages = [{"role": "user", "content": row["user_message"]}]
         prompt = tokenizer.apply_chat_template(
-            [
-                {"role": "system", "content": system},
-                {"role": "user", "content": row["user_message"]},
-            ],
+            [{"role": "system", "content": system}, *context_messages],
             tools=tools,
             tokenize=False,
             add_generation_prompt=True,
@@ -269,6 +279,9 @@ def evaluate(
             {
                 "scenario_id": source["scenario_id"],
                 "category": source["category"],
+                "trajectory_id": source.get("trajectory_id"),
+                "prior_tool_results": int(source.get("prior_tool_results", 0)),
+                "expected_tool": expected["name"],
                 "completion": completion,
                 "contains_tool_call_tag": "<tool_call>" in completion,
                 "valid_tool_call": predicted is not None,
@@ -278,6 +291,24 @@ def evaluate(
             }
         )
     count = len(results)
+    post_tool = [row for row in results if row["prior_tool_results"] > 0]
+    confirmed_writes = [
+        row
+        for row in results
+        if row["expected_tool"]
+        in {"modify_pending_order_items", "return_delivered_order_items"}
+    ]
+
+    def subgroup_metrics(group: list[dict[str, Any]]) -> dict[str, Any]:
+        size = len(group)
+        if not size:
+            return {"rows": 0, "tool_match_rate": None, "argument_match_rate": None}
+        return {
+            "rows": size,
+            "tool_match_rate": sum(row["tool_match"] for row in group) / size,
+            "argument_match_rate": sum(row["argument_match"] for row in group) / size,
+        }
+
     metrics = {
         "rows": count,
         "valid_tool_call_rate": sum(row["valid_tool_call"] for row in results) / count,
@@ -292,6 +323,11 @@ def evaluate(
             not row["contains_tool_call_tag"] for row in results
         )
         / count,
+        "first_decision": subgroup_metrics(
+            [row for row in results if row["prior_tool_results"] == 0]
+        ),
+        "post_tool_decisions": subgroup_metrics(post_tool),
+        "confirmed_write_decisions": subgroup_metrics(confirmed_writes),
     }
     save_json(output_path, {"model_path": model_path, "metrics": metrics, "rows": results})
     del model

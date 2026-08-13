@@ -1,0 +1,63 @@
+{
+  "schema_version": "retail-multistep-tool-sft-data-v1",
+  "scope": "ISOLATED_MULTISTEP_TOOL_SFT_WARMUP",
+  "source": "developer_authored_synthetic_multistep_trajectory",
+  "derivation": "complete synthetic trajectories sliced into next-assistant decision examples",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "human_adjudicated_business_gold": false,
+    "business_improvement_claim_allowed": false,
+    "contains_tau2_frozen_tasks": false
+  },
+  "files": {
+    "trajectories_train": {
+      "path": "trajectories_train.jsonl",
+      "rows": 24,
+      "sha256": "DECEAECAF0587F167BB947E17AED4A6E38D95017544E72CD8411D3171FF9C3D5"
+    },
+    "trajectories_holdout": {
+      "path": "trajectories_holdout.jsonl",
+      "rows": 6,
+      "sha256": "48C54F3140083553FB98FE98534969BF5928B79E89D71D1F956B6841DE0153F0"
+    },
+    "sft": {
+      "path": "sft.jsonl",
+      "rows": 136,
+      "sha256": "3EA023678A689E43E09E189A962704641E458B8071EF8D8D1DC698457890DC19"
+    },
+    "holdout": {
+      "path": "holdout.jsonl",
+      "rows": 34,
+      "sha256": "18AD31A9EA82032EDEEC5939F21BD41ABDFE32029C777EBC5909CE0DFBF2DBF0"
+    }
+  },
+  "train_expected_tool_counts": {
+    "find_user_id_by_email": 24,
+    "get_user_details": 24,
+    "get_order_details": 24,
+    "respond_to_user": 40,
+    "get_product_details": 8,
+    "modify_pending_order_items": 8,
+    "return_delivered_order_items": 8
+  },
+  "train_prior_tool_result_counts": {
+    "0": 24,
+    "1": 24,
+    "2": 24,
+    "3": 24,
+    "4": 16,
+    "5": 16,
+    "6": 8
+  },
+  "leakage_and_quality_checks": {
+    "trajectory_ids_disjoint": true,
+    "scenario_ids_unique": true,
+    "tool_call_results_id_bound": true,
+    "all_rows_have_tool_result_context": true,
+    "post_tool_decisions_present": true,
+    "confirmation_to_write_present": true,
+    "all_writes_have_bound_explicit_confirmation": true,
+    "no_business_claim": true,
+    "passed": true
+  }
+}
