@@ -247,6 +247,49 @@ class ProcessRewardSignalTests(unittest.TestCase):
         self.assertEqual(unconfirmed["missing_confirmation_count"], 1)
         self.assertFalse(confirmed["used_as_reward"])
 
+    def test_one_explicit_batch_confirmation_covers_writes_in_same_turn(self) -> None:
+        first = _call(
+            "c1",
+            "cancel_pending_order",
+            {"order_id": "#1", "reason": "ordered by mistake"},
+        )
+        second = _call(
+            "c2",
+            "cancel_pending_order",
+            {"order_id": "#2", "reason": "ordered by mistake"},
+        )
+        result = confirmation_diagnostics(
+            [
+                _assistant(content="Do you confirm cancelling orders #1 and #2?"),
+                _user("Yes, cancel orders #1 and #2."),
+                _assistant(calls=[first, second]),
+            ]
+        )
+        self.assertEqual(result["write_count"], 2)
+        self.assertEqual(result["confirmed_write_count"], 2)
+        self.assertEqual(result["missing_confirmation_count"], 0)
+
+    def test_batch_confirmation_does_not_authorize_unmentioned_order(self) -> None:
+        first = _call(
+            "c1",
+            "cancel_pending_order",
+            {"order_id": "#1", "reason": "ordered by mistake"},
+        )
+        second = _call(
+            "c2",
+            "cancel_pending_order",
+            {"order_id": "#2", "reason": "ordered by mistake"},
+        )
+        result = confirmation_diagnostics(
+            [
+                _assistant(content="Do you confirm cancelling order #1?"),
+                _user("Yes, cancel order #1."),
+                _assistant(calls=[first, second]),
+            ]
+        )
+        self.assertEqual(result["confirmed_write_count"], 1)
+        self.assertEqual(result["missing_confirmation_count"], 1)
+
 
 class RetailAgenticSplitTests(unittest.TestCase):
     def test_frozen_split_is_disjoint_and_reserves_official_test(self) -> None:

@@ -123,6 +123,15 @@ class TeacherTrajectoryAuditTests(unittest.TestCase):
             result["review_reasons"],
         )
 
+    def test_narration_on_tool_call_turn_is_observed_but_not_rejected(self):
+        messages = confirmed_messages()
+        messages[2]["content"] = "I will process the cancellation now."
+        result = audit_simulation(simulation(messages=messages))
+        self.assertEqual(result["automatic_label"], AUTO_PASS)
+        self.assertEqual(
+            result["metrics"]["assistant_content_tool_call_turn_count"], 1
+        )
+
     def test_expected_action_mismatch_requires_review_not_automatic_rejection(self):
         result = audit_simulation(
             simulation(messages=confirmed_messages(), action_match=False)
@@ -214,6 +223,29 @@ class TeacherEvidencePackTests(unittest.TestCase):
         ]
         result = claim_state_consistency(messages, {"agent": {"orders": {}}})
         self.assertEqual(result["verdict"], "REVIEW")
+
+    def test_exchange_requested_wording_bound_to_order_is_supported(self):
+        final = {
+            "agent": {
+                "orders": {
+                    "#W0000001": {
+                        "order_id": "#W0000001",
+                        "status": "exchange requested",
+                    }
+                }
+            }
+        }
+        for answer in (
+            'Order #W0000001 has been updated to "exchange requested" status.',
+            'Order #W0000001 has been updated to **"exchange requested"** status.',
+            "Exchange Requested for Order #W0000001.",
+        ):
+            with self.subTest(answer=answer):
+                result = claim_state_consistency(
+                    [{"role": "assistant", "content": answer}], final
+                )
+                self.assertEqual(result["verdict"], "PASS")
+                self.assertEqual(result["findings"][0]["verdict"], "SUPPORTED")
 
     def test_negated_cancellation_is_not_misread_as_success_claim(self):
         messages = [

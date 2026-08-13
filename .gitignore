@@ -42,6 +42,9 @@ precommit_audit_small.txt
 _verifier_unpack/
 _verifier_v1/
 
+# Private local copies of cloud experiment artifacts
+/_local_private_runs/
+
 # One-off repository inspection snapshots
 /evidence_file_search*.txt
 /project_state_check.txt

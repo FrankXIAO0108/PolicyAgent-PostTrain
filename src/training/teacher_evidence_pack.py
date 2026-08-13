@@ -17,7 +17,9 @@ STATUS_PATTERNS = {
         re.IGNORECASE,
     ),
     "exchange requested": re.compile(
-        r"\b(?:exchange has been requested|exchange request (?:was|is) submitted)\b",
+        r"\b(?:exchange has been requested|exchange request (?:was|is) submitted|"
+        r"updated to\s+\*{0,2}[\"']?exchange requested[\"']?\*{0,2}|"
+        r"exchange requested for order)\b",
         re.IGNORECASE,
     ),
 }

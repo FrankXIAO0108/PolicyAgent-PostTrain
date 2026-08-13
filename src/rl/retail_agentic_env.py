@@ -198,6 +198,7 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
     """
 
     confirmed_after = -1
+    confirmation_text = ""
     last_write = -1
     checks: list[dict[str, Any]] = []
     for index, message in enumerate(messages):
@@ -214,12 +215,31 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
             ]
             if prior_asks:
                 confirmed_after = max(prior_asks)
+                confirmation_text = (
+                    str(getattr(messages[confirmed_after], "content", "") or "")
+                    + " "
+                    + content
+                ).lower()
         if role != "assistant":
             continue
-        for call in getattr(message, "tool_calls", None) or []:
-            if call.name not in WRITE_TOOLS:
-                continue
-            confirmed = confirmed_after > last_write
+        write_calls = [
+            call
+            for call in (getattr(message, "tool_calls", None) or [])
+            if call.name in WRITE_TOOLS
+        ]
+        has_confirmation = bool(write_calls) and confirmed_after > last_write
+        order_ids = [
+            str(getattr(call, "arguments", {}).get("order_id") or "").lower()
+            for call in write_calls
+        ]
+        for call in write_calls:
+            order_id = str(
+                getattr(call, "arguments", {}).get("order_id") or ""
+            ).lower()
+            confirmed = has_confirmation and (
+                len(write_calls) == 1
+                or (all(order_ids) and order_id in confirmation_text)
+            )
             checks.append(
                 {
                     "tool_call_id": str(call.id),
@@ -227,8 +247,10 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
                     "confirmed": confirmed,
                 }
             )
+        if write_calls:
             last_write = index
             confirmed_after = -1
+            confirmation_text = ""
     return {
         "write_count": len(checks),
         "confirmed_write_count": sum(item["confirmed"] for item in checks),

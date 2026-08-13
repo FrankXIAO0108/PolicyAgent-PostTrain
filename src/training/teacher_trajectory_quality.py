@@ -117,14 +117,14 @@ def audit_simulation(simulation: dict[str, Any]) -> dict[str, Any]:
         review_reasons.append("duplicate_exact_tool_call")
     if str(simulation.get("task_id") or "") == "57":
         review_reasons.append("task_57_requires_task_specific_semantic_review")
-    if any(
-        message.get("role") == "assistant"
-        and message.get("content")
-        and message.get("tool_calls")
+    assistant_content_tool_call_turn_count = sum(
+        bool(
+            message.get("role") == "assistant"
+            and message.get("content")
+            and message.get("tool_calls")
+        )
         for message in messages
-    ):
-        review_reasons.append("assistant_content_and_tool_call_same_turn")
-
+    )
     if not messages or not reward:
         label = SYSTEM_FAILURE
         hard_reasons.append("missing_trajectory_or_evaluation")
@@ -156,6 +156,7 @@ def audit_simulation(simulation: dict[str, Any]) -> dict[str, Any]:
             "unmatched_required_action_count": len(unmatched_actions),
             "unexpected_write_count": len(unexpected_writes),
             "duplicate_exact_call_excess": duplicate_excess,
+            "assistant_content_tool_call_turn_count": assistant_content_tool_call_turn_count,
             "required_communication_count": len(communication_checks),
             "unmet_communication_count": len(unmet_communication),
             "confirmation": confirmation,
