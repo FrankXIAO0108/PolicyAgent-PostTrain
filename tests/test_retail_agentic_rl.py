@@ -339,6 +339,65 @@ class RetailAgenticSplitTests(unittest.TestCase):
             self.assertEqual(report["observed_rollouts"], 8)
             self.assertEqual(report["unique_tasks"], 2)
             self.assertTrue(report["gates"]["ready_to_consider_optimization"])
+            self.assertEqual(report["group_variance"]["joint_variance_task_count"], 2)
+
+    def test_rollout_diagnostic_rejects_global_variance_from_one_task(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rollouts.jsonl"
+            rows = []
+            for task_id in range(8):
+                for sample in range(4):
+                    varying = task_id == 7 and sample % 2 == 1
+                    rows.append(
+                        {
+                            "task_id": str(task_id),
+                            "tool_calls": 2,
+                            "customer_turns": 1,
+                            "reward": {
+                                "reward": 0.1 if varying else 0.0,
+                                "tool_error_count": 0,
+                                "action_progress": {
+                                    "recall": 0.5 if varying else 0.25
+                                },
+                            },
+                        }
+                    )
+            path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            report = analyze(path, expected_rollouts=32, expected_tasks=8)
+            self.assertTrue(report["gates"]["reward_has_variance"])
+            self.assertTrue(report["gates"]["action_progress_has_variance"])
+            self.assertEqual(report["group_variance"]["joint_variance_task_count"], 1)
+            self.assertFalse(
+                report["gates"]["sufficient_task_groups_have_joint_variance"]
+            )
+            self.assertFalse(report["gates"]["ready_to_consider_optimization"])
+
+    def test_rollout_diagnostic_allows_one_task_sanity_to_produce_signal(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rollouts.jsonl"
+            rows = [
+                {
+                    "task_id": "0",
+                    "tool_calls": 1,
+                    "customer_turns": 1,
+                    "reward": {
+                        "reward": float(index),
+                        "tool_error_count": 0,
+                        "action_progress": {"recall": float(index)},
+                    },
+                }
+                for index in range(2)
+            ]
+            path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            report = analyze(path, expected_rollouts=2, expected_tasks=1)
+            self.assertEqual(report["group_variance"]["minimum_signal_task_count"], 1)
+            self.assertTrue(report["gates"]["ready_to_consider_optimization"])
 
     def test_transferred_upstream_requires_commit_and_package_hash(self) -> None:
         commit = "58e5e1ace69302e6982d27014569c03e0ffccdd2"

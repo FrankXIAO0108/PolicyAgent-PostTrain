@@ -1,0 +1,99 @@
+{
+  "schema_version": "retail-agentic-grpo-run-v2",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "status": "COMPLETED",
+  "execution_mode": "ROLLOUT_DIAGNOSTIC",
+  "optimization_enabled": false,
+  "git": {
+    "commit": "d8ad0d6e4140e94d8f9bea58f62dc6132fe88a1c",
+    "branch": "main",
+    "dirty_at_start": false
+  },
+  "bindings": {
+    "config_path": "/root/autodl-tmp/PolicyAgent-PostTrain/configs/retail_agentic_qwen3_4b_tool_sft_rollout_diagnostic_v1.json",
+    "config_sha256": "39F095130DA66E6D5DA3B9DEAE5433F0788A8E4BFD5CA86FAAA0D08CCEFF3AE4",
+    "task_split_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/task_split.json",
+    "task_split_sha256": "2B5793FD836C1876109E3C265A9F193386126A2B1A504889C2ADDEB44D33CE99",
+    "openings_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages.jsonl",
+    "openings_sha256": "8F23026B875C977EC6DD380893C9759CA1B6E8808881CD64187F36B19D3BAD20",
+    "starting_model": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-tool-sft-v1/tool_sft_merged",
+    "starting_model_sha256": "2028C809473FA52434BE00583D3C0E5C29633C447A479B17A51E28EEE9D0B4D0",
+    "upstream_checkout": {
+      "path": "/root/autodl-tmp/tau2-bench",
+      "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+      "verification_method": "commit_marker_and_source_package_sha256",
+      "source_package_path": "/root/autodl-tmp/tau2-retail-58e5e1a.tar.gz",
+      "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+      "transfer_manifest_sha256": "67D65E179639ECE78E5174B6C7512058DFF4ECBA45B74E46F565409A2C502E46",
+      "required_file_sha256": {
+        "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+      }
+    }
+  },
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.14.1",
+    "trl": "1.9.0",
+    "cuda": "12.8",
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "bf16_supported": true,
+    "environment_factory_supported": true,
+    "tool_template": {
+      "tokenizer_class": "Qwen2Tokenizer",
+      "chat_template_present": true,
+      "tool_schema_rendered": true,
+      "rendered_character_count": 774
+    }
+  },
+  "artifacts": {
+    "raw_rollouts": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-tool-sft-rollout-diagnostic-v5/raw_rollouts.jsonl",
+      "sha256": "C82191540F3C140C68FD2AB79F21C8B22C6CDC3E24F35166AE880B8B68ECCDA1",
+      "rows": 32
+    },
+    "train_metrics": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-tool-sft-rollout-diagnostic-v5/train_metrics.json",
+      "sha256": "09F2BCF1F345EE0B6C7BB6B01CCFA5C4D149FD85CA9E990851706054666AA4BE"
+    },
+    "log_history": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-tool-sft-rollout-diagnostic-v5/log_history.json",
+      "sha256": "6876846A8BC9E1427AE0DF510D5E3B07F2B5AB8AE849605FDA586A92B199DA99"
+    },
+    "completion_logs": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-tool-sft-rollout-diagnostic-v5/trainer/completions",
+      "sha256": "57FF53CF7B00D8E38DF7F4B0A07823019603ECEC22B1FDD3C3AFE88509698717",
+      "files": 16,
+      "bytes": 229693
+    }
+  },
+  "reward": {
+    "process_reward_mode": "one_to_one_required_action_progress",
+    "environment_state_action_progress_gate": "multiply",
+    "environment_state_weight": 0.7,
+    "required_action_weight": 0.2,
+    "communication_weight": 0.1,
+    "tool_error_penalty_each": 0.05,
+    "tool_error_penalty_cap": 0.2,
+    "repeated_call_penalty_each": 0.03,
+    "repeated_call_penalty_cap": 0.15,
+    "unexpected_write_penalty_each": 0.05,
+    "unexpected_write_penalty_cap": 0.2,
+    "unfinished_interaction_penalty": 0.1,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": false
+  },
+  "rollout": {
+    "max_customer_turns": 8,
+    "max_tool_calls": 32,
+    "max_tool_calling_iterations": 40
+  },
+  "quantization": {
+    "enabled": true,
+    "mode": "4bit_nf4",
+    "double_quant": true
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false
+}

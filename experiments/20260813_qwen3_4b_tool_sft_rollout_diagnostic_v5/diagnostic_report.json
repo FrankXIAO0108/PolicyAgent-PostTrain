@@ -1,0 +1,61 @@
+{
+  "schema_version": "retail-agentic-rollout-diagnostic-v1",
+  "source": {
+    "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-tool-sft-rollout-diagnostic-v5/raw_rollouts.jsonl",
+    "sha256": "C82191540F3C140C68FD2AB79F21C8B22C6CDC3E24F35166AE880B8B68ECCDA1"
+  },
+  "expected_rollouts": 32,
+  "expected_tasks": 8,
+  "observed_rollouts": 32,
+  "unique_tasks": 8,
+  "task_rollout_counts": {
+    "0": 4,
+    "7": 4,
+    "10": 4,
+    "11": 4,
+    "13": 4,
+    "15": 4,
+    "20": 4,
+    "22": 4
+  },
+  "reward": {
+    "mean": 0.03819444444444445,
+    "population_variance": 0.009798900462962966,
+    "distinct_values": [
+      0.0,
+      0.011111111111111127,
+      0.30000000000000004
+    ],
+    "positive_count": 6
+  },
+  "behavior": {
+    "tool_call_rollout_count": 32,
+    "customer_continuation_rollout_count": 32,
+    "tool_error_rollout_count": 1,
+    "mean_tool_calls": 2.09375,
+    "mean_action_recall": 0.3223214285714286,
+    "distinct_action_recalls": [
+      0.14285714285714285,
+      0.2,
+      0.2857142857142857,
+      0.3333333333333333,
+      0.4,
+      0.5
+    ],
+    "positive_without_tool_count": 0,
+    "positive_without_action_progress_count": 0
+  },
+  "gates": {
+    "expected_rollout_count_met": true,
+    "all_expected_tasks_observed": true,
+    "tool_call_rate_positive": true,
+    "customer_continuation_observed": true,
+    "reward_has_variance": true,
+    "action_progress_has_variance": true,
+    "no_positive_reward_without_tool": true,
+    "no_positive_reward_without_action_progress": true,
+    "ready_to_consider_optimization": true
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false
+}

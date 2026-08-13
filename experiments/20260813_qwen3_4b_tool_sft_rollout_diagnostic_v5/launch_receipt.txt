@@ -1,0 +1,9 @@
+started_at_utc=2026-08-13T04:56:23Z
+pid=3193
+project_commit=d8ad0d6e4140e94d8f9bea58f62dc6132fe88a1c
+config_sha256=39f095130da66e6d5da3b9deae5433f0788a8e4bfd5ca86faaa0d08cceff3ae4
+run_dir=/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-tool-sft-rollout-diagnostic-v5
+log=/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-tool-sft-rollout-diagnostic-v5.log
+mode=ROLLOUT_DIAGNOSTIC
+weight_update_expected=false
+api_preflight_http=200

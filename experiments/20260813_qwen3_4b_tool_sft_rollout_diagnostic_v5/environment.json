@@ -1,0 +1,16 @@
+{
+  "python": "3.12.3",
+  "torch": "2.8.0+cu128",
+  "transformers": "5.14.1",
+  "trl": "1.9.0",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "bf16_supported": true,
+  "environment_factory_supported": true,
+  "tool_template": {
+    "tokenizer_class": "Qwen2Tokenizer",
+    "chat_template_present": true,
+    "tool_schema_rendered": true,
+    "rendered_character_count": 774
+  }
+}
