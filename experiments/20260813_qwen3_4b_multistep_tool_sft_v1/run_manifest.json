@@ -1,0 +1,106 @@
+{
+  "schema_version": "retail-tool-protocol-sft-run-v1",
+  "scope": "ISOLATED_MULTISTEP_TOOL_SFT_WARMUP",
+  "status": "COMPLETED",
+  "git": {
+    "commit": "63dd9253b9700c021a8b99e7bf735167a86057b1",
+    "branch": "main",
+    "dirty_at_start": false
+  },
+  "bindings": {
+    "config_path": "/root/autodl-tmp/PolicyAgent-PostTrain/configs/retail_multistep_tool_sft_qwen3_4b_v1.json",
+    "config_sha256": "AED44EB4E8F30E1A02BBAC580435967A06DD49957019A9303384A558712F3734",
+    "data_manifest_path": "/root/autodl-tmp/PolicyAgent-PostTrain/data/retail_multistep_tool_sft_v1/manifest.json",
+    "data_manifest_sha256": "62BA14E920A72C6B7EC363125D7F9E4F33BC9864411DDA1F8F17EF5BB9AF3245",
+    "starting_model": "/root/autodl-tmp/policyagent-runs/20260811-qwen3-4b-tool-sft-v1/tool_sft_merged",
+    "starting_model_sha256": "2028C809473FA52434BE00583D3C0E5C29633C447A479B17A51E28EEE9D0B4D0",
+    "upstream": {
+      "path": "/root/autodl-tmp/tau2-bench",
+      "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+      "verification_method": "commit_marker_and_source_package_sha256",
+      "source_package_path": "/root/autodl-tmp/tau2-retail-58e5e1a.tar.gz",
+      "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+      "transfer_manifest_sha256": "67D65E179639ECE78E5174B6C7512058DFF4ECBA45B74E46F565409A2C502E46",
+      "required_file_sha256": {
+        "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+      }
+    }
+  },
+  "data": {
+    "train_rows": 136,
+    "holdout_rows": 34,
+    "max_rendered_prompt_tokens": 4556,
+    "max_rendered_sequence_tokens": 4595
+  },
+  "evaluations": {
+    "base": {
+      "rows": 34,
+      "valid_tool_call_rate": 0.7647058823529411,
+      "malformed_tool_call_rate": 0.08823529411764706,
+      "tool_match_rate": 0.5294117647058824,
+      "argument_match_rate": 0.47058823529411764,
+      "ordinary_text_rate": 0.14705882352941177,
+      "first_decision": {
+        "rows": 6,
+        "tool_match_rate": 1.0,
+        "argument_match_rate": 1.0
+      },
+      "post_tool_decisions": {
+        "rows": 28,
+        "tool_match_rate": 0.42857142857142855,
+        "argument_match_rate": 0.35714285714285715
+      },
+      "confirmed_write_decisions": {
+        "rows": 4,
+        "tool_match_rate": 1.0,
+        "argument_match_rate": 1.0
+      }
+    },
+    "sft": {
+      "rows": 34,
+      "valid_tool_call_rate": 1.0,
+      "malformed_tool_call_rate": 0.0,
+      "tool_match_rate": 0.8235294117647058,
+      "argument_match_rate": 0.8235294117647058,
+      "ordinary_text_rate": 0.0,
+      "first_decision": {
+        "rows": 6,
+        "tool_match_rate": 1.0,
+        "argument_match_rate": 1.0
+      },
+      "post_tool_decisions": {
+        "rows": 28,
+        "tool_match_rate": 0.7857142857142857,
+        "argument_match_rate": 0.7857142857142857
+      },
+      "confirmed_write_decisions": {
+        "rows": 4,
+        "tool_match_rate": 1.0,
+        "argument_match_rate": 1.0
+      }
+    }
+  },
+  "protocol_warmup_gate": {
+    "passed": true,
+    "targets": {
+      "max_new_tokens": 160,
+      "target_valid_tool_call_rate": 0.9,
+      "target_tool_match_rate": 0.8,
+      "target_argument_match_rate": 0.75,
+      "target_ordinary_text_rate_max": 0.1
+    }
+  },
+  "artifacts": {
+    "adapter": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-v1/tool_sft_adapter",
+      "sha256": "041D49FE6821B6E602DF64CF4FED0993D0EA89C18D826C59B08846FA689CF8B3"
+    },
+    "merged_model": {
+      "path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-v1/tool_sft_merged",
+      "sha256": "030B393F7181224C9C15A8689276258AEB83DD704E798C2C693CACF13E1FC289"
+    }
+  },
+  "formal_retail_readiness_gate_opened": false,
+  "business_improvement_claim_allowed": false,
+  "agentic_grpo_allowed": false
+}

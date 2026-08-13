@@ -1,0 +1,92 @@
+{
+  "schema_version": "retail-agentic-grpo-config-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "execution_mode": "ROLLOUT_DIAGNOSTIC",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved_for_final_evaluation": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "model": {
+    "name_or_path": "/root/autodl-tmp/policyagent-runs/20260813-qwen3-4b-multistep-tool-sft-v1/tool_sft_merged",
+    "source_stage": "ISOLATED_MULTISTEP_TOOL_SFT_WARMUP",
+    "expected_sha256": "030B393F7181224C9C15A8689276258AEB83DD704E798C2C693CACF13E1FC289"
+  },
+  "comparison": {
+    "baseline_config": "configs/retail_agentic_qwen3_4b_tool_sft_rollout_diagnostic_v1.json",
+    "baseline_run": "experiments/20260813_qwen3_4b_tool_sft_rollout_diagnostic_v5",
+    "only_intended_variable": "model starting checkpoint"
+  },
+  "data": {
+    "task_split": "data/retail_agentic_rl_v1/task_split.json",
+    "openings": "data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages.jsonl",
+    "openings_manifest": "data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages_manifest.json",
+    "train_subset": "rl_train",
+    "max_tasks": 8
+  },
+  "seed": 20260811,
+  "precision": "bf16",
+  "quantization": {
+    "enabled": true,
+    "mode": "4bit_nf4",
+    "double_quant": true
+  },
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  },
+  "grpo": {
+    "max_steps": 16,
+    "learning_rate": 0.0,
+    "per_device_train_batch_size": 2,
+    "gradient_accumulation_steps": 1,
+    "num_generations": 2,
+    "max_completion_length": 384,
+    "temperature": 0.8,
+    "beta": 0.0,
+    "loss_type": "dr_grpo",
+    "use_vllm": false,
+    "logging_steps": 1,
+    "save_steps": 1000,
+    "log_completions": true,
+    "num_completions_to_print": 2,
+    "gradient_checkpointing": true
+  },
+  "diagnostic": {
+    "expected_rollouts": 32,
+    "expected_tasks": 8,
+    "weight_update_expected": false
+  },
+  "rollout": {
+    "max_customer_turns": 8,
+    "max_tool_calls": 32,
+    "max_tool_calling_iterations": 40
+  },
+  "reward": {
+    "process_reward_mode": "one_to_one_required_action_progress",
+    "environment_state_action_progress_gate": "multiply",
+    "environment_state_weight": 0.7,
+    "required_action_weight": 0.2,
+    "communication_weight": 0.1,
+    "tool_error_penalty_each": 0.05,
+    "tool_error_penalty_cap": 0.2,
+    "repeated_call_penalty_each": 0.03,
+    "repeated_call_penalty_cap": 0.15,
+    "unexpected_write_penalty_each": 0.05,
+    "unexpected_write_penalty_cap": 0.2,
+    "unfinished_interaction_penalty": 0.1,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": false
+  }
+}
