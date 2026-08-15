@@ -123,14 +123,35 @@ class TeacherTrajectoryAuditTests(unittest.TestCase):
             result["review_reasons"],
         )
 
-    def test_narration_on_tool_call_turn_is_observed_but_not_rejected(self):
+    def test_narration_on_tool_call_turn_requires_policy_review(self):
         messages = confirmed_messages()
         messages[2]["content"] = "I will process the cancellation now."
         result = audit_simulation(simulation(messages=messages))
-        self.assertEqual(result["automatic_label"], AUTO_PASS)
+        self.assertEqual(result["automatic_label"], REVIEW)
+        self.assertIn(
+            "assistant_content_and_tool_call_policy_violation",
+            result["review_reasons"],
+        )
         self.assertEqual(
             result["metrics"]["assistant_content_tool_call_turn_count"], 1
         )
+
+    def test_parallel_tool_calls_require_policy_review(self):
+        messages = confirmed_messages()
+        messages[2]["content"] = None
+        messages[2]["tool_calls"].append(
+            {
+                "id": "c2",
+                "name": "get_order_details",
+                "arguments": {"order_id": "#2"},
+            }
+        )
+        result = audit_simulation(simulation(messages=messages))
+        self.assertEqual(result["automatic_label"], REVIEW)
+        self.assertIn(
+            "parallel_tool_calls_policy_violation", result["review_reasons"]
+        )
+        self.assertEqual(result["metrics"]["parallel_tool_call_turn_count"], 1)
 
     def test_expected_action_mismatch_requires_review_not_automatic_rejection(self):
         result = audit_simulation(

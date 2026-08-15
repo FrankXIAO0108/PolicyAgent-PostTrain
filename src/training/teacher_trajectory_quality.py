@@ -125,6 +125,17 @@ def audit_simulation(simulation: dict[str, Any]) -> dict[str, Any]:
         )
         for message in messages
     )
+    parallel_tool_call_turn_count = sum(
+        bool(
+            message.get("role") == "assistant"
+            and len(message.get("tool_calls") or []) > 1
+        )
+        for message in messages
+    )
+    if assistant_content_tool_call_turn_count:
+        review_reasons.append("assistant_content_and_tool_call_policy_violation")
+    if parallel_tool_call_turn_count:
+        review_reasons.append("parallel_tool_calls_policy_violation")
     if not messages or not reward:
         label = SYSTEM_FAILURE
         hard_reasons.append("missing_trajectory_or_evaluation")
@@ -157,6 +168,7 @@ def audit_simulation(simulation: dict[str, Any]) -> dict[str, Any]:
             "unexpected_write_count": len(unexpected_writes),
             "duplicate_exact_call_excess": duplicate_excess,
             "assistant_content_tool_call_turn_count": assistant_content_tool_call_turn_count,
+            "parallel_tool_call_turn_count": parallel_tool_call_turn_count,
             "required_communication_count": len(communication_checks),
             "unmet_communication_count": len(unmet_communication),
             "confirmation": confirmation,
