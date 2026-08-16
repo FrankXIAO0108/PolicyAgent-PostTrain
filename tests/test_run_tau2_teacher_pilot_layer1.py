@@ -107,5 +107,107 @@ class TrialSpecsTests(unittest.TestCase):
         self.assertEqual(len({s["seed"] for s in specs}), 4)
 
 
+class ResultsRepairTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        self.config = load_real_config()
+        self.generation = self.config["generation"]
+        self.commit = "ddb9cc8"
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def test_build_results_dict_has_full_schema(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import build_results_dict
+
+        simulations = [
+            {"id": "sim-a", "policy": "policy text", "seed": 1},
+            {"id": "sim-b", "policy": "policy text", "seed": 2},
+        ]
+        tasks = [{"id": "7", "description": "task"}]
+        built = build_results_dict(simulations, tasks, self.generation, self.commit)
+        self.assertEqual(built["info"]["git_commit"], self.commit)
+        self.assertEqual(built["info"]["num_trials"], 4)
+        self.assertEqual(built["info"]["environment_info"]["domain_name"], "retail")
+        self.assertEqual(built["info"]["environment_info"]["policy"], "policy text")
+        self.assertEqual(built["info"]["agent_info"]["implementation"], "audited_teacher_llm_agent")
+        self.assertEqual(built["tasks"], tasks)
+        self.assertEqual(built["simulations"], simulations)
+        self.assertNotIn("simulation_index", built)
+
+    def test_build_results_dict_rejects_empty_simulations(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import build_results_dict
+
+        with self.assertRaises(ValueError):
+            build_results_dict([], [], self.generation, self.commit)
+
+    def test_repair_results_rebuilds_incomplete_files(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import repair_results
+
+        run_dir = self.root / "run"
+        task_dir = run_dir / "private_evaluation" / "task_7"
+        task_dir.mkdir(parents=True)
+        (task_dir / "task_snapshot.json").write_text(
+            json.dumps({"id": "7", "description": "task"}), encoding="utf-8"
+        )
+        (task_dir / "returned_results.json").write_text(
+            json.dumps({"simulations": [{"id": "sim-a", "policy": "p", "seed": 1}]}),
+            encoding="utf-8",
+        )
+        rebuilt = repair_results(run_dir, self.config, self.commit)
+        self.assertEqual(rebuilt, 1)
+        payload = json.loads((task_dir / "returned_results.json").read_text(encoding="utf-8"))
+        self.assertIn("info", payload)
+        self.assertIn("tasks", payload)
+        self.assertEqual(payload["tasks"], [{"id": "7", "description": "task"}])
+
+    def test_repair_results_skips_complete_files(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import repair_results
+
+        run_dir = self.root / "run"
+        task_dir = run_dir / "private_evaluation" / "task_7"
+        task_dir.mkdir(parents=True)
+        (task_dir / "returned_results.json").write_text(
+            json.dumps({"info": {}, "tasks": [], "simulations": [{"id": "s"}]}),
+            encoding="utf-8",
+        )
+        rebuilt = repair_results(run_dir, self.config, self.commit)
+        self.assertEqual(rebuilt, 0)
+
+    def test_finalize_rejects_non_started_manifest(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import finalize
+
+        run_dir = self.root / "run"
+        run_dir.mkdir()
+        (run_dir / "run_manifest.json").write_text(
+            json.dumps({"status": "COMPLETED"}), encoding="utf-8"
+        )
+        with self.assertRaises(ValueError):
+            finalize(run_dir)
+
+    def test_finalize_rejects_config_hash_mismatch(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import finalize
+
+        run_dir = self.root / "run"
+        run_dir.mkdir()
+        (run_dir / "run_manifest.json").write_text(
+            json.dumps(
+                {
+                    "status": "STARTED",
+                    "bindings": {
+                        "config_path": "configs/retail_tau2_teacher_pilot_layer1_v1.json",
+                        "config_sha256": "WRONGHASH",
+                    },
+                    "project": {"commit": self.commit},
+                    "task_ids": ["7"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        with self.assertRaises(ValueError):
+            finalize(run_dir)
+
+
 if __name__ == "__main__":
     unittest.main()

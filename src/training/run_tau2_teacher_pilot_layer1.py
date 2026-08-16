@@ -120,6 +120,48 @@ def trial_specs(validated: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def build_results_dict(
+    simulations: list[dict[str, Any]],
+    tasks: list[dict[str, Any]],
+    generation: dict[str, Any],
+    project_commit: str,
+) -> dict[str, Any]:
+    """Merge per-trial simulations into one full tau2 Results-shaped dict.
+
+    The downstream audit validates ``returned_results.json`` as a tau2
+    ``Results`` model, which requires ``info`` and ``tasks`` alongside
+    ``simulations``. Per-candidate temperature/seed provenance lives in
+    ``temperature_map.json``; the agent temperature ladder is intentionally
+    not collapsed into a single ``agent_info.llm_args`` value.
+    """
+    if not simulations:
+        raise ValueError("cannot build Results with zero simulations")
+    return {
+        "info": {
+            "git_commit": project_commit,
+            "num_trials": int(generation["candidates_per_task"]),
+            "max_steps": int(generation["max_steps"]),
+            "max_errors": int(generation["max_errors"]),
+            "seed": int(generation["seed"]),
+            "user_info": {
+                "implementation": generation["user"]["implementation"],
+                "llm": generation["user"]["model"],
+                "llm_args": {"temperature": generation["user"]["temperature"]},
+            },
+            "agent_info": {
+                "implementation": generation["agent"]["implementation"],
+                "llm": generation["agent"]["model"],
+            },
+            "environment_info": {
+                "domain_name": "retail",
+                "policy": str(simulations[0].get("policy") or ""),
+            },
+        },
+        "tasks": tasks,
+        "simulations": simulations,
+    }
+
+
 def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> dict[str, Any]:
     if output_dir.exists():
         raise FileExistsError(f"Refusing to overwrite existing output: {output_dir}")
@@ -188,6 +230,7 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
         started = time.perf_counter()
         try:
             simulations: list[dict[str, Any]] = []
+            task_dumps: list[dict[str, Any]] | None = None
             temperature_map: dict[str, dict[str, Any]] = {}
             for spec in trial_specs(validated):
                 trial_index = spec["trial_index"]
@@ -221,6 +264,8 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
                         f"task {task_id} trial {trial_index}: expected 1 simulation"
                     )
                 simulation = results.simulations[0]
+                if task_dumps is None:
+                    task_dumps = [task.model_dump(mode="json") for task in results.tasks]
                 simulation_dict = simulation.model_dump(mode="json")
                 simulations.append(simulation_dict)
                 temperature_map[str(trial_index)] = {
@@ -233,7 +278,12 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
             write_json(task_dir / "temperature_map.json", temperature_map)
             write_json(
                 task_dir / "returned_results.json",
-                {"simulations": simulations},
+                build_results_dict(
+                    simulations=simulations,
+                    tasks=task_dumps or [],
+                    generation=generation,
+                    project_commit=manifest["project"]["commit"],
+                ),
             )
             public_path = public_dir / "candidate_trajectories.jsonl"
             public_path.write_text(
@@ -283,6 +333,109 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
     return manifest
 
 
+def repair_results(
+    run_dir: Path, config: dict[str, Any], project_commit: str
+) -> int:
+    """Rebuild incomplete ``returned_results.json`` files into full Results.
+
+    The Layer-1 v1 aggregation wrote only ``{"simulations": [...]}``, which
+    the downstream audit cannot validate as a tau2 ``Results`` model. This
+    rewrites every per-task file that lacks ``info``/``tasks`` using the task
+    snapshot and the frozen generation config. Returns the number rebuilt.
+    """
+    generation = config["generation"]
+    rebuilt = 0
+    for task_dir in sorted((run_dir / "private_evaluation").glob("task_*")):
+        results_path = task_dir / "returned_results.json"
+        if not results_path.is_file():
+            continue
+        payload = json.loads(results_path.read_text(encoding="utf-8"))
+        if "info" in payload and "tasks" in payload:
+            continue
+        simulations = payload.get("simulations")
+        if not simulations:
+            continue
+        snapshot_path = task_dir / "task_snapshot.json"
+        if not snapshot_path.is_file():
+            raise FileNotFoundError(
+                f"missing task snapshot for repair: {snapshot_path}"
+            )
+        task = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        write_json(
+            results_path,
+            build_results_dict(
+                simulations=simulations,
+                tasks=[task],
+                generation=generation,
+                project_commit=project_commit,
+            ),
+        )
+        rebuilt += 1
+    return rebuilt
+
+
+def finalize(run_dir: Path) -> dict[str, Any]:
+    """Repair incomplete results and re-run the audit for a crashed run.
+
+    Used when generation completed but finalization crashed (for example the
+    Layer-1 v1 aggregation bug). Fails closed unless the run manifest is
+    ``STARTED`` and the bound config hash still matches.
+    """
+    run_dir = run_dir.resolve()
+    manifest_path = run_dir / "run_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("status") != "STARTED":
+        raise ValueError(
+            f"finalize requires status STARTED, got {manifest.get('status')!r}"
+        )
+    config_path = (REPO_ROOT / manifest["bindings"]["config_path"]).resolve()
+    if not config_path.is_file():
+        raise FileNotFoundError(f"bound config missing: {config_path}")
+    if sha256(config_path) != manifest["bindings"]["config_sha256"]:
+        raise ValueError("bound config hash mismatch; refusing to finalize")
+    config = json.loads(config_path.read_text(encoding="utf-8-sig"))
+    rebuilt = repair_results(run_dir, config, manifest["project"]["commit"])
+
+    from src.training.audit_tau2_teacher_trajectories import audit_run
+
+    audit = audit_run(run_dir)
+    completed = 0
+    for results_path in sorted(
+        (run_dir / "private_evaluation").glob("task_*/returned_results.json")
+    ):
+        payload = json.loads(results_path.read_text(encoding="utf-8"))
+        completed += len(payload.get("simulations") or [])
+    expected = len(manifest.get("task_ids") or []) * int(
+        config["generation"]["candidates_per_task"]
+    )
+    failures: list[dict[str, Any]] = []
+    for failure_path in sorted(
+        (run_dir / "private_evaluation").glob("task_*/system_failure.json")
+    ):
+        failures.append(json.loads(failure_path.read_text(encoding="utf-8")))
+    manifest.update(
+        {
+            "status": "COMPLETED_WITH_FAILURES" if failures else "COMPLETED",
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "candidate_count": completed,
+            "expected_candidate_count": expected,
+            "system_failures": failures,
+            "audit_summary_sha256": sha256(run_dir / "audit_summary.json"),
+            "training_data_released": False,
+            "teacher_qualified": False,
+            "post_processing": {
+                "results_rebuilt": rebuilt,
+                "note": (
+                    "returned_results.json rebuilt with full Results "
+                    "(info/tasks) after the Layer-1 v1 aggregation bug"
+                ),
+            },
+        }
+    )
+    write_json(manifest_path, manifest)
+    return manifest
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Run the Layer-1 teacher pilot on the pinned tau2 mirror."
@@ -290,8 +443,26 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--finalize-only", type=Path)
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
+    if args.finalize_only is not None:
+        manifest = finalize(args.finalize_only)
+        print(
+            json.dumps(
+                {
+                    "status": manifest["status"],
+                    "candidate_count": manifest["candidate_count"],
+                    "expected_candidate_count": manifest["expected_candidate_count"],
+                    "results_rebuilt": manifest["post_processing"]["results_rebuilt"],
+                }
+            )
+        )
+        if manifest["status"] != "COMPLETED":
+            for failure in manifest["system_failures"]:
+                print(f"task {failure['task_id']}: {failure['exception_type']}")
+            raise SystemExit(2)
+        return
     validated = validate_config(args.config.resolve())
     if args.validate_only:
         print(
