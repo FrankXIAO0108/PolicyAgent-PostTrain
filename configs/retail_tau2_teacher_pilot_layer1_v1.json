@@ -1,0 +1,107 @@
+{
+  "schema_version": "retail-tau2-teacher-pilot-layer1-v1",
+  "status": "FROZEN",
+  "scope": "TAU2_GROUNDED_TEACHER_DATA_ENGINEERING_PILOT_LAYER1",
+  "purpose": "Expand the teacher data pool toward SFT minimum scale: 8 unused rl_train tasks x 4 candidates with a per-candidate temperature ladder, run under the audited blind teacher agent on the pinned tau2 mirror.",
+  "claims": {
+    "official_metric": false,
+    "formal_retail_gate_unchanged": true,
+    "training_data_released": false,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "task_split": "data/retail_agentic_rl_v1/task_split.json",
+  "task_subset": "rl_train",
+  "tasks": [
+    {
+      "task_id": "7",
+      "stratum": "exchange",
+      "reason": "Cup + desk-lamp two-item exchange; multi-item specification matching."
+    },
+    {
+      "task_id": "13",
+      "stratum": "mixed_cancel_return",
+      "reason": "Hidden intent (cancel only non-gaming items); tests intent clarification."
+    },
+    {
+      "task_id": "22",
+      "stratum": "modify",
+      "reason": "Change full shipping address; multi-entity consistency."
+    },
+    {
+      "task_id": "30",
+      "stratum": "query",
+      "reason": "Look up order number first, then conditional exchange; information-gathering order."
+    },
+    {
+      "task_id": "35",
+      "stratum": "mixed_modify_return",
+      "reason": "Return speaker + modify laptop; multi-operation combination."
+    },
+    {
+      "task_id": "48",
+      "stratum": "return",
+      "reason": "Return item and refund to original payment method; refund routing."
+    },
+    {
+      "task_id": "58",
+      "stratum": "modify",
+      "reason": "Coffee machine + laptop dual modification; attribute preservation."
+    },
+    {
+      "task_id": "73",
+      "stratum": "return",
+      "reason": "Return everything except the coffee machine; batch scope control."
+    }
+  ],
+  "generation": {
+    "agent": {
+      "implementation": "audited_teacher_llm_agent",
+      "model": "deepseek/deepseek-chat",
+      "temperature_ladder": [0.2, 0.4, 0.6, 0.8]
+    },
+    "user": {
+      "implementation": "user_simulator",
+      "model": "deepseek/deepseek-chat",
+      "temperature": 0.0
+    },
+    "candidates_per_task": 4,
+    "seed": 20260815,
+    "max_steps": 120,
+    "max_errors": 5,
+    "max_concurrency": 1,
+    "max_retries": 0
+  },
+  "teacher_visibility": {
+    "policy": true,
+    "tool_schemas": true,
+    "observed_user_messages": true,
+    "observed_tool_results": true,
+    "evaluation_criteria": false,
+    "expected_actions": false,
+    "gold_database_state": false,
+    "hidden_user_scenario": false
+  },
+  "offline_evaluation": {
+    "tau2_evaluation_type": "ALL_IGNORE_BASIS",
+    "llm_judge_used": false,
+    "expected_actions_used_only_after_generation": true,
+    "human_review_required_for_training_release": true,
+    "maximum_automatic_label": "AUTO_PASS_CANDIDATE"
+  },
+  "known_limitations": [
+    "The teacher and user simulator use the same model family, so same-source bias remains and is recorded, not hidden.",
+    "The per-candidate temperature ladder mitigates near-duplicates but is not a substitute for task diversity.",
+    "Layer 1 yield (valid-candidate rate, HOLDOUT/drift rate, dedup rate) is unknown until the run completes.",
+    "AUTO_PASS_CANDIDATE is not human-adjudicated GOLD and is not SFT-releasable.",
+    "Programmatic policy findings remain diagnostic until validated against human gold."
+  ]
+}
