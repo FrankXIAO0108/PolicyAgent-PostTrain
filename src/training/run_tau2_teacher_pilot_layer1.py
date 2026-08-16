@@ -40,7 +40,7 @@ from src.training.run_tau2_teacher_trajectory_smoke import (
     write_json,
 )
 
-SCOPE = "TAU2_GROUNDED_TEACHER_DATA_ENGINEERING_PILOT_LAYER1"
+SCOPE_PREFIX = "TAU2_GROUNDED_TEACHER_DATA_ENGINEERING_PILOT_"
 DEFAULT_CONFIG = REPO_ROOT / "configs" / "retail_tau2_teacher_pilot_layer1_v1.json"
 
 
@@ -48,8 +48,8 @@ def validate_config(path: Path) -> dict[str, Any]:
     config = json.loads(path.read_text(encoding="utf-8-sig"))
     if config.get("status") != "FROZEN":
         raise ValueError("Layer-1 config must be FROZEN")
-    if config.get("scope") != SCOPE:
-        raise ValueError("Layer-1 scope mismatch")
+    if not str(config.get("scope") or "").startswith(SCOPE_PREFIX):
+        raise ValueError(f"scope must start with {SCOPE_PREFIX!r}")
     visibility = config["teacher_visibility"]
     forbidden = (
         "evaluation_criteria",

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from src.training.run_tau2_teacher_pilot_layer1 import (
     DEFAULT_CONFIG,
-    SCOPE,
+    SCOPE_PREFIX,
     trial_specs,
     validate_config,
 )
@@ -35,6 +35,15 @@ class Layer1ConfigTests(unittest.TestCase):
         self.assertEqual(validated["candidates_per_task"], 4)
         self.assertEqual(validated["temperature_ladder"], [0.2, 0.4, 0.6, 0.8])
         self.assertEqual(validated["base_seed"], 20260815)
+
+    def test_layer2_config_validates_single_temp(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import validate_config
+        path = Path(r"D:\PolicyAgent-PostTrain\configs\retail_tau2_teacher_pilot_layer2_v1.json")
+        validated = validate_config(path)
+        self.assertEqual(len(validated["task_ids"]), 33)
+        self.assertEqual(validated["candidates_per_task"], 1)
+        self.assertEqual(validated["temperature_ladder"], [0.6])
+        self.assertEqual(validated["base_seed"], 20260817)
 
     def test_rejects_wrong_scope(self):
         payload = load_real_config()

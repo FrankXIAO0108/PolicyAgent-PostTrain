@@ -1,0 +1,235 @@
+{
+  "schema_version": "retail-tau2-teacher-pilot-layer2-v1",
+  "status": "FROZEN",
+  "scope": "TAU2_GROUNDED_TEACHER_DATA_ENGINEERING_PILOT_LAYER2",
+  "purpose": "Expand the teacher data pool toward SFT minimum scale: all remaining 33 rl_train tasks x 1 candidate at single teacher temperature 0.6, under the audited blind teacher agent on the pinned tau2 mirror.",
+  "claims": {
+    "official_metric": false,
+    "formal_retail_gate_unchanged": true,
+    "training_data_released": false,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "task_split": "data/retail_agentic_rl_v1/task_split.json",
+  "task_subset": "rl_train",
+  "tasks": [
+    {
+      "task_id": "10",
+      "stratum": "return",
+      "reason": "Return all items from two orders; refund each to the other order's payment method."
+    },
+    {
+      "task_id": "11",
+      "stratum": "return",
+      "reason": "Return all items from two orders; cross-order payment refund (fallback original method)."
+    },
+    {
+      "task_id": "15",
+      "stratum": "modify",
+      "reason": "Modify pending boots to size 8 with material preference; PayPal for payment/refund."
+    },
+    {
+      "task_id": "20",
+      "stratum": "modify",
+      "reason": "Upgrade all items to priciest variants; pay difference with gift card (PayPal fallback)."
+    },
+    {
+      "task_id": "23",
+      "stratum": "mixed_exchange_modify",
+      "reason": "Exchange helmet and luggage set; modify grill in another order."
+    },
+    {
+      "task_id": "25",
+      "stratum": "handoff",
+      "reason": "Tracking number + return all except pet bed; escalate to human if agent cannot help."
+    },
+    {
+      "task_id": "31",
+      "stratum": "mixed_cancel_return",
+      "reason": "Lost tablet: tracking + refund/reorder; cancel charger/boot, return sneaker."
+    },
+    {
+      "task_id": "34",
+      "stratum": "mixed_cancel_return",
+      "reason": "Return home-office items keep hiking; fallback address change."
+    },
+    {
+      "task_id": "41",
+      "stratum": "modify",
+      "reason": "Change jigsaw difficulty; check and correct all order and user addresses."
+    },
+    {
+      "task_id": "44",
+      "stratum": "modify",
+      "reason": "Change Desk Lamp to cheapest; price difference to gift card; report total refund."
+    },
+    {
+      "task_id": "47",
+      "stratum": "return",
+      "reason": "Return air purifier and vacuum; adversarial order-id flow; refund in 3 days."
+    },
+    {
+      "task_id": "54",
+      "stratum": "mixed_cancel_return",
+      "reason": "Cancel/return all possible orders except boots; exchange boots only if cheaper."
+    },
+    {
+      "task_id": "63",
+      "stratum": "mixed_cancel_modify",
+      "reason": "Adversarial opener; check/modify order, cancel speaker if >$300, add cheaper one."
+    },
+    {
+      "task_id": "69",
+      "stratum": "return",
+      "reason": "Return laptop bought ~Apr 2023 for full refund; fallback cancel."
+    },
+    {
+      "task_id": "75",
+      "stratum": "exchange",
+      "reason": "Exchange Wireless Earbuds to specific attributes."
+    },
+    {
+      "task_id": "78",
+      "stratum": "mixed_exchange_modify",
+      "reason": "Change address, exchange Makeup Kit, cancel another order."
+    },
+    {
+      "task_id": "80",
+      "stratum": "exchange",
+      "reason": "Exchange T-Shirt attributes; use gift card."
+    },
+    {
+      "task_id": "81",
+      "stratum": "cancel",
+      "reason": "Cancel many items or the whole order."
+    },
+    {
+      "task_id": "82",
+      "stratum": "return",
+      "reason": "Return more expensive tablet to credit card; angry fallback to return everything."
+    },
+    {
+      "task_id": "83",
+      "stratum": "return",
+      "reason": "Return more expensive tablet to credit card; fallback gift card refund."
+    },
+    {
+      "task_id": "84",
+      "stratum": "return",
+      "reason": "Return less expensive tablet; change mind mid-confirmation to refund gift card."
+    },
+    {
+      "task_id": "85",
+      "stratum": "exchange",
+      "reason": "Exchange Fleece Jacket to large red half-zip."
+    },
+    {
+      "task_id": "88",
+      "stratum": "mixed_cancel_modify",
+      "reason": "Change bookshelf size; cancel whole order if unavailable."
+    },
+    {
+      "task_id": "91",
+      "stratum": "mixed_exchange_return",
+      "reason": "Return skateboards, smart watch, e-reader; exchange e-reader if available."
+    },
+    {
+      "task_id": "92",
+      "stratum": "return",
+      "reason": "Return skateboards, smart watch and e-reader; refund to credit card."
+    },
+    {
+      "task_id": "93",
+      "stratum": "exchange",
+      "reason": "Exchange laptop to i7/8GB/1TB SSD config."
+    },
+    {
+      "task_id": "96",
+      "stratum": "mixed_exchange_modify",
+      "reason": "Change LA order to NYC address; exchange Bluetooth Speaker to cheapest green."
+    },
+    {
+      "task_id": "99",
+      "stratum": "mixed_exchange_modify",
+      "reason": "Exchange bicycle/jigsaw/camera; cancel skateboard; visa preferred."
+    },
+    {
+      "task_id": "103",
+      "stratum": "mixed_cancel_return",
+      "reason": "Return bookshelf/jigsaw/backpack; change pending order address and color; tracking."
+    },
+    {
+      "task_id": "105",
+      "stratum": "exchange",
+      "reason": "Exchange two Tea Kettles to new attributes."
+    },
+    {
+      "task_id": "106",
+      "stratum": "exchange",
+      "reason": "Exchange T-Shirt one size smaller; prefer cotton, black."
+    },
+    {
+      "task_id": "110",
+      "stratum": "mixed_exchange_modify",
+      "reason": "Change wrong-order and default addresses; exchange tablet to cheapest."
+    },
+    {
+      "task_id": "112",
+      "stratum": "modify",
+      "reason": "Modify laptop order address; modify laptop item; change watch dial color."
+    }
+  ],
+  "generation": {
+    "agent": {
+      "implementation": "audited_teacher_llm_agent",
+      "model": "deepseek/deepseek-chat",
+      "temperature_ladder": [
+        0.6
+      ]
+    },
+    "user": {
+      "implementation": "user_simulator",
+      "model": "deepseek/deepseek-chat",
+      "temperature": 0.0
+    },
+    "candidates_per_task": 1,
+    "seed": 20260817,
+    "max_steps": 120,
+    "max_errors": 5,
+    "max_concurrency": 1,
+    "max_retries": 0
+  },
+  "teacher_visibility": {
+    "policy": true,
+    "tool_schemas": true,
+    "observed_user_messages": true,
+    "observed_tool_results": true,
+    "evaluation_criteria": false,
+    "expected_actions": false,
+    "gold_database_state": false,
+    "hidden_user_scenario": false
+  },
+  "offline_evaluation": {
+    "tau2_evaluation_type": "ALL_IGNORE_BASIS",
+    "llm_judge_used": false,
+    "expected_actions_used_only_after_generation": true,
+    "human_review_required_for_training_release": true,
+    "maximum_automatic_label": "AUTO_PASS_CANDIDATE"
+  },
+  "known_limitations": [
+    "Single teacher temperature 0.6; no within-task candidate diversity, so per-task yield is expected to be ~0.9 rows (one candidate per task).",
+    "The teacher and user simulator use the same model family, so same-source bias remains and is recorded, not hidden.",
+    "Task-level environment poisoning (e.g., tool errors) is not preventable at generation; it is detected post-hoc by the audit and held out.",
+    "Layer-2 yield (retained rate, REJECTED rate) is unknown until the run completes; estimate is ~28-30 retained from 33 tasks.",
+    "AUTO_PASS_CANDIDATE is not human-adjudicated GOLD and is not SFT-releasable.",
+    "Programmatic policy findings remain diagnostic until validated against human gold."
+  ]
+}
