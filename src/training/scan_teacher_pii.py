@@ -36,7 +36,7 @@ from typing import Any, Iterable
 
 SCHEMA_VERSION = "teacher-pii-scan-v0.1"
 
-PAYMENT_RE = re.compile(r"(?i)\b(?:credit_card|gift_card)_\d+\b")
+PAYMENT_RE = re.compile(r"(?i)\b(?:credit_card|gift_card|paypal)_\d+\b")
 EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[A-Za-z0-9.-]+\b")
 UUID_RE = re.compile(
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b",

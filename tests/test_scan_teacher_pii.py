@@ -77,6 +77,40 @@ class ScanTeacherPiiTests(unittest.TestCase):
         hits = scan_messages(messages)
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0].identifier, "credit_card_0000000")
+    def test_paypal_id_in_text_is_hit(self):
+        messages = [
+            {"role": "user", "content": "hi"},
+            {"role": "assistant", "content": "Refund via paypal_2433177."},
+        ]
+        hits = scan_messages(messages)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0].category, "payment_method_id")
+        self.assertEqual(hits[0].identifier, "paypal_2433177")
+
+    def test_paypal_id_collected_from_payload(self):
+        payload = {
+            "messages": [
+                {"role": "user", "content": "hi"},
+                {
+                    "role": "assistant",
+                    "content": "Let me check.",
+                    "tool_calls": [{"id": "t1", "name": "find_user", "arguments": {}}],
+                },
+                {
+                    "role": "tool",
+                    "id": "t1",
+                    "content": json.dumps(
+                        {"payment_methods": {"paypal_2433177": {"type": "paypal"}}}
+                    ),
+                },
+                {"role": "assistant", "content": "Your refund method is paypal_2433177."},
+            ]
+        }
+        identifiers = collect_internal_identifiers(payload)
+        self.assertIn("paypal_2433177", identifiers["payment_method_id"])
+        hits = scan_messages(payload["messages"])
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0].identifier, "paypal_2433177")
 
     def test_tool_results_are_never_flagged(self):
         messages = [
