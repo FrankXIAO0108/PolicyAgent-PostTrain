@@ -535,7 +535,7 @@ def main() -> None:
         description="Teacher trajectory multi-turn SFT runner."
     )
     parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--validate-only", action="store_true")
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
@@ -543,6 +543,8 @@ def main() -> None:
     print(json.dumps({"status": "VALIDATED", "config_sha256": preflight["config_sha256"]}))
     if args.validate_only:
         return
+    if args.output_dir is None:
+        parser.error("--output-dir is required unless --validate-only")
     run(preflight, args.output_dir)
 
 
