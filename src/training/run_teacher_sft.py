@@ -390,6 +390,7 @@ def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
         "config_sha256": sha256(config_path),
         "data_dir": data_dir,
         "data_manifest_path": str(manifest_path),
+        "data_dataset_path": str(data_dir / manifest["files"]["sft_dataset"]["path"]),
         "data_manifest_sha256": sha256(manifest_path),
         "model_path": str(model_path),
         "model_sha256": model_hash,
@@ -464,7 +465,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     config = preflight["config"]
     max_length = int(config["max_length"])
 
-    rows = load_jsonl(preflight["data_dir"] / "sft_dataset.jsonl")
+    rows = load_jsonl(Path(preflight["data_dataset_path"]))
     train_rows = [row for row in rows if row.get("split") == "TRAIN"]
     val_rows = [row for row in rows if row.get("split") == "VALIDATION"]
     if not train_rows or not val_rows:
