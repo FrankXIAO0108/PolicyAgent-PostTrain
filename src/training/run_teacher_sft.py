@@ -116,6 +116,38 @@ def build_chat(row: dict[str, Any]) -> list[dict[str, Any]]:
     )
 
 
+def _tokenize_with_manual_mask(
+    tokenizer: Any, chat: list[dict[str, Any]], tools: list[Any]
+) -> tuple[list[int], list[bool]]:
+    """Derive the assistant label mask by diffing tokenized message prefixes.
+
+    The Qwen3 chat template has no ``{% generation %}`` block, so
+    ``return_assistant_tokens_mask`` is silently unavailable. The tokens each
+    assistant message introduces (header, content or tool-call JSON, boundary
+    token) are identified as the tokens added between consecutive message
+    prefixes. Fails closed if a prefix is not a strict prefix of the next one.
+    """
+    mask: list[bool] = []
+    previous: list[int] = []
+    for index in range(len(chat)):
+        current = tokenizer.apply_chat_template(
+            chat[: index + 1],
+            tools=tools,
+            tokenize=True,
+            add_generation_prompt=False,
+        )
+        if isinstance(current, dict):
+            current = [int(value) for value in current["input_ids"]]
+        if current[: len(previous)] != previous:
+            raise RuntimeError(
+                "chat template prefix mismatch; cannot derive assistant mask"
+            )
+        trainable = chat[index].get("role") == "assistant"
+        mask.extend([trainable] * (len(current) - len(previous)))
+        previous = current
+    return previous, mask
+
+
 def tokenize_row(
     tokenizer: Any,
     chat: list[dict[str, Any]],
@@ -132,13 +164,12 @@ def tokenize_row(
             add_generation_prompt=False,
             truncation=False,
         )
-    except TypeError as error:
-        raise RuntimeError(
-            "tokenizer.apply_chat_template does not support "
-            "return_assistant_tokens_mask; upgrade transformers"
-        ) from error
-    input_ids = [int(value) for value in encoded["input_ids"]]
-    assistant_mask = [bool(value) for value in encoded["assistant_tokens_mask"]]
+        input_ids = [int(value) for value in encoded["input_ids"]]
+        assistant_mask = [bool(value) for value in encoded["assistant_tokens_mask"]]
+    except (KeyError, TypeError):
+        # Qwen3 template lacks a {% generation %} block, so the native mask is
+        # unavailable; derive it from tokenized message prefixes instead.
+        input_ids, assistant_mask = _tokenize_with_manual_mask(tokenizer, chat, tools)
     if not any(assistant_mask):
         raise ValueError("tokenized sequence has no assistant tokens")
     if len(input_ids) > max_length:

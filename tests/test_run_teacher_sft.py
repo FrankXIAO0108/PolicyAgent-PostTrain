@@ -153,5 +153,43 @@ class TokenizeRowTest(unittest.TestCase):
             tokenize_row(HugeTokenizer(), chat, tools=[], max_length=10)
 
 
+class TokenizeRowFallbackTest(unittest.TestCase):
+    """Manual prefix-diff mask path for templates without a generation block."""
+
+    def test_manual_mask_marks_only_assistant_tokens(self):
+        class NoGenerationBlockTokenizer(FakeTokenizer):
+            def apply_chat_template(self, chat, **kwargs):
+                return {"input_ids": list(range(len(chat)))}
+
+        tokenizer = NoGenerationBlockTokenizer()
+        chat = [
+            {"role": "system", "content": "policy"},
+            {"role": "user", "content": "u1"},
+            {"role": "assistant", "content": "a1"},
+            {"role": "tool", "content": "t1", "tool_call_id": "c1"},
+            {"role": "assistant", "content": "a2"},
+        ]
+        batch = tokenize_row(tokenizer, chat, tools=[], max_length=8192)
+        self.assertEqual(batch["input_ids"], [0, 1, 2, 3, 4])
+        self.assertEqual(batch["labels"], [-100, -100, 2, -100, 4])
+        self.assertEqual(batch["attention_mask"], [1, 1, 1, 1, 1])
+
+    def test_manual_mask_fails_closed_on_prefix_mismatch(self):
+        class UnstableTokenizer(FakeTokenizer):
+            def apply_chat_template(self, chat, **kwargs):
+                ids = list(range(len(chat)))
+                if len(ids) == 3:
+                    ids = [99, 98, 97]
+                return {"input_ids": ids}
+
+        chat = [
+            {"role": "system", "content": "policy"},
+            {"role": "user", "content": "u1"},
+            {"role": "assistant", "content": "a1"},
+        ]
+        with self.assertRaises(RuntimeError):
+            tokenize_row(UnstableTokenizer(), chat, tools=[], max_length=8192)
+
+
 if __name__ == "__main__":
     unittest.main()
