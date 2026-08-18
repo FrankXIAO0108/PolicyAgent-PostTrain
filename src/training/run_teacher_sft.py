@@ -204,12 +204,8 @@ def _assistant_mask_by_render_diff(
         truncation=False,
         padding=False,
     )
-    if isinstance(encoded, dict):
-        input_ids = [int(value) for value in encoded["input_ids"]]
-        offset_mapping = encoded["offset_mapping"]
-    else:
-        input_ids = [int(value) for value in encoded.ids]
-        offset_mapping = encoded.offsets
+    input_ids = [int(value) for value in encoded["input_ids"]]
+    offset_mapping = encoded["offset_mapping"]
 
     mask = [False] * len(input_ids)
     for start, end in spans:
