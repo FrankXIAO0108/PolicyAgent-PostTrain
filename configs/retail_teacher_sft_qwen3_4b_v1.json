@@ -22,6 +22,7 @@
   "seed": 20260818,
   "precision": "bf16",
   "max_length": 16384,
+  "validation_max_length": 8192,
   "quantization": {
     "enabled": true,
     "mode": "4bit_nf4",

@@ -274,19 +274,53 @@ def tokenize_row(
 
 
 def _assistant_nll(
-    logits: Any, labels: Any, torch: Any
+    logits: Any, labels: Any, torch: Any, chunk_size: int = 512
 ) -> tuple[float, int]:
-    shift_logits = logits[..., :-1, :].contiguous()
-    shift_labels = labels[..., 1:].contiguous()
+    """Sum NLL over assistant positions.
+
+    ``logits[..., :-1, :]`` is a strided view; materializing a contiguous
+    copy costs another seq x vocab x bytes, so only the valid rows are
+    gathered in bounded chunks instead.
+    """
+    shift_labels = labels[..., 1:]
     valid = shift_labels != -100
     if not bool(valid.any()):
         return 0.0, 0
-    nll = torch.nn.functional.cross_entropy(
-        shift_logits.view(-1, shift_logits.size(-1))[valid.view(-1)],
-        shift_labels.view(-1)[valid.view(-1)],
-        reduction="sum",
-    ).item()
-    return float(nll), int(valid.sum().item())
+    positions = torch.nonzero(valid[0], as_tuple=False).squeeze(1)
+    logits_seq = logits[0, :-1, :]
+    labels_seq = shift_labels[0]
+    total = 0.0
+    count = 0
+    for start in range(0, int(positions.numel()), chunk_size):
+        index = positions[start : start + chunk_size]
+        chunk_logits = logits_seq.index_select(0, index)
+        chunk_labels = labels_seq.index_select(0, index)
+        total += float(
+            torch.nn.functional.cross_entropy(
+                chunk_logits, chunk_labels, reduction="sum"
+            ).item()
+        )
+        count += int(index.numel())
+    return float(total), count
+
+
+def _truncate_batch_tail(
+    batch: dict[str, list[int]], budget: int
+) -> dict[str, list[int]]:
+    """Keep the final ``budget`` tokens of a tokenized batch.
+
+    Base and SFT validation must observe identical inputs for the loss
+    comparison to stay fair, so every row is truncated to the same budget
+    before its forward pass. Only the trailing assistant turns (the decisive
+    part of the trajectory) are evaluated.
+    """
+    if budget is None or budget <= 0:
+        raise ValueError("validation_max_length must be a positive integer")
+    length = len(batch["input_ids"])
+    if length <= budget:
+        return batch
+    start = length - budget
+    return {key: value[start:] for key, value in batch.items()}
 
 
 def evaluate_validation(
@@ -297,6 +331,7 @@ def evaluate_validation(
     max_length: int,
     torch: Any,
     device: Any,
+    validation_max_length: int,
 ) -> dict[str, Any]:
     total_nll = 0.0
     total_tokens = 0
@@ -305,6 +340,9 @@ def evaluate_validation(
         batch = tokenize_row(
             tokenizer, build_chat(row), tools, int(max_length)
         )
+        original_len = len(batch["input_ids"])
+        batch = _truncate_batch_tail(batch, validation_max_length)
+        used_len = len(batch["input_ids"])
         inputs = {
             key: torch.tensor(value).unsqueeze(0).to(device)
             for key, value in batch.items()
@@ -313,17 +351,18 @@ def evaluate_validation(
             output = model(
                 input_ids=inputs["input_ids"],
                 attention_mask=inputs["attention_mask"],
-                labels=inputs["labels"],
             )
-        loss = float(output.loss.item())
         nll, count = _assistant_nll(output.logits, inputs["labels"], torch)
         per_row.append(
             {
                 "candidate_id": row["candidate_id"],
                 "task_id": row["task_id"],
-                "loss": loss,
+                "loss": (nll / count) if count else None,
                 "assistant_tokens": count,
                 "assistant_nll": nll,
+                "input_tokens": original_len,
+                "evaluated_tokens": used_len,
+                "truncated": used_len < original_len,
             }
         )
         total_nll += nll
@@ -354,6 +393,16 @@ def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
         "double_quant": True,
     }:
         raise ValueError("Teacher SFT runner only supports the frozen 4-bit NF4 setup")
+    max_length = int(config["max_length"])
+    validation_max_length = config.get("validation_max_length")
+    if (
+        not isinstance(validation_max_length, int)
+        or validation_max_length <= 0
+        or validation_max_length > max_length
+    ):
+        raise ValueError(
+            "Teacher SFT requires 0 < validation_max_length <= max_length"
+        )
     data_dir = (REPO_ROOT / config["data_dir"]).resolve()
     manifest_path = data_dir / "manifest.json"
     manifest = load_json(manifest_path)
@@ -464,6 +513,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     tools = build_tools()
     config = preflight["config"]
     max_length = int(config["max_length"])
+    validation_max_length = int(config["validation_max_length"])
 
     rows = load_jsonl(Path(preflight["data_dataset_path"]))
     train_rows = [row for row in rows if row.get("split") == "TRAIN"]
@@ -491,7 +541,14 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     ).to(device)
     base_model.eval()
     base_metrics = evaluate_validation(
-        base_model, tokenizer, val_rows, tools, max_length, torch, device
+        base_model,
+        tokenizer,
+        val_rows,
+        tools,
+        max_length,
+        torch,
+        device,
+        validation_max_length,
     )
     save_json(output_dir / "evaluation_base.json", base_metrics)
     del base_model
@@ -570,7 +627,14 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     ).to(device)
     sft_model.eval()
     sft_metrics = evaluate_validation(
-        sft_model, tokenizer, val_rows, tools, max_length, torch, device
+        sft_model,
+        tokenizer,
+        val_rows,
+        tools,
+        max_length,
+        torch,
+        device,
+        validation_max_length,
     )
     save_json(output_dir / "evaluation_sft.json", sft_metrics)
     del sft_model
@@ -611,7 +675,11 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
             "elapsed_seconds": round(time.time() - started, 2),
             "train_metrics": result.metrics,
         },
-        "evaluations": {"base": base_metrics, "sft": sft_metrics},
+        "evaluations": {
+            "base": base_metrics,
+            "sft": sft_metrics,
+            "validation_max_length": validation_max_length,
+        },
         "teacher_sft_gate": {
             "passed": gate_passed,
             "base_mean_assistant_loss": base_loss,

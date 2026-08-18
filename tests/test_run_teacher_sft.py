@@ -1,7 +1,18 @@
 import unittest
 import json
 
-from src.training.run_teacher_sft import build_chat, to_chat_messages, tokenize_row
+from src.training.run_teacher_sft import (
+    build_chat,
+    to_chat_messages,
+    tokenize_row,
+    _assistant_nll,
+    _truncate_batch_tail,
+)
+
+try:
+    import torch as _torch
+except ImportError:
+    _torch = None
 
 
 class FakeTokenizer:
@@ -342,6 +353,66 @@ class TokenizeRowFallbackTest(unittest.TestCase):
         ]
         with self.assertRaises(RuntimeError):
             tokenize_row(tokenizer, chat, tools=[], max_length=8192)
+
+class ValidationTruncationTest(unittest.TestCase):
+    def test_truncate_batch_tail_keeps_tail(self):
+        batch = {
+            "input_ids": [0, 1, 2, 3, 4, 5],
+            "attention_mask": [1, 1, 1, 1, 1, 1],
+            "labels": [-100, 1, -100, 3, -100, 5],
+        }
+        out = _truncate_batch_tail(batch, 3)
+        self.assertEqual(out["input_ids"], [3, 4, 5])
+        self.assertEqual(out["attention_mask"], [1, 1, 1])
+        self.assertEqual(out["labels"], [3, -100, 5])
+
+    def test_truncate_batch_tail_noop_within_budget(self):
+        batch = {
+            "input_ids": [1, 2],
+            "attention_mask": [1, 1],
+            "labels": [-100, 2],
+        }
+        self.assertEqual(_truncate_batch_tail(batch, 4), batch)
+
+    def test_truncate_batch_tail_rejects_bad_budget(self):
+        batch = {
+            "input_ids": [1],
+            "attention_mask": [1],
+            "labels": [-100],
+        }
+        with self.assertRaises(ValueError):
+            _truncate_batch_tail(batch, 0)
+
+
+@unittest.skipUnless(_torch is not None, "torch not installed")
+class AssistantNllTest(unittest.TestCase):
+    def test_matches_cross_entropy_on_valid_positions(self):
+        torch = _torch
+        logits = torch.randn(1, 5, 6, dtype=torch.float32)
+        labels = torch.tensor([[2, -100, 4, -100, 5]])
+        expected = 0.0
+        expected_count = 0
+        for shift_index in range(4):
+            target = int(labels[0, shift_index + 1])
+            if target == -100:
+                continue
+            expected += float(
+                torch.nn.functional.cross_entropy(
+                    logits[0, shift_index].unsqueeze(0),
+                    torch.tensor([target]),
+                ).item()
+            )
+            expected_count += 1
+        nll, count = _assistant_nll(logits, labels, torch)
+        self.assertEqual(count, expected_count)
+        self.assertAlmostEqual(nll, expected, places=5)
+
+    def test_no_valid_positions_returns_zero(self):
+        torch = _torch
+        logits = torch.zeros(1, 3, 4)
+        labels = torch.full((1, 3), -100, dtype=torch.long)
+        self.assertEqual(_assistant_nll(logits, labels, torch), (0.0, 0))
+
 
 if __name__ == "__main__":
     unittest.main()
