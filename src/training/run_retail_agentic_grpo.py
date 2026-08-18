@@ -12,6 +12,8 @@ import traceback
 from pathlib import Path
 from typing import Any
 
+from src.training.dirhash import directory_sha256
+
 from src.rl.user_simulator_fail_fast import (
     SYSTEM_FAILURE_LOG_ENV,
     UserSimulatorSystemFailure,
@@ -25,16 +27,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
-
-
-def directory_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    for item in sorted(candidate for candidate in path.rglob("*") if candidate.is_file()):
-        digest.update(item.relative_to(path).as_posix().encode())
-        digest.update(b"\0")
-        digest.update(item.read_bytes())
-        digest.update(b"\0")
-    return digest.hexdigest().upper()
 
 
 def load_json(path: Path) -> dict[str, Any]:

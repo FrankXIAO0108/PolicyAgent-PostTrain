@@ -14,6 +14,8 @@ import traceback
 from pathlib import Path
 from typing import Any, Callable
 
+from src.training.dirhash import directory_sha256
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_DATA_FILES = ("sft.jsonl", "dpo.jsonl", "grpo.jsonl", "holdout.jsonl")
@@ -21,16 +23,6 @@ REQUIRED_DATA_FILES = ("sft.jsonl", "dpo.jsonl", "grpo.jsonl", "holdout.jsonl")
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
-
-
-def directory_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    for file_path in sorted(p for p in path.rglob("*") if p.is_file()):
-        digest.update(file_path.relative_to(path).as_posix().encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(file_path.read_bytes())
-        digest.update(b"\0")
-    return digest.hexdigest().upper()
 
 
 def load_json(path: Path) -> dict[str, Any]:
