@@ -116,37 +116,127 @@ def build_chat(row: dict[str, Any]) -> list[dict[str, Any]]:
     )
 
 
-def _tokenize_with_manual_mask(
+def _without_assistant_output(message: dict[str, Any]) -> dict[str, Any]:
+    """Return the message with any assistant-generated text removed."""
+    if message.get("role") != "assistant":
+        return message
+    if "tool_calls" in message:
+        return {**message, "content": "", "tool_calls": []}
+    return {**message, "content": ""}
+
+
+def _deletion_span(full: str, stripped: str) -> tuple[int, int]:
+    """Return the ``[start, end)`` character range removed from ``full``.
+
+    ``stripped`` is assumed to be ``full`` with one contiguous range removed.
+    The common prefix and common suffix around the removal isolate that range
+    even when the removed text appears elsewhere in the conversation.
+    """
+    limit = min(len(full), len(stripped))
+    prefix = 0
+    while prefix < limit and full[prefix] == stripped[prefix]:
+        prefix += 1
+    suffix = 0
+    while (
+        suffix < len(full) - prefix
+        and suffix < len(stripped) - prefix
+        and full[len(full) - 1 - suffix] == stripped[len(stripped) - 1 - suffix]
+    ):
+        suffix += 1
+    return prefix, len(full) - suffix
+
+
+def _assistant_mask_by_render_diff(
     tokenizer: Any, chat: list[dict[str, Any]], tools: list[Any]
 ) -> tuple[list[int], list[bool]]:
-    """Derive the assistant label mask by diffing tokenized message prefixes.
+    """Derive the assistant label mask without template internals.
 
-    The Qwen3 chat template has no ``{% generation %}`` block, so
-    ``return_assistant_tokens_mask`` is silently unavailable. The tokens each
-    assistant message introduces (header, content or tool-call JSON, boundary
-    token) are identified as the tokens added between consecutive message
-    prefixes. Fails closed if a prefix is not a strict prefix of the next one.
+    ``return_assistant_tokens_mask`` is unavailable because the Qwen3 chat
+    template has no ``{% generation %}`` block. Diffing tokenized message
+    prefixes fails because rendering depends on neighbouring messages, so the
+    whole conversation is rendered once and re-rendered once per assistant
+    message with that message's output emptied. The two renders differ only by
+    the characters that assistant turn introduced, so a common prefix / common
+    suffix diff locates the character span. A reconstruction check fails
+    closed if the template rendering is not a pure per-message deletion. The
+    full string is then tokenized once and the character spans are mapped to
+    token ranges via ``offset_mapping``.
     """
-    mask: list[bool] = []
-    previous: list[int] = []
-    for index in range(len(chat)):
-        current = tokenizer.apply_chat_template(
-            chat[: index + 1],
-            tools=tools,
-            tokenize=True,
-            add_generation_prompt=False,
-        )
-        if isinstance(current, dict):
-            current = [int(value) for value in current["input_ids"]]
-        if current[: len(previous)] != previous:
-            raise RuntimeError(
-                "chat template prefix mismatch; cannot derive assistant mask"
-            )
-        trainable = chat[index].get("role") == "assistant"
-        mask.extend([trainable] * (len(current) - len(previous)))
-        previous = current
-    return previous, mask
+    kwargs = {"tools": tools, "tokenize": False, "add_generation_prompt": False}
+    full = tokenizer.apply_chat_template(chat, **kwargs)
+    if not isinstance(full, str):
+        raise RuntimeError("chat template did not return a rendered string")
 
+    spans: list[tuple[int, int]] = []
+    for index, message in enumerate(chat):
+        if message.get("role") != "assistant":
+            continue
+        modified = list(chat)
+        modified[index] = _without_assistant_output(message)
+        stripped = tokenizer.apply_chat_template(modified, **kwargs)
+        if not isinstance(stripped, str):
+            raise RuntimeError("chat template did not return a rendered string")
+        start, end = _deletion_span(full, stripped)
+        if end <= start:
+            raise RuntimeError(
+                f"could not isolate assistant message {index} in the rendered template"
+            )
+        spans.append((start, end))
+    if not spans:
+        raise ValueError("no assistant turns found in trajectory")
+
+    fully_stripped = tokenizer.apply_chat_template(
+        [_without_assistant_output(message) for message in chat], **kwargs
+    )
+    reconstructed = full
+    for start, end in reversed(spans):
+        reconstructed = reconstructed[:start] + reconstructed[end:]
+    if reconstructed != fully_stripped:
+        raise RuntimeError(
+            "render-diff assistant spans are inconsistent with the template; "
+            "cannot derive assistant mask"
+        )
+
+    encoded = tokenizer(
+        full,
+        add_special_tokens=False,
+        return_offsets_mapping=True,
+        truncation=False,
+        padding=False,
+    )
+    if isinstance(encoded, dict):
+        input_ids = [int(value) for value in encoded["input_ids"]]
+        offset_mapping = encoded["offset_mapping"]
+    else:
+        input_ids = [int(value) for value in encoded.ids]
+        offset_mapping = encoded.offsets
+
+    mask = [False] * len(input_ids)
+    for start, end in spans:
+        # The character diff can be off by one identical boundary character
+        # (for example the ``<`` shared between a ``<tool_call>`` block and
+        # ``<|im_end|>``), so widen the span by a small margin before snapping
+        # to token ranges. The margin stays inside the assistant block because
+        # headers and enders are far wider, so it never reaches user/tool or
+        # system content.
+        start = max(0, start - 4)
+        end = min(len(full), end + 4)
+        first = last = None
+        for index, (char_start, char_end) in enumerate(offset_mapping):
+            if char_end <= start:
+                continue
+            if char_start >= end:
+                break
+            if first is None:
+                first = index
+            last = index
+        if first is None:
+            raise RuntimeError(
+                f"assistant span [{start}:{end}] maps to no tokens; cannot mask"
+            )
+        for index in range(first, last + 1):
+            mask[index] = True
+    return input_ids, mask
 
 def tokenize_row(
     tokenizer: Any,
@@ -168,8 +258,10 @@ def tokenize_row(
         assistant_mask = [bool(value) for value in encoded["assistant_tokens_mask"]]
     except (KeyError, TypeError):
         # Qwen3 template lacks a {% generation %} block, so the native mask is
-        # unavailable; derive it from tokenized message prefixes instead.
-        input_ids, assistant_mask = _tokenize_with_manual_mask(tokenizer, chat, tools)
+        # unavailable; derive it by diffing full-template renders instead.
+        input_ids, assistant_mask = _assistant_mask_by_render_diff(
+            tokenizer, chat, tools
+        )
     if not any(assistant_mask):
         raise ValueError("tokenized sequence has no assistant tokens")
     if len(input_ids) > max_length:
