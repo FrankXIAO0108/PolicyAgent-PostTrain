@@ -297,6 +297,7 @@ def load_runtime(preflight: dict[str, Any]) -> dict[str, Any]:
         DataCollatorForSeq2Seq,
         set_seed,
     )
+    import trl
     from trl import SFTConfig, SFTTrainer
 
     if not torch.cuda.is_available():
