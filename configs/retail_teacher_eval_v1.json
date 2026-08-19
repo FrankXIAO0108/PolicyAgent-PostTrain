@@ -1,0 +1,224 @@
+{
+  "schema_version": "retail-teacher-sft-benchmark-eval-v1",
+  "status": "FROZEN",
+  "scope": "TEACHER_SFT_BENCHMARK_EVAL_V1",
+  "purpose": "Benchmark success-rate comparison of the teacher-SFT model against the base model on Retail tasks that are entity-disjoint from the teacher SFT pool (47 rows / 37 tasks / 146 entity groups).",
+  "claims": {
+    "official_metric": false,
+    "formal_retail_gate_unchanged": true,
+    "development_eval_not_final_gate": true,
+    "business_improvement_claim_allowed": false,
+    "official_test_split_used_development_only": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "tasks": [
+    {
+      "task_id": "19",
+      "source": "train_candidates",
+      "reason": "You want to return the water bottle, and exchange the pet bed and office chair to the cheapest version. Mention the two things together and you want to get both…"
+    },
+    {
+      "task_id": "24",
+      "source": "train_candidates",
+      "reason": "You want to cancel the grill, but if the agent asks you to confirm, you regret and want to keep it. You then want to ask which two t-shirts you have ordered in …"
+    },
+    {
+      "task_id": "37",
+      "source": "train_candidates",
+      "reason": "You just placed an order but you realize that your card has only $1150 credit left, but the order total is more than $1160. You wonder if the agent can help spl…"
+    },
+    {
+      "task_id": "43",
+      "source": "train_candidates",
+      "reason": "You ordered some things for your daughter but she has not received them, so you want to know which address the order was sent to, the tracking number, and if th…"
+    },
+    {
+      "task_id": "50",
+      "source": "train_candidates",
+      "reason": "You're in a rush and you want to undo cancelling an order that you've previously placed. Be insistent that the customer service agent should undo the cancellati…"
+    },
+    {
+      "task_id": "59",
+      "source": "train_candidates",
+      "reason": "You recently placed two orders, and now you would like to make several changes and checks. You'll first inquire about the status difference between your two ord…"
+    },
+    {
+      "task_id": "66",
+      "source": "train_candidates",
+      "reason": "You want to change the luggage set in your order for a coat. Your goal is to change the order. If there is no way to do that, return the item specifically. If t…"
+    },
+    {
+      "task_id": "67",
+      "source": "train_candidates",
+      "reason": "You want to check how much you paid for the order that you most recently placed. You are not sure how long ago the order was placed."
+    },
+    {
+      "task_id": "72",
+      "source": "train_candidates",
+      "reason": "You made some mistake and sent an order your son's address in Washington DC, and you want to modify it to your default address in Charlotte instead (you do not …"
+    },
+    {
+      "task_id": "76",
+      "source": "train_candidates",
+      "reason": "You ordered a fleece jacket by mistake and want to remove it from your pending order. If removing one item is not possible, cancel the whole order since you ord…"
+    },
+    {
+      "task_id": "89",
+      "source": "train_candidates",
+      "reason": "You want to know what is the cheapest available mechanical keyboard right now and its options. If it is less than 200 bucks you want to exchange your current on…"
+    },
+    {
+      "task_id": "105",
+      "source": "train_candidates",
+      "reason": "For order #W4316152, you want to exchange one Tea Kettle {'material': 'glass', 'capacity': '2 liters', 'stovetop compatibility': 'induction'} to {'material': 'c…"
+    },
+    {
+      "task_id": "107",
+      "source": "train_candidates",
+      "reason": "You received hiking boots that seem like they were already worn, you are unhappy about it and want to ask for a new pair with the same specs. If the agent doesn…"
+    },
+    {
+      "task_id": "18",
+      "source": "test_clean",
+      "reason": "You want to return the office chair because it came with some broken pieces. But if the agent asks you for confirm, you say you want to rethink for a while, and…"
+    },
+    {
+      "task_id": "36",
+      "source": "test_clean",
+      "reason": "You just placed an order but you realize that your card has only $1131 credit left, but the order total is more than $1160. You wonder if the agent can help spl…"
+    },
+    {
+      "task_id": "38",
+      "source": "test_clean",
+      "reason": "You just placed an order but you realize that your card has only $950 credit left, but the order total is more than $1100. You wonder if the agent can help spli…"
+    },
+    {
+      "task_id": "39",
+      "source": "test_clean",
+      "reason": "You just moved from Florida to Phoenix. Unfortunately your address is still the old one, and you want to update it. Your current address should be in your recen…"
+    },
+    {
+      "task_id": "40",
+      "source": "test_clean",
+      "reason": "You want to know how much balance does your gift card have. Also, for your recent order, whether you used your visa, mastercard, or amex credit card. You also w…"
+    },
+    {
+      "task_id": "64",
+      "source": "test_clean",
+      "reason": "You want to exchange the camera for the highest resolution, waterproof camera that you can get with the previous purchaced price."
+    },
+    {
+      "task_id": "65",
+      "source": "test_clean",
+      "reason": "You want to exchange the bookshelf from your most recent order for a camera that is closest but not more expensive than the price of the bookshelf."
+    },
+    {
+      "task_id": "68",
+      "source": "test_clean",
+      "reason": "You want to check how much you paid for the order that you most recently placed. You are not sure how long ago the order was placed."
+    },
+    {
+      "task_id": "71",
+      "source": "test_clean",
+      "reason": "You made some mistake and ordered an order sent to your son's address in Washington DC, and you want to modify it to your default address in Charlotte (you do n…"
+    },
+    {
+      "task_id": "74",
+      "source": "test_clean",
+      "reason": "You recently bought a laptop, but you want to exchange it to i9 CPU. If multiple storage options are available, you prefer 256GB SSD. If multiple colors are ava…"
+    },
+    {
+      "task_id": "77",
+      "source": "test_clean",
+      "reason": "You ordered a perfume and you just tried a little bit and you like it a lot. You want to get the maximum size available for it."
+    },
+    {
+      "task_id": "79",
+      "source": "test_clean",
+      "reason": "You just bought a water bottle with 500ml but you regret it, and you want to change it to the other bottle you just placed with 1000ml capacity. If the exact it…"
+    },
+    {
+      "task_id": "90",
+      "source": "test_clean",
+      "reason": "You want to know if the digital camera you just bought is 10x zoom. If not, modify the item to 10x zoom without changing the other options. If 10x zoom is not a…"
+    },
+    {
+      "task_id": "100",
+      "source": "test_clean",
+      "reason": "You want to return your luggage set and get the exact same item but with red color, and return you skateboard in the same order to get a new one with features {…"
+    },
+    {
+      "task_id": "101",
+      "source": "test_clean",
+      "reason": "You just placed an order with two watches, you want to change its address to your New York address (you don't want to reveal it but it's in your other order). Y…"
+    },
+    {
+      "task_id": "102",
+      "source": "test_clean",
+      "reason": "You just placed an order with two watches, you want to change its address to your New York address (you don't want to reveal it but it's in your other order). Y…"
+    },
+    {
+      "task_id": "108",
+      "source": "test_clean",
+      "reason": "You want to return everything but a tablet in a recently delivered order. There is an E-Reader in the order that you want to return."
+    }
+  ],
+  "entity_gate": {
+    "groups_path": "data/retail_teacher_eval_v1/teacher_sft_entity_groups.json",
+    "groups_sha256": "B8A5D4B321AA16F49A56B8FE15CDD5E7381209F5B3EE16098133800C372F3836",
+    "must_be_disjoint": true
+  },
+  "agent": {
+    "implementation": "llm_agent",
+    "temperature": 0,
+    "api_base": "http://localhost:8000/v1"
+  },
+  "user": {
+    "implementation": "user_simulator",
+    "model": "deepseek/deepseek-chat",
+    "temperature": 0
+  },
+  "nl_judge": {
+    "model": "deepseek/deepseek-chat",
+    "temperature": 0
+  },
+  "model_runs": [
+    {
+      "name": "base",
+      "vllm_model": "Qwen3-4B-Instruct-2507",
+      "litellm_model": "openai/Qwen3-4B-Instruct-2507",
+      "checkpoint": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+      "expected_sha256": "F34D14D691C94109D42451A4C9E63391FCEDEFFA43571AF6B63EF2F421EF1737"
+    },
+    {
+      "name": "sft",
+      "vllm_model": "Qwen3-4B-Instruct-2507",
+      "litellm_model": "openai/Qwen3-4B-Instruct-2507",
+      "checkpoint": "/root/autodl-tmp/teacher_sft_v1/teacher_sft_merged",
+      "expected_sha256": "2A19D74C527AD01290D9E70C049F5604A8167C5BBC32BCD77D08E84B3740D289"
+    }
+  ],
+  "evaluation": {
+    "type": "ALL_WITH_NL_ASSERTIONS",
+    "num_trials": 1,
+    "seed": 20260818,
+    "max_steps": 120,
+    "max_errors": 5,
+    "max_concurrency": 1,
+    "max_retries": 0
+  },
+  "known_limitations": [
+    "1 trial per task at temperature 0; does not match the 4-trial leaderboard protocol.",
+    "Agent is served by local vLLM; user simulator and NL judge run on DeepSeek, mirroring the frozen baseline.",
+    "The 17 test_clean tasks are from the official test split but are the only test tasks entity-disjoint from training; results are development evidence, not a formal gate pass.",
+    "Entity isolation is verified from task-definition text only; runtime environment state (shared Retail DB) is not part of the check.",
+    "NL assertions are judged by an LLM (DeepSeek); judge variance is possible even at temperature 0."
+  ]
+}
