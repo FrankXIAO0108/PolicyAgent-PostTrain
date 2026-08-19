@@ -374,6 +374,21 @@ def run(
     return manifest
 
 
+def select_smoke_task(validated: dict[str, Any], smoke_task: str | None) -> dict[str, Any]:
+    """Restrict the run to one task id while keeping the validated protocol."""
+    if not smoke_task:
+        return validated
+    rows = [row for row in validated["task_rows"] if str(row["task_id"]) == smoke_task]
+    if not rows:
+        raise ValueError(
+            f"unknown --smoke-task {smoke_task!r}; not in the eval task set"
+        )
+    filtered = dict(validated)
+    filtered["task_rows"] = rows
+    filtered["task_ids"] = [str(row["task_id"]) for row in rows]
+    return filtered
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Run the teacher-SFT benchmark evaluation."
@@ -381,11 +396,13 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--config", default=str(DEFAULT_CONFIG))
     parser.add_argument("--output-dir", help="required unless --validate-only")
     parser.add_argument("--run-name", help="model_run name (base | sft); required unless --validate-only")
+    parser.add_argument("--smoke-task", help="run a single task id (smoke) instead of the full task set")
     parser.add_argument("--validate-only", action="store_true")
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args(argv)
 
     validated = validate_config(Path(args.config))
+    validated = select_smoke_task(validated, args.smoke_task)
     if args.validate_only:
         print(
             json.dumps(
@@ -403,6 +420,7 @@ def main(argv: list[str] | None = None) -> None:
                         for source in ("train_candidates", "test_clean")
                     },
                     "model_runs": [run["name"] for run in validated["model_runs"]],
+                    "smoke_task": args.smoke_task,
                     "num_trials": validated["num_trials"],
                     "seed": validated["seed"],
                     "entity_gate_verified": True,
@@ -423,6 +441,8 @@ def main(argv: list[str] | None = None) -> None:
             f"unknown --run-name {args.run_name!r}; "
             f"available: {sorted(validated['model_runs_by_name'])}"
         )
+    if args.smoke_task:
+        print(f"SMOKE_TASK={args.smoke_task}")
     manifest = run(
         validated,
         Path(args.output_dir),

@@ -8,6 +8,7 @@ from src.training.run_teacher_eval import (
     DEFAULT_CONFIG,
     SCOPE_PREFIX,
     entity_overlap,
+    select_smoke_task,
     validate_config,
 )
 
@@ -61,6 +62,22 @@ class TeacherEvalConfigTests(unittest.TestCase):
         )
         self.assertEqual(validated["num_trials"], 1)
         self.assertEqual(validated["seed"], 20260818)
+
+    def test_select_smoke_task_filters_rows(self):
+        validated = validate_config(DEFAULT_CONFIG)
+        filtered = select_smoke_task(validated, "19")
+        self.assertEqual(filtered["task_ids"], ["19"])
+        self.assertEqual(len(filtered["task_rows"]), 1)
+        self.assertEqual(filtered["task_rows"][0]["source"], "train_candidates")
+
+    def test_select_smoke_task_none_passthrough(self):
+        validated = validate_config(DEFAULT_CONFIG)
+        self.assertIs(select_smoke_task(validated, None), validated)
+
+    def test_select_smoke_task_rejects_unknown(self):
+        validated = validate_config(DEFAULT_CONFIG)
+        with self.assertRaises(ValueError):
+            select_smoke_task(validated, "999")
 
     def test_rejects_wrong_scope(self):
         payload = load_real_config()
