@@ -215,6 +215,29 @@ def build_summary(
     }
 
 
+def build_agent_llm_args(agent_config: dict[str, Any]) -> dict[str, Any]:
+    """Build litellm kwargs for the served agent model.
+
+    litellm requires credentials even for local OpenAI-compatible servers.
+    vLLM ignores the key value, so local endpoints get a placeholder unless
+    the config explicitly provides an api_key.
+    """
+    api_base = str(agent_config["api_base"])
+    args: dict[str, Any] = {
+        "temperature": agent_config["temperature"],
+        "api_base": api_base,
+    }
+    if "api_key" in agent_config:
+        args["api_key"] = str(agent_config["api_key"])
+    elif api_base.startswith(("http://localhost", "http://127.0.0.1")):
+        args["api_key"] = "EMPTY"
+    else:
+        raise ValueError(
+            "agent.api_key is required when api_base is not a local endpoint"
+        )
+    return args
+
+
 def run(
     validated: dict[str, Any],
     output_dir: Path,
@@ -280,10 +303,7 @@ def run(
     from tau2.evaluator.evaluator import EvaluationType
     from tau2.run import get_tasks, run_tasks
 
-    agent_llm_args: dict[str, Any] = {
-        "temperature": config["agent"]["temperature"],
-        "api_base": config["agent"]["api_base"],
-    }
+    agent_llm_args = build_agent_llm_args(config["agent"])
     user = config["user"]
     evaluation = config["evaluation"]
 

@@ -7,6 +7,7 @@ from pathlib import Path
 from src.training.run_teacher_eval import (
     DEFAULT_CONFIG,
     SCOPE_PREFIX,
+    build_agent_llm_args,
     entity_overlap,
     select_smoke_task,
     validate_config,
@@ -149,6 +150,30 @@ class TeacherEvalConfigTests(unittest.TestCase):
         payload = {"id": "99", "text": "no shared entities here"}
         self.assertEqual(entity_overlap(payload, ["ivan_hernandez_6923"]), [])
 
+
+    def test_build_agent_llm_args_local_gets_placeholder_key(self):
+        args = build_agent_llm_args(
+            {"temperature": 0.0, "api_base": "http://localhost:8000/v1"}
+        )
+        self.assertEqual(args["api_key"], "EMPTY")
+        self.assertEqual(args["temperature"], 0.0)
+        self.assertEqual(args["api_base"], "http://localhost:8000/v1")
+
+    def test_build_agent_llm_args_explicit_key_wins(self):
+        args = build_agent_llm_args(
+            {
+                "temperature": 0.0,
+                "api_base": "http://localhost:8000/v1",
+                "api_key": "sk-real",
+            }
+        )
+        self.assertEqual(args["api_key"], "sk-real")
+
+    def test_build_agent_llm_args_remote_requires_key(self):
+        with self.assertRaises(ValueError):
+            build_agent_llm_args(
+                {"temperature": 0.0, "api_base": "https://api.example.com/v1"}
+            )
 
 if __name__ == "__main__":
     unittest.main()
