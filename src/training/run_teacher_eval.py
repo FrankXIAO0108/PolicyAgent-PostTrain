@@ -176,6 +176,7 @@ def build_summary(
     *,
     per_task: list[dict[str, Any]],
     failures: list[dict[str, Any]],
+    infrastructure_failures: list[dict[str, Any]],
     validated: dict[str, Any],
     run_name: str,
     model_run: dict[str, Any],
@@ -192,7 +193,7 @@ def build_summary(
         }
     succeeded = sum(1 for row in per_task if row["success"])
     return {
-        "schema_version": "retail-teacher-sft-benchmark-eval-summary-v1",
+        "schema_version": "retail-teacher-sft-benchmark-eval-summary-v2",
         "run_name": run_name,
         "model": {
             "vllm_model": model_run["vllm_model"],
@@ -211,7 +212,38 @@ def build_summary(
             "overall": round(succeeded / len(per_task), 4) if per_task else None,
             "by_source": by_source,
         },
+        "coverage": {
+            "expected_tasks": len(validated["task_ids"]),
+            "evaluated_tasks": len(per_task),
+            "infrastructure_failure_tasks": len(
+                {row["task_id"] for row in infrastructure_failures}
+            ),
+            "system_failure_tasks": len({row["task_id"] for row in failures}),
+        },
+        "infrastructure_failures": infrastructure_failures,
         "system_failures": failures,
+    }
+
+
+def simulation_infrastructure_failure(
+    simulation: Any,
+    *,
+    task_id: str,
+    source: str,
+    trial_index: int,
+) -> dict[str, Any] | None:
+    """Describe an unscored simulation without treating it as model failure."""
+    if simulation.reward_info is not None:
+        return None
+    info = simulation.info if isinstance(simulation.info, dict) else {}
+    return {
+        "task_id": task_id,
+        "source": source,
+        "trial_index": trial_index,
+        "simulation_id": str(getattr(simulation, "id", "")),
+        "termination_reason": getattr(simulation, "termination_reason", None),
+        "error_type": info.get("error_type") or "MissingRewardInfo",
+        "message": info.get("error") or "Simulation returned no reward_info",
     }
 
 
@@ -310,6 +342,7 @@ def run(
     private_dir = output_dir / "private_evaluation"
     private_dir.mkdir(parents=True, exist_ok=True)
     failures: list[dict[str, Any]] = []
+    infrastructure_failures: list[dict[str, Any]] = []
     per_task: list[dict[str, Any]] = []
     for row in validated["task_rows"]:
         task_id = str(row["task_id"])
@@ -345,12 +378,23 @@ def run(
                 save_to=task_dir / "returned_results.json",
             )
             simulations = results.simulations
-            rewards = [
-                float(sim.reward_info.reward)
-                if sim.reward_info is not None
-                else 0.0
-                for sim in simulations
+            task_infrastructure_failures = [
+                failure
+                for trial_index, sim in enumerate(simulations)
+                if (
+                    failure := simulation_infrastructure_failure(
+                        sim,
+                        task_id=task_id,
+                        source=str(row["source"]),
+                        trial_index=trial_index,
+                    )
+                )
+                is not None
             ]
+            if task_infrastructure_failures:
+                infrastructure_failures.extend(task_infrastructure_failures)
+                continue
+            rewards = [float(sim.reward_info.reward) for sim in simulations]
             per_task.append(
                 {
                     "task_id": task_id,
@@ -375,6 +419,7 @@ def run(
     summary = build_summary(
         per_task=per_task,
         failures=failures,
+        infrastructure_failures=infrastructure_failures,
         validated=validated,
         run_name=run_name,
         model_run=model_run,
@@ -382,10 +427,15 @@ def run(
     write_json(output_dir / "eval_summary.json", summary)
     manifest.update(
         {
-            "status": "COMPLETED_WITH_FAILURES" if failures else "COMPLETED",
+            "status": (
+                "COMPLETED_WITH_FAILURES"
+                if failures or infrastructure_failures
+                else "COMPLETED"
+            ),
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "task_count": len(validated["task_ids"]),
             "completed_tasks": len(per_task),
+            "infrastructure_failures": infrastructure_failures,
             "system_failures": failures,
             "summary_sha256": sha256(output_dir / "eval_summary.json"),
         }

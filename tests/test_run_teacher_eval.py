@@ -3,13 +3,16 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from src.training.run_teacher_eval import (
     DEFAULT_CONFIG,
     SCOPE_PREFIX,
     build_agent_llm_args,
+    build_summary,
     entity_overlap,
     select_smoke_task,
+    simulation_infrastructure_failure,
     validate_config,
 )
 
@@ -174,6 +177,85 @@ class TeacherEvalConfigTests(unittest.TestCase):
             build_agent_llm_args(
                 {"temperature": 0.0, "api_base": "https://api.example.com/v1"}
             )
+
+
+class TeacherEvalReportingTests(unittest.TestCase):
+    def test_scored_simulation_is_not_infrastructure_failure(self):
+        simulation = SimpleNamespace(
+            id="sim-ok",
+            reward_info=SimpleNamespace(reward=0.0),
+            termination_reason="user_stop",
+            info={},
+        )
+        self.assertIsNone(
+            simulation_infrastructure_failure(
+                simulation,
+                task_id="100",
+                source="test_clean",
+                trial_index=0,
+            )
+        )
+
+    def test_missing_reward_preserves_infrastructure_error_details(self):
+        simulation = SimpleNamespace(
+            id="sim-infra",
+            reward_info=None,
+            termination_reason="infrastructure_error",
+            info={
+                "error_type": "ContextWindowExceededError",
+                "error": "maximum context length exceeded",
+            },
+        )
+        failure = simulation_infrastructure_failure(
+            simulation,
+            task_id="100",
+            source="test_clean",
+            trial_index=0,
+        )
+        self.assertEqual(failure["task_id"], "100")
+        self.assertEqual(failure["source"], "test_clean")
+        self.assertEqual(failure["termination_reason"], "infrastructure_error")
+        self.assertEqual(failure["error_type"], "ContextWindowExceededError")
+        self.assertIn("maximum context", failure["message"])
+
+    def test_summary_excludes_infrastructure_failure_from_success_denominator(self):
+        validated = {
+            "task_ids": ["59", "100"],
+            "num_trials": 1,
+            "seed": 20260818,
+            "config": {
+                "evaluation": {"type": "ALL_WITH_NL_ASSERTIONS"},
+                "agent": {"temperature": 0.0},
+            },
+        }
+        infrastructure_failures = [
+            {
+                "task_id": "100",
+                "source": "test_clean",
+                "trial_index": 0,
+                "error_type": "ContextWindowExceededError",
+            }
+        ]
+        summary = build_summary(
+            per_task=[
+                {
+                    "task_id": "59",
+                    "source": "train_candidates",
+                    "reward": 1.0,
+                    "success": True,
+                }
+            ],
+            failures=[],
+            infrastructure_failures=infrastructure_failures,
+            validated=validated,
+            run_name="sft",
+            model_run={"vllm_model": "model", "litellm_model": "openai/model"},
+        )
+        self.assertEqual(summary["success_rate"]["overall"], 1.0)
+        self.assertEqual(summary["coverage"]["expected_tasks"], 2)
+        self.assertEqual(summary["coverage"]["evaluated_tasks"], 1)
+        self.assertEqual(summary["coverage"]["infrastructure_failure_tasks"], 1)
+        self.assertEqual(summary["infrastructure_failures"], infrastructure_failures)
 
 if __name__ == "__main__":
     unittest.main()
