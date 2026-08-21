@@ -303,7 +303,7 @@ Precision/Recall/F1 或生产可靠性结论。治理边界见
 | Tool error 分层诊断 | 31 次错误分为 13 次身份查询未命中、3 次其他读取错误、15 次写工具错误；豁免身份查询的反事实排序仍为 7/8，不修改 Reward |
 | 多实体写操作审计 | 13 条轨迹含 22 次多物品写调用；Tool 成功不能区分最终结果，重复 item ID 可表示合法数量，不新增重复 Reward |
 | 写前确认联合约束 | 修正批量确认状态机后，74 次写中 59 次通过、15 次缺确认；成功轨迹仍有 4 次缺确认，尚未接入 Reward |
-| 确认参数绑定诊断 | 合成契约 18/18；真实已确认写操作为 34 PASS、18 REVIEW、7 NOT_EVALUABLE，缺少独立真实轨迹金标，不接入 Reward |
+| 确认参数绑定诊断 | 合成契约 18/18；真实写操作为 34 PASS、18 REVIEW、7 NOT_EVALUABLE；18 条 REVIEW 的 Codex 预标注为 14 ACCEPTABLE、4 POLICY_VIOLATION，仍待项目所有者复核，不接入 Reward |
 | 正式 Retail DPO | 未运行；偏好数据与独立验证门禁未通过 |
 | 正式 Retail Agentic GRPO | 未运行；Reward holdout 与抗钻空子门禁未通过 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
@@ -389,7 +389,7 @@ src/
 
 完整 V7 重放测试需要使用已安装上游依赖的 tau2 虚拟环境；仅运行不依赖 tau2 的
 单元测试时也可使用当前项目 Python。2026-08-21 使用 `D:\tau2-bench\.venv` 完整回归：
-`308 passed, 2 skipped, 1 warning, 12 subtests passed`。唯一 warning 为 Python `audioop`
+`313 passed, 2 skipped, 1 warning, 12 subtests passed`。唯一 warning 为 Python `audioop`
 弃用提示；2 个 skip 需按各测试自身条件解释，不能写成 296/296。
 
 ### 重放 V7
