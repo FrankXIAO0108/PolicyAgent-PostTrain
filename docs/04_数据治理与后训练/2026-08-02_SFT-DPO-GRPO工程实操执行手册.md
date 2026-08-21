@@ -4,7 +4,7 @@
 
 当前正式 Retail 后训练门禁仍然关闭：20 条开发轨迹的政策标签均为
 `PROVISIONAL`，独立裁决金标为 0，因而不能把它们释放成正式 SFT、DPO 或 GRPO
-数据。另一方面，求职作品需要证明本人真正操作过三类训练，而不只是写过门禁和概念文档。
+数据。另一方面，隔离工程实验用于验证三类训练链路确实可执行，而不只是停留在门禁和概念设计。
 
 本仓库因此新增一条与正式实验严格隔离的工程实操路线：
 
@@ -145,7 +145,7 @@ bash scripts/run_posttrain_stage.sh "$CONFIG" "$RUN_DIR" grpo
 }
 ```
 
-才允许在简历中使用：
+才允许发布以下完成性结论：
 
 > 在隔离合成工具调用数据上完成 SFT→DPO→GRPO 工程闭环实操：基于 Qwen2.5-0.5B
 > 依次进行 LoRA SFT、合规偏好 DPO 与多维程序化 Verifier Reward 的 GRPO，固化各阶段
@@ -158,7 +158,7 @@ bash scripts/run_posttrain_stage.sh "$CONFIG" "$RUN_DIR" grpo
 模型哈希和失败分析见
 [云端后训练完整实跑报告](../2026-08-02_posttrain_cloud_run_report.md)。
 
-## 7. 面试时如何说明与正式主线的关系
+## 7. 与正式主线的关系
 
 可以直接回答：
 

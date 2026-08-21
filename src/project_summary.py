@@ -36,7 +36,7 @@ def _active_flags(task: dict[str, Any]) -> list[str]:
     ]
 
 
-def build_portfolio_demo(project_root: Path) -> dict[str, Any]:
+def build_project_summary(project_root: Path) -> dict[str, Any]:
     root = project_root.resolve()
     evaluation_path = root / "reports" / "evaluation" / "final_report.json"
     guard_path = (
@@ -103,7 +103,7 @@ def build_portfolio_demo(project_root: Path) -> dict[str, Any]:
     summary = evaluation["summary"]
     guard_summary = guard["summary"]
     return {
-        "schema_version": "policy-agent-portfolio-demo-v1.0",
+        "schema_version": "policy-agent-project-summary-v1.0",
         "project": "PolicyAgent-PostTrain",
         "positioning": (
             "构建于上游 tau2-bench Retail 环境之上的可复现 Tool Agent "
@@ -118,7 +118,7 @@ def build_portfolio_demo(project_root: Path) -> dict[str, Any]:
             "official_failure_count": summary["failure_count"],
             "failure_task_ids": summary["failure_task_ids"],
             "system_failure_count": 0,
-            "new_llm_calls_for_demo": 0,
+            "new_llm_calls_for_summary": 0,
         },
         "comparison": {
             "v6_llm_failure_recall": v6["recall"],
@@ -149,11 +149,11 @@ def build_portfolio_demo(project_root: Path) -> dict[str, Any]:
         },
         "cases": cases,
         "post_training_status": {
-            "sft_completed": False,
-            "dpo_completed": False,
-            "rlhf_or_grpo_completed": False,
+            "development_teacher_sft_completed": True,
+            "formal_retail_dpo_completed": False,
+            "formal_retail_agentic_grpo_completed": False,
             "reason": (
-                "全部政策标签仍为 provisional，训练数据发布门禁保持关闭。"
+                "过程 Reward 的独立验证与抗钻空子门禁尚未通过。"
             ),
         },
         "evidence": {
@@ -169,13 +169,36 @@ def build_portfolio_demo(project_root: Path) -> dict[str, Any]:
                 "path": comparison_path.relative_to(root).as_posix(),
                 "sha256": _sha256(comparison_path),
             },
+            "teacher_sft_report": {
+                "path": (
+                    "docs/04_数据治理与后训练/"
+                    "2026-08-21_教师SFT多种子稳定性与扩窗补跑报告.md"
+                ),
+                "sha256": _sha256(
+                    root
+                    / "docs/04_数据治理与后训练/"
+                    "2026-08-21_教师SFT多种子稳定性与扩窗补跑报告.md"
+                ),
+            },
+            "process_reward_report": {
+                "path": (
+                    "docs/04_数据治理与后训练/"
+                    "2026-08-21_过程Reward离线正向验证报告.md"
+                ),
+                "sha256": _sha256(
+                    root
+                    / "docs/04_数据治理与后训练/"
+                    "2026-08-21_过程Reward离线正向验证报告.md"
+                ),
+            },
         },
         "boundaries": [
             "20 任务实验是冻结开发基线，不是排行榜成绩。",
             "V7 指标衡量冻结产物的重放一致性。",
             "Guard 拦截是离线证据，不是在线恢复率结论。",
             "独立裁决的政策标签数量为 0。",
-            "不声明 SFT、DPO、RLHF 或 GRPO 带来了提升。",
+            "开发级教师 SFT 结果不等同于正式业务提升。",
+            "不声明 DPO、RLHF 或 GRPO 带来了提升。",
         ],
     }
 
@@ -185,7 +208,7 @@ def render_markdown(demo: dict[str, Any]) -> str:
     comparison = demo["comparison"]
     guard = demo["guard"]
     lines = [
-        "# PolicyAgent-PostTrain — 可验证作品演示",
+        "# PolicyAgent-PostTrain — 冻结证据摘要",
         "",
         f"> {demo['thesis']}",
         "",
@@ -197,7 +220,7 @@ def render_markdown(demo: dict[str, Any]) -> str:
             f"{scope['official_failure_count']} 失败，0 系统失败"
         ),
         f"- 失败任务：{', '.join(scope['failure_task_ids'])}",
-        "- 本演示新增 LLM 调用：0",
+        "- 生成摘要新增 LLM 调用：0",
         "",
         "## 为什么不能只依赖轨迹 LLM Judge",
         "",
@@ -255,11 +278,11 @@ def render_markdown(demo: dict[str, Any]) -> str:
             "",
             "## 后训练状态",
             "",
-            "- SFT：未运行",
-            "- DPO：未运行",
-            "- RLHF/GRPO：未运行",
+            "- 开发级教师 SFT：已完成三 seed 训练、合并与 30-task 开发重评测",
+            "- 正式 Retail DPO：未运行",
+            "- 正式 Retail Agentic GRPO：未运行",
             (
-                "- 原因：独立人工金标为 0，训练数据发布门禁保持关闭。"
+                "- 原因：过程 Reward 的独立验证与抗钻空子门禁尚未通过。"
             ),
             "",
             "## 证据边界",
@@ -272,7 +295,7 @@ def render_markdown(demo: dict[str, Any]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="从本地冻结产物生成求职展示。"
+        description="从本地冻结产物生成项目证据摘要。"
     )
     parser.add_argument(
         "--project-root",
@@ -287,7 +310,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
-    demo = build_portfolio_demo(args.project_root)
+    demo = build_project_summary(args.project_root)
     rendered = (
         render_markdown(demo)
         if args.format == "markdown"

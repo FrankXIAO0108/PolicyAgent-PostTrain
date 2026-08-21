@@ -252,7 +252,7 @@ DPO 优化了 preference margin，却破坏工具名；GRPO 有正确 reward 信
 - adapter、merged model、checkpoint、loss history、四阶段评测、环境及绑定哈希均
   已核验。
 
-## 9. 面试表达
+## 9. 结果解释边界
 
 ### 90 秒版本
 

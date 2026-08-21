@@ -12,7 +12,7 @@ if (Test-Path -LiteralPath $preferredPython) {
 
 Push-Location $projectRoot
 try {
-    & $python -m src.portfolio_demo --project-root $projectRoot
+    & $python -m src.project_summary --project-root $projectRoot
     exit $LASTEXITCODE
 }
 finally {

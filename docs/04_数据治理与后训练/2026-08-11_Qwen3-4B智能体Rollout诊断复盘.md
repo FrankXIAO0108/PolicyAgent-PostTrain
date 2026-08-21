@@ -147,7 +147,7 @@ GRPO 需要同一 prompt 的候选之间存在可归因的质量差异。当前�
 4. 只有工具调用率、customer continuation、action progress 和 reward 方差同时通过，才做 GRPO；
 5. 正式 Retail 改进结论仍需独立金标与冻结评测，当前门禁保持关闭。
 
-## 8. 面试表达
+## 8. 结果解释边界
 
 可以如实表述：
 

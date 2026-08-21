@@ -22,7 +22,7 @@
 → 具备可靠监督后再进入 SFT / DPO / GRPO
 ```
 
-## 30 秒离线演示
+## 离线证据摘要
 
 演示不需要 API Key、不调用模型、不付费，也不需要重新运行 tau2。它只读取
 仓库中冻结并带哈希的报告：
@@ -35,7 +35,7 @@ cd <PolicyAgent-PostTrain 仓库路径>
 等价的 Python 命令：
 
 ```powershell
-python -m src.portfolio_demo
+python -m src.project_summary
 ```
 
 演示内容包括：
@@ -47,12 +47,11 @@ python -m src.portfolio_demo
 - 正式 Retail SFT、DPO、RLHF/GRPO 门禁仍关闭的原因；
 - 所有结果的实验边界。
 
-求职材料：
+项目文档：
 
 - [全部文档的中文分类导航](docs/README.md)
 - [项目完成报告](docs/01_项目总览/项目完成情况报告.md)
-- [面试讲解手册与中英文简历表述](docs/05_求职与面试/面试讲解手册.md)
-- [中文冻结演示输出](reports/portfolio_demo_zh/demo.md)
+- [项目完整工程复盘](docs/01_项目总览/项目完整工程复盘.md)
 
 ## 项目与上游的边界
 
@@ -293,10 +292,12 @@ Precision/Recall/F1 或生产可靠性结论。治理边界见
 | Verifier 开发版 | 已完成 |
 | Runtime Guard 原型与离线审计 | 已完成 |
 | 独立人工政策金标 | 未获得 |
-| 正式 SFT 数据集 | 门禁关闭 |
-| 正式 Retail SFT 与冻结重评测 | 门禁关闭，未运行 |
-| 正式 Retail DPO | 门禁关闭，未运行 |
-| 正式 Retail RLHF / GRPO | 门禁关闭，未运行 |
+| 开发级教师 SFT 数据 | 34 条 TRAIN、13 条实体隔离 VALIDATION；项目所有者复核，不是独立专家 gold |
+| Qwen3-4B 教师 SFT | 三个训练 seed、80 steps、merge 与 30-task 开发重评测已完成 |
+| 教师 SFT 行为结果 | seed18/19/20 开发视图为 17/30、16/30、16/30；多 seed 逐任务一致率 73.3% |
+| 过程 Reward 离线审计 | 8 个翻转对中成功轨迹排序更高 7/8；task67 标量分数并列 |
+| 正式 Retail DPO | 未运行；偏好数据与独立验证门禁未通过 |
+| 正式 Retail Agentic GRPO | 未运行；Reward holdout 与抗钻空子门禁未通过 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
 | Qwen3-4B 隔离 Tool SFT warmup | 80-step QLoRA、merge 与 20 条同分布 holdout 已完成；不代表业务提升 |
 | 隔离真实多轮 Retail Agentic RL | 1-step 工程 sanity 与 Base 模型 32 条无更新 rollout 已完成；尚无有效 RL 改善证据 |
@@ -313,23 +314,21 @@ SFT→DPO→GRPO GPU 工程实操包，使用开发者合成工具调用数据�
 [云端后训练完整实跑报告](docs/2026-08-02_posttrain_cloud_run_report.md)与
 [SFT→DPO→GRPO 工程实操执行手册](docs/04_数据治理与后训练/2026-08-02_SFT-DPO-GRPO工程实操执行手册.md)。
 
-2026-08-11 新增真实多轮 Retail Agentic RL 路线：使用 tau2 Retail 的动态客户、
+2026-08-11 起，项目建立真实多轮 Retail Agentic RL 路线：使用 tau2 Retail 的动态客户、
 数据库工具和终态检查，将一对一必要动作进度、沟通完成度、工具错误、重复调用与非预期
-写操作组成轨迹级过程奖励。44 条 train、10 条 validation、既有 20 条 development audit
-已严格拆分，官方 test 保留。云端已完成 1-step 工程 sanity，以及 Qwen3-4B Base 的
-8-task、每任务 4 候选、共 32 条无权重更新 rollout 诊断。该诊断出现 0/32 工具调用，
-因此不支持直接扩大 GRPO。随后完成隔离 Tool SFT warmup；其 20 条同分布合成 holdout
-工具协议指标由 0% 提升到 100%，但 Tool-SFT 后的 32-rollout 复测尚未获得本地完成证据。
-因此当前只能声称“真实环境、过程奖励、诊断和协议 SFT 已实跑”，不能声称 Agentic GRPO
-带来业务提升。详见
+写操作组成轨迹级过程奖励。44 条 train、10 条 validation、既有 development audit
+严格拆分，官方 test 保留。后续完成了 Tool-SFT、多步 Tool-SFT、教师轨迹 SFT、多 seed
+30-task 评测和过程 Reward 离线审计。当前 Reward 在 8 个观察到 outcome 翻转的任务中正确
+排序 7 个，task67 因最终自然语言目标选择不同而并列；claim-state 诊断能够将其路由为复核，
+但尚未进入标量 Reward。因此当前不能声称 Agentic GRPO 带来业务提升。详见
 [Retail 智能体强化学习设计](docs/04_数据治理与后训练/2026-08-11_Retail智能体强化学习设计.md)和
-[Agent RL 云端运行手册](docs/04_数据治理与后训练/2026-08-11_Agent-RL云端运行手册.md)。
+[过程 Reward 离线正向验证报告](docs/04_数据治理与后训练/2026-08-21_过程Reward离线正向验证报告.md)。
 
 ## 关键代码
 
 ```text
 src/
-├─ portfolio_demo.py               零 API 求职演示
+├─ project_summary.py              零 API 冻结证据摘要
 ├─ evaluation/
 │  ├─ replay_evaluator.py          重放 Agent 与目标工具操作
 │  ├─ db_diff.py                   最终数据库结构化差异
@@ -452,12 +451,11 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
 
 ## 后续计划
 
-1. 修正首批 5 条 `CORRECTION_REQUIRED` 轨迹，并重新执行状态回放与规则检查；
-2. 用单人复核样本逐例审查 Verifier FP/FN，相关统计只作为开发指标；
-3. 扩大高风险与失败分层的项目所有者复核覆盖，不要求人工审核全部样本；
-4. 根据冻结 Base/SFT 对比中的残余系统性错误，决定 DPO 或 Agentic GRPO 的奖励设计；
-5. 若未来能获得独立业务专家，再发布 Verifier 相对人工 gold 的正式
-   precision、recall、F1、FP 和 FN。
+1. 冻结 claim-state discovery 规则，建立训练禁用的对抗诊断集并报告 Precision、Recall、F1 与 REVIEW 覆盖率；
+2. 针对停止条件、错误恢复、多实体绑定和联合约束建立过程级反事实测试；
+3. 做 SFT 数据规模与多 seed 消融，区分数据不足、行为方差和模型容量限制；
+4. 只有高置信过程信号通过未参与规则开发的数据验证后，才启动小规模 Agentic GRPO；
+5. 使用相同冻结协议比较 Base、SFT 与后续候选模型，不以单一 reward 代替过程质量。
 
 ## 结论
 
@@ -501,3 +499,21 @@ post-tool Tool Match 从 42.86% 升至 78.57%。但同协议的 32-rollout 真�
 且仍有 32/32 unfinished。因此当前不启动 GRPO。诊断门已增加相对 baseline 的回归约束，避免把
 错误路径产生的方差误判为可训练信号。详见：
 [`docs/04_数据治理与后训练/2026-08-13_Qwen3-4B多步Tool-SFT实跑结果.md`](docs/04_数据治理与后训练/2026-08-13_Qwen3-4B多步Tool-SFT实跑结果.md)。
+
+## 2026-08-21 教师 SFT 与过程 Reward 更新
+
+同一份 34 条教师轨迹、80 steps 的三个训练 seed，实体隔离 validation assistant loss
+为 `0.4105 / 0.4114 / 0.4107`。两个新增 checkpoint 在扩窗组合口径下均为 `16/30`，
+但逐任务一致率只有 `22/30 = 73.3%`，说明 token-level loss 平台不等于 Agent 行为稳定。
+历史 Base 为 `12/30`，三个 SFT 开发视图为 `17/30 / 16/30 / 16/30`；这些是不同上下文
+上限组合出的开发证据，不是正式业务指标。
+
+过程 Reward 已离线回放到 seed19/seed20 的 60 条冻结轨迹。修复 task108 无序
+`item_ids` 的 action matcher 假阳性后，8 个成功/失败翻转对中有 7 个成功轨迹得分更高；
+task67 因 DB、动作和 Tool error 相同而仍然并列。显式订单—金额/状态 claim-state
+诊断已完成首轮验证，但尚未进入 Reward，GRPO 门禁继续关闭。
+
+详见：
+
+- [教师 SFT 多种子稳定性与扩窗补跑报告](docs/04_数据治理与后训练/2026-08-21_教师SFT多种子稳定性与扩窗补跑报告.md)
+- [过程 Reward 离线正向验证报告](docs/04_数据治理与后训练/2026-08-21_过程Reward离线正向验证报告.md)

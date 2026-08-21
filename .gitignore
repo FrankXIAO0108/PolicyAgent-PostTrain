@@ -48,3 +48,4 @@ _verifier_v1/
 # One-off repository inspection snapshots
 /evidence_file_search*.txt
 /project_state_check.txt
+/HANDOVER.md
