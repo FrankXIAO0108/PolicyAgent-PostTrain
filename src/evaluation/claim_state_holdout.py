@@ -7,7 +7,10 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-from src.training.teacher_evidence_pack import claim_state_consistency
+from src.training.teacher_evidence_pack import (
+    claim_state_consistency,
+    claim_state_consistency_v2,
+)
 
 
 VERDICTS = ("PASS", "FAIL", "REVIEW", "NOT_APPLICABLE")
@@ -52,10 +55,18 @@ def _safe_div(numerator: int, denominator: int) -> float:
     return numerator / denominator if denominator else 0.0
 
 
-def evaluate(path: Path) -> dict[str, Any]:
+def evaluate(path: Path, checker_version: str = "v1") -> dict[str, Any]:
     dataset = json.loads(path.read_text(encoding="utf-8"))
     if dataset.get("policy", {}).get("training_allowed") is not False:
         raise ValueError("holdout must be explicitly prohibited from training")
+
+    checkers = {
+        "v1": claim_state_consistency,
+        "v2-development": claim_state_consistency_v2,
+    }
+    if checker_version not in checkers:
+        raise ValueError(f"unsupported checker version: {checker_version}")
+    checker = checkers[checker_version]
 
     rows: list[dict[str, Any]] = []
     confusion: dict[str, Counter[str]] = defaultdict(Counter)
@@ -64,7 +75,7 @@ def evaluate(path: Path) -> dict[str, Any]:
         if expected not in VERDICTS:
             raise ValueError(f"invalid expected verdict: {expected}")
         messages, final_state = _checker_inputs(case)
-        result = claim_state_consistency(messages, final_state)
+        result = checker(messages, final_state)
         predicted = result["verdict"]
         confusion[expected][predicted] += 1
         rows.append(
@@ -127,8 +138,11 @@ def evaluate(path: Path) -> dict[str, Any]:
             "path": path.as_posix(),
             "sha256": _sha256(path),
             "training_allowed": False,
-            "rule_tuning_allowed": False,
+            "rule_tuning_allowed": dataset["policy"].get(
+                "rule_tuning_allowed"
+            ),
         },
+        "checker_version": checker_version,
         "metrics": metrics,
         "gates": gates,
         "ready_for_reward_penalty": all(gates.values()),
@@ -144,9 +158,14 @@ def evaluate(path: Path) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate frozen claim-state checker holdout.")
     parser.add_argument("dataset", type=Path)
+    parser.add_argument(
+        "--checker",
+        choices=("v1", "v2-development"),
+        default="v1",
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    report = evaluate(args.dataset)
+    report = evaluate(args.dataset, checker_version=args.checker)
     rendered = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

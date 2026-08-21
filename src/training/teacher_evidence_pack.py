@@ -39,6 +39,15 @@ AMBIGUOUS_STATUS_LANGUAGE = re.compile(
     r"\b(cancel(?:led|ed)?|return request(?:ed)?|exchange request(?:ed)?)\b",
     re.IGNORECASE,
 )
+CLAIM_SPAN_BOUNDARY = re.compile(r"(?<=[.!?])\s+|[;\n]+")
+CURRENCY_AMOUNT = re.compile(r"\$\s*([0-9][0-9,]*(?:\.\d{2})?)")
+AMOUNT_LANGUAGE = re.compile(r"\b(?:total|amount|paid|payments?)\b", re.IGNORECASE)
+NEGATED_STATUS_LANGUAGE = re.compile(
+    r"\b(?:could\s+not|was\s+not|has\s+not\s+been|is\s+not|"
+    r"wasn't|hasn't|isn't)\s+(?:be\s+)?"
+    r"(?:cancelled|canceled|returned|exchanged)\b",
+    re.IGNORECASE,
+)
 
 
 def _calls(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -283,6 +292,200 @@ def claim_state_consistency(
     }
 
 
+def _claim_spans(answer: str) -> list[str]:
+    return [
+        span.strip()
+        for span in CLAIM_SPAN_BOUNDARY.split(answer)
+        if span.strip()
+    ]
+
+
+def claim_state_consistency_v2(
+    messages: list[dict[str, Any]], final_state: dict[str, Any]
+) -> dict[str, Any]:
+    """Conservatively bind status and amount claims within local spans.
+
+    V2 is intentionally separate from the frozen V1 checker. It avoids fixed
+    character windows and abstains when one span contains multiple entities or
+    multiple amounts.
+    """
+
+    answer = final_answer(messages)
+    orders = _order_facts(messages, final_state)
+    findings: list[dict[str, Any]] = []
+
+    for span in _claim_spans(answer):
+        order_ids = list(
+            dict.fromkeys(
+                _normalise_order_id(match.group(0))
+                for match in ORDER_ID.finditer(span)
+            )
+        )
+        has_status_language = bool(AMBIGUOUS_STATUS_LANGUAGE.search(span))
+        amount_matches = list(CURRENCY_AMOUNT.finditer(span))
+        has_amount_claim = bool(AMOUNT_LANGUAGE.search(span) and amount_matches)
+        has_comparative = bool(UNSUPPORTED_SELECTION_CLAIM.search(span))
+        has_claim_language = has_status_language or has_amount_claim or has_comparative
+
+        if has_comparative:
+            findings.append(
+                {
+                    "claim": {"text": span},
+                    "verdict": "UNVERIFIED",
+                    "reason_code": (
+                        "COMPARATIVE_SELECTION_OUTSIDE_PROGRAMMATIC_CHECKER_SCOPE"
+                    ),
+                }
+            )
+
+        if not order_ids:
+            if has_status_language or has_amount_claim:
+                findings.append(
+                    {
+                        "claim": {"text": span},
+                        "verdict": "UNVERIFIED",
+                        "reason_code": "CLAIM_WITHOUT_SINGLE_ORDER_BINDING",
+                    }
+                )
+            continue
+        if len(order_ids) != 1:
+            if has_claim_language:
+                findings.append(
+                    {
+                        "claim": {"text": span, "order_ids": order_ids},
+                        "verdict": "UNVERIFIED",
+                        "reason_code": "MULTIPLE_ORDERS_IN_SINGLE_CLAIM_SPAN",
+                    }
+                )
+            continue
+
+        order_id = order_ids[0]
+        order = orders.get(order_id)
+        if order is None:
+            if has_claim_language:
+                findings.append(
+                    {
+                        "claim": {"order_id": order_id, "text": span},
+                        "verdict": "UNVERIFIED",
+                        "reason_code": "ORDER_NOT_FOUND_IN_FINAL_STATE",
+                    }
+                )
+            continue
+
+        if has_status_language:
+            if NEGATED_STATUS_LANGUAGE.search(span):
+                findings.append(
+                    {
+                        "claim": {"order_id": order_id, "text": span},
+                        "verdict": "UNVERIFIED",
+                        "reason_code": "NEGATED_STATUS_OUTSIDE_V2_SCOPE",
+                    }
+                )
+            else:
+                matched_status = False
+                for claimed_status, pattern in STATUS_PATTERNS.items():
+                    if not pattern.search(span):
+                        continue
+                    matched_status = True
+                    actual_status = str(order.get("status") or "")
+                    supported = actual_status == claimed_status
+                    findings.append(
+                        {
+                            "claim": {
+                                "order_id": order_id,
+                                "status": claimed_status,
+                            },
+                            "actual": {"status": actual_status},
+                            "verdict": (
+                                "SUPPORTED" if supported else "CONTRADICTED"
+                            ),
+                            "reason_code": (
+                                "CLAIM_MATCHES_FINAL_STATE"
+                                if supported
+                                else "CLAIM_CONTRADICTS_FINAL_STATE"
+                            ),
+                        }
+                    )
+                if not matched_status:
+                    findings.append(
+                        {
+                            "claim": {"order_id": order_id, "text": span},
+                            "verdict": "UNVERIFIED",
+                            "reason_code": "UNSUPPORTED_STATUS_WORDING",
+                        }
+                    )
+
+        if has_amount_claim:
+            if len(amount_matches) != 1:
+                findings.append(
+                    {
+                        "claim": {"order_id": order_id, "text": span},
+                        "verdict": "UNVERIFIED",
+                        "reason_code": "MULTIPLE_AMOUNTS_IN_SINGLE_CLAIM_SPAN",
+                    }
+                )
+            else:
+                claimed_amount = float(
+                    amount_matches[0].group(1).replace(",", "")
+                )
+                actual_amount = order.get("single_payment_amount")
+                if actual_amount is None:
+                    findings.append(
+                        {
+                            "claim": {
+                                "order_id": order_id,
+                                "single_payment_amount": claimed_amount,
+                            },
+                            "verdict": "UNVERIFIED",
+                            "reason_code": (
+                                "ORDER_PAYMENT_AMOUNT_NOT_UNAMBIGUOUSLY_AVAILABLE"
+                            ),
+                        }
+                    )
+                else:
+                    supported = abs(float(actual_amount) - claimed_amount) < 0.005
+                    findings.append(
+                        {
+                            "claim": {
+                                "order_id": order_id,
+                                "single_payment_amount": claimed_amount,
+                            },
+                            "actual": {
+                                "single_payment_amount": float(actual_amount)
+                            },
+                            "verdict": (
+                                "SUPPORTED" if supported else "CONTRADICTED"
+                            ),
+                            "reason_code": (
+                                "CLAIM_MATCHES_TOOL_OR_FINAL_STATE"
+                                if supported
+                                else "CLAIM_CONTRADICTS_TOOL_OR_FINAL_STATE"
+                            ),
+                        }
+                    )
+
+    verdicts = {row["verdict"] for row in findings}
+    overall = (
+        "FAIL"
+        if "CONTRADICTED" in verdicts
+        else "REVIEW"
+        if "UNVERIFIED" in verdicts
+        else "PASS"
+        if findings
+        else "NOT_APPLICABLE"
+    )
+    return {
+        "checker_version": "claim-state-v2-development",
+        "verdict": overall,
+        "final_answer": answer,
+        "findings": findings,
+        "scope_notes": [
+            "Claims are bound within sentence or semicolon-delimited spans.",
+            "A claim span with multiple orders or multiple amounts is routed to review.",
+            "Comparative and negated claims remain outside the automatic decision scope.",
+            "This checker does not use Tau2 hidden reference actions or NL assertions.",
+        ],
+    }
 def compact_trajectory(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     for index, message in enumerate(messages):

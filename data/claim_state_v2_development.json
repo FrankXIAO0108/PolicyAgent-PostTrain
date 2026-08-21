@@ -1,0 +1,32 @@
+{
+  "schema_version": "retail-claim-state-development-v2.0",
+  "purpose": "Rule-development cases for claim-state checker v2; never an evaluation holdout.",
+  "created_at": "2026-08-21",
+  "policy": {
+    "training_allowed": false,
+    "rule_tuning_allowed": true,
+    "expected_verdicts": ["PASS", "FAIL", "REVIEW", "NOT_APPLICABLE"]
+  },
+  "cases": [
+    {"case_id": "dev_amount_before_order_pass", "category": "amount_order_variation", "answer": "The amount paid for order #W2000001 was $42.50.", "orders": [{"order_id": "#W2000001", "status": "pending", "payments": [42.50]}], "expected_verdict": "PASS"},
+    {"case_id": "dev_amount_before_order_fail", "category": "amount_order_variation", "answer": "The total for order #W2000002 was $51.00.", "orders": [{"order_id": "#W2000002", "status": "pending", "payments": [50.00]}], "expected_verdict": "FAIL"},
+    {"case_id": "dev_amount_after_order_pass", "category": "amount_order_variation", "answer": "Order #W2000003 has an amount of $75.25.", "orders": [{"order_id": "#W2000003", "status": "pending", "payments": [75.25]}], "expected_verdict": "PASS"},
+    {"case_id": "dev_amount_tool_pass", "category": "tool_fact", "answer": "The payment amount for #W2000004 was $99.99.", "tool_orders": [{"order_id": "#W2000004", "status": "delivered", "payments": [99.99]}], "expected_verdict": "PASS"},
+    {"case_id": "dev_status_two_sentences_pass", "category": "multi_entity", "answer": "Order #W2000005 has been cancelled. Order #W2000006 has been updated to exchange requested status.", "orders": [{"order_id": "#W2000005", "status": "cancelled"}, {"order_id": "#W2000006", "status": "exchange requested"}], "expected_verdict": "PASS"},
+    {"case_id": "dev_status_semicolon_pass", "category": "multi_entity", "answer": "Order #W2000007 is now cancelled; for order #W2000008, the return request was submitted.", "orders": [{"order_id": "#W2000007", "status": "cancelled"}, {"order_id": "#W2000008", "status": "return requested"}], "expected_verdict": "PASS"},
+    {"case_id": "dev_status_second_wrong", "category": "multi_entity", "answer": "Order #W2000009 has been cancelled. Order #W2000010 has been updated to exchange requested status.", "orders": [{"order_id": "#W2000009", "status": "cancelled"}, {"order_id": "#W2000010", "status": "pending"}], "expected_verdict": "FAIL"},
+    {"case_id": "dev_status_return_wrong", "category": "explicit_status", "answer": "For order #W2000011, the return request is submitted.", "orders": [{"order_id": "#W2000011", "status": "delivered"}], "expected_verdict": "FAIL"},
+    {"case_id": "dev_negated_cancel_review", "category": "negation", "answer": "Order #W2000012 has not been cancelled.", "orders": [{"order_id": "#W2000012", "status": "pending"}], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_could_not_cancel_review", "category": "negation", "answer": "Order #W2000013 could not be cancelled.", "orders": [{"order_id": "#W2000013", "status": "pending"}], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_latest_review", "category": "comparative", "answer": "The latest order is #W2000014.", "orders": [{"order_id": "#W2000014", "status": "delivered"}], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_multi_order_same_span_review", "category": "ambiguous_binding", "answer": "Orders #W2000015 and #W2000016 have been cancelled.", "orders": [{"order_id": "#W2000015", "status": "cancelled"}, {"order_id": "#W2000016", "status": "cancelled"}], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_multi_amount_review", "category": "ambiguous_binding", "answer": "Order #W2000017 had payments of $20.00 and $30.00.", "orders": [{"order_id": "#W2000017", "status": "delivered", "payments": [50.00]}], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_ambiguous_history_review", "category": "ambiguous_fact", "answer": "Order #W2000018 had a total of $50.00.", "orders": [{"order_id": "#W2000018", "status": "delivered", "payments": [30.00, 20.00]}], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_unknown_order_review", "category": "missing_fact", "answer": "Order #W2000019 has been cancelled.", "orders": [], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_broad_status_review", "category": "missing_binding", "answer": "Both purchases have been cancelled.", "orders": [], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_plain_status_review", "category": "unsupported_wording", "answer": "Order #W2000020 is cancelled.", "orders": [{"order_id": "#W2000020", "status": "cancelled"}], "expected_verdict": "REVIEW"},
+    {"case_id": "dev_order_question_na", "category": "no_claim", "answer": "Would you like me to inspect order #W2000021?", "orders": [{"order_id": "#W2000021", "status": "pending"}], "expected_verdict": "NOT_APPLICABLE"},
+    {"case_id": "dev_generic_question_na", "category": "no_claim", "answer": "What would you like to do next?", "orders": [], "expected_verdict": "NOT_APPLICABLE"},
+    {"case_id": "dev_status_and_amount_pass", "category": "combined_claim", "answer": "Order #W2000022 has been cancelled, and its total was $18.75.", "orders": [{"order_id": "#W2000022", "status": "cancelled", "payments": [18.75]}], "expected_verdict": "PASS"}
+  ]
+}
