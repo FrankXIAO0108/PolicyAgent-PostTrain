@@ -1,0 +1,192 @@
+{
+  "schema_version": "retail-claim-state-adversarial-holdout-v1.0",
+  "purpose": "Frozen, training-prohibited diagnostic set for claim-state checker v1.",
+  "created_at": "2026-08-21",
+  "policy": {
+    "training_allowed": false,
+    "rule_tuning_allowed": false,
+    "expected_verdicts": ["PASS", "FAIL", "REVIEW", "NOT_APPLICABLE"]
+  },
+  "cases": [
+    {
+      "case_id": "status_pass_cancelled_01",
+      "category": "explicit_status_supported",
+      "answer": "Order #W1000001 has been cancelled.",
+      "orders": [{"order_id": "#W1000001", "status": "cancelled"}],
+      "expected_verdict": "PASS"
+    },
+    {
+      "case_id": "status_pass_canceled_02",
+      "category": "explicit_status_supported",
+      "answer": "Order #W1000002 was successfully canceled.",
+      "orders": [{"order_id": "#W1000002", "status": "cancelled"}],
+      "expected_verdict": "PASS"
+    },
+    {
+      "case_id": "status_pass_return_03",
+      "category": "explicit_status_supported",
+      "answer": "For order #W1000003, the return request was submitted.",
+      "orders": [{"order_id": "#W1000003", "status": "return requested"}],
+      "expected_verdict": "PASS"
+    },
+    {
+      "case_id": "status_pass_exchange_04",
+      "category": "explicit_status_supported",
+      "answer": "Order #W1000004 has been updated to exchange requested status.",
+      "orders": [{"order_id": "#W1000004", "status": "exchange requested"}],
+      "expected_verdict": "PASS"
+    },
+    {
+      "case_id": "amount_pass_final_state_05",
+      "category": "explicit_amount_supported",
+      "answer": "Order #W1000005 had a total of $829.43.",
+      "orders": [{"order_id": "#W1000005", "status": "delivered", "payments": [829.43]}],
+      "expected_verdict": "PASS"
+    },
+    {
+      "case_id": "amount_pass_tool_observation_06",
+      "category": "explicit_amount_supported",
+      "answer": "The amount paid for order #W1000006 was $1,204.50.",
+      "tool_orders": [{"order_id": "#W1000006", "status": "pending", "payments": [1204.50]}],
+      "expected_verdict": "PASS"
+    },
+    {
+      "case_id": "status_fail_cancel_pending_07",
+      "category": "explicit_status_contradicted",
+      "answer": "Order #W1000007 has been cancelled.",
+      "orders": [{"order_id": "#W1000007", "status": "pending"}],
+      "expected_verdict": "FAIL"
+    },
+    {
+      "case_id": "status_fail_cancel_return_08",
+      "category": "explicit_status_contradicted",
+      "answer": "Order #W1000008 is now cancelled.",
+      "orders": [{"order_id": "#W1000008", "status": "return requested"}],
+      "expected_verdict": "FAIL"
+    },
+    {
+      "case_id": "status_fail_return_pending_09",
+      "category": "explicit_status_contradicted",
+      "answer": "For order #W1000009, the return request is submitted.",
+      "orders": [{"order_id": "#W1000009", "status": "pending"}],
+      "expected_verdict": "FAIL"
+    },
+    {
+      "case_id": "status_fail_exchange_pending_10",
+      "category": "explicit_status_contradicted",
+      "answer": "Exchange requested for order #W1000010.",
+      "orders": [{"order_id": "#W1000010", "status": "pending"}],
+      "expected_verdict": "FAIL"
+    },
+    {
+      "case_id": "amount_fail_wrong_11",
+      "category": "explicit_amount_contradicted",
+      "answer": "Order #W1000011 had a total of $919.67.",
+      "orders": [{"order_id": "#W1000011", "status": "delivered", "payments": [829.43]}],
+      "expected_verdict": "FAIL"
+    },
+    {
+      "case_id": "amount_fail_wrong_comma_12",
+      "category": "explicit_amount_contradicted",
+      "answer": "The amount paid for order #W1000012 was $1,240.50.",
+      "tool_orders": [{"order_id": "#W1000012", "status": "pending", "payments": [1204.50]}],
+      "expected_verdict": "FAIL"
+    },
+    {
+      "case_id": "review_negated_cancel_13",
+      "category": "negation",
+      "answer": "Order #W1000013 could not be cancelled and remains pending.",
+      "orders": [{"order_id": "#W1000013", "status": "pending"}],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "review_broad_status_14",
+      "category": "missing_entity_binding",
+      "answer": "Both orders have been cancelled.",
+      "orders": [
+        {"order_id": "#W1000014", "status": "cancelled"},
+        {"order_id": "#W1000015", "status": "cancelled"}
+      ],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "review_latest_selection_15",
+      "category": "comparative_selection",
+      "answer": "The most recent order appears to be #W1000016, with a total of $829.43.",
+      "orders": [{"order_id": "#W1000016", "status": "delivered", "payments": [829.43]}],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "review_missing_order_16",
+      "category": "missing_fact",
+      "answer": "Order #W1000017 has been cancelled.",
+      "orders": [],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "review_ambiguous_payments_17",
+      "category": "ambiguous_payment_history",
+      "answer": "Order #W1000018 had a total of $829.43.",
+      "orders": [{"order_id": "#W1000018", "status": "delivered", "payments": [829.43, 20.00]}],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "review_unsupported_status_wording_18",
+      "category": "unsupported_wording",
+      "answer": "Order #W1000019 is cancelled.",
+      "orders": [{"order_id": "#W1000019", "status": "cancelled"}],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "review_partial_multi_order_19",
+      "category": "partial_multi_entity_coverage",
+      "answer": "Order #W1000020 has been cancelled. Order #W1000021 remains pending.",
+      "orders": [
+        {"order_id": "#W1000020", "status": "cancelled"},
+        {"order_id": "#W1000021", "status": "pending"}
+      ],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "status_pass_multi_order_20",
+      "category": "multi_entity_supported",
+      "answer": "Order #W1000022 has been cancelled. Order #W1000023 has been updated to exchange requested status.",
+      "orders": [
+        {"order_id": "#W1000022", "status": "cancelled"},
+        {"order_id": "#W1000023", "status": "exchange requested"}
+      ],
+      "expected_verdict": "PASS"
+    },
+    {
+      "case_id": "review_explicit_negation_21",
+      "category": "negation",
+      "answer": "Order #W1000024 has not been cancelled.",
+      "orders": [{"order_id": "#W1000024", "status": "pending"}],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "review_latest_with_unchecked_dates_22",
+      "category": "comparative_selection",
+      "answer": "The latest order is #W1000025.",
+      "orders": [
+        {"order_id": "#W1000025", "status": "delivered", "created_at": "2026-01-02"},
+        {"order_id": "#W1000026", "status": "delivered", "created_at": "2026-01-01"}
+      ],
+      "expected_verdict": "REVIEW"
+    },
+    {
+      "case_id": "not_applicable_greeting_23",
+      "category": "no_claim",
+      "answer": "Is there anything else I can help you with?",
+      "orders": [],
+      "expected_verdict": "NOT_APPLICABLE"
+    },
+    {
+      "case_id": "not_applicable_confirmation_24",
+      "category": "no_claim",
+      "answer": "Please confirm whether you want me to proceed.",
+      "orders": [],
+      "expected_verdict": "NOT_APPLICABLE"
+    }
+  ]
+}
