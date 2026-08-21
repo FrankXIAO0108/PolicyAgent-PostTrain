@@ -53,6 +53,7 @@
 | [Guard 规则族消融实验报告](03_Verifier与Guard/2026-08-02_Guard规则族消融实验报告.md) | no-Guard、full-Guard 与七个规则族消融 | 合成场景贡献分析，不是生产指标 |
 | [Claim-State 冻结对抗集评测报告](03_Verifier与Guard/2026-08-21_Claim-State冻结对抗集评测报告.md) | 检查最终回答中的订单状态、金额与多实体绑定 | v1 未通过 Reward 接入门禁 |
 | [Claim-State V2 开发与真实轨迹兼容性报告](03_Verifier与Guard/2026-08-21_Claim-State-V2开发与真实轨迹兼容性报告.md) | 局部 span 绑定、开发集和 60 条既有轨迹兼容性诊断 | 开发版完成；等待全新 holdout |
+| [Claim-State V2 盲测评测报告](03_Verifier与Guard/2026-08-21_Claim-State-V2盲测评测报告.md) | 项目所有者审阅后首次揭盲的 24 条评测 | 19/24，未通过 Reward 接入门禁 |
 | [人工审计记录](03_Verifier与Guard/人工审计记录/) | 三批规则审计和 Baseline20 验证记录 | 细节证据，按需阅读 |
 
 ## 04_数据治理与后训练

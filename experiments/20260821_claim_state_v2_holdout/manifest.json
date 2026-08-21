@@ -1,0 +1,35 @@
+{
+  "schema_version": "policyagent-experiment-manifest-v1.0",
+  "experiment_id": "20260821_claim_state_v2_holdout",
+  "status": "completed_gate_failed",
+  "checker_frozen_commit": "0455684bd3ddb2221098a0275307af3479f50991",
+  "dataset_frozen_commit": "dde4c53d977dfd6f3fb6e3fd7792b3e633442f86",
+  "owner_review": {
+    "status": "APPROVED_ALL_LABELS_BEFORE_EVALUATION",
+    "candidate_commit": "2a2e311ec06ac8a010c1086f63d512cfd7e22295"
+  },
+  "dataset": {
+    "path": "data/claim_state_v2_holdout_v2.json",
+    "sha256": "4D4CE704909714456BE7EB5D180A43BED2AB11E32A96B89F21C34A8196FF26CF",
+    "case_count": 24,
+    "training_allowed": false,
+    "rule_tuning_allowed": false
+  },
+  "command": "python -m src.evaluation.claim_state_holdout data/claim_state_v2_holdout_v2.json --checker v2-development --output experiments/20260821_claim_state_v2_holdout/evaluation.json",
+  "external_model_calls": 0,
+  "output": {
+    "path": "experiments/20260821_claim_state_v2_holdout/evaluation.json",
+    "sha256": "654D22B97CB12A0DEA39717651F55D6A1F366011BF2825500E8D36B2127773F2"
+  },
+  "result": {
+    "exact_match": "19/24",
+    "fail_precision": 1.0,
+    "fail_recall": 0.8333333333333334,
+    "fail_f1": 0.9090909090909091,
+    "review_routing_recall": 0.7,
+    "false_fail_count": 0,
+    "review_auto_pass_count": 1,
+    "ready_for_reward_penalty": false
+  },
+  "decision": "DO_NOT_CONNECT_CLAIM_STATE_V2_TO_SCALAR_REWARD"
+}

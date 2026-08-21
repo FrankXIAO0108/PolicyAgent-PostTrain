@@ -1,0 +1,582 @@
+{
+  "schema_version": "retail-claim-state-holdout-evaluation-v1.0",
+  "dataset": {
+    "path": "data/claim_state_v2_holdout_v2.json",
+    "sha256": "4D4CE704909714456BE7EB5D180A43BED2AB11E32A96B89F21C34A8196FF26CF",
+    "training_allowed": false,
+    "rule_tuning_allowed": false
+  },
+  "checker_version": "v2-development",
+  "metrics": {
+    "case_count": 24,
+    "exact_match_count": 19,
+    "exact_match_rate": 0.7916666666666666,
+    "fail_precision": 1.0,
+    "fail_recall": 0.8333333333333334,
+    "fail_f1": 0.9090909090909091,
+    "actionable_coverage": 0.8333333333333334,
+    "selective_accuracy": 1.0,
+    "review_routing_recall": 0.7,
+    "false_fail_count": 0,
+    "review_auto_pass_count": 1
+  },
+  "gates": {
+    "fail_precision_at_least_0_95": true,
+    "fail_recall_at_least_0_90": false,
+    "review_routing_recall_at_least_0_90": false,
+    "zero_false_fail": true,
+    "zero_review_auto_pass": false
+  },
+  "ready_for_reward_penalty": false,
+  "confusion": {
+    "PASS": {
+      "PASS": 5,
+      "FAIL": 0,
+      "REVIEW": 1,
+      "NOT_APPLICABLE": 0
+    },
+    "FAIL": {
+      "PASS": 0,
+      "FAIL": 5,
+      "REVIEW": 1,
+      "NOT_APPLICABLE": 0
+    },
+    "REVIEW": {
+      "PASS": 1,
+      "FAIL": 0,
+      "REVIEW": 7,
+      "NOT_APPLICABLE": 2
+    },
+    "NOT_APPLICABLE": {
+      "PASS": 0,
+      "FAIL": 0,
+      "REVIEW": 0,
+      "NOT_APPLICABLE": 2
+    }
+  },
+  "errors": [
+    {
+      "case_id": "blind_combined_pass_06",
+      "category": "combined_supported_claims",
+      "expected": "PASS",
+      "predicted": "REVIEW",
+      "exact_match": false,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000006",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "cancelled"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        },
+        {
+          "claim": {
+            "text": "its total was $18.40."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "CLAIM_WITHOUT_SINGLE_ORDER_BINDING"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_combined_fail_12",
+      "category": "combined_one_claim_wrong",
+      "expected": "FAIL",
+      "predicted": "REVIEW",
+      "exact_match": false,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000012",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "cancelled"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        },
+        {
+          "claim": {
+            "text": "its total was $99.00."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "CLAIM_WITHOUT_SINGLE_ORDER_BINDING"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_comparative_16",
+      "category": "comparative_selection",
+      "expected": "REVIEW",
+      "predicted": "NOT_APPLICABLE",
+      "exact_match": false,
+      "findings": []
+    },
+    {
+      "case_id": "blind_review_conflicting_sources_19",
+      "category": "conflicting_facts",
+      "expected": "REVIEW",
+      "predicted": "PASS",
+      "exact_match": false,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000020",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "cancelled"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_unsupported_wording_20",
+      "category": "unsupported_completion_wording",
+      "expected": "REVIEW",
+      "predicted": "NOT_APPLICABLE",
+      "exact_match": false,
+      "findings": []
+    }
+  ],
+  "rows": [
+    {
+      "case_id": "blind_status_pass_01",
+      "category": "status_supported_new_wording",
+      "expected": "PASS",
+      "predicted": "PASS",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000001",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "cancelled"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_status_pass_02",
+      "category": "status_supported_markdown",
+      "expected": "PASS",
+      "predicted": "PASS",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000002",
+            "status": "exchange requested"
+          },
+          "actual": {
+            "status": "exchange requested"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_status_pass_03",
+      "category": "status_supported_list",
+      "expected": "PASS",
+      "predicted": "PASS",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000003",
+            "status": "return requested"
+          },
+          "actual": {
+            "status": "return requested"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_amount_pass_04",
+      "category": "amount_supported_parenthetical",
+      "expected": "PASS",
+      "predicted": "PASS",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000004",
+            "single_payment_amount": 64.2
+          },
+          "actual": {
+            "single_payment_amount": 64.2
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_TOOL_OR_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_amount_pass_05",
+      "category": "amount_supported_tool_fact",
+      "expected": "PASS",
+      "predicted": "PASS",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000005",
+            "single_payment_amount": 2010.05
+          },
+          "actual": {
+            "single_payment_amount": 2010.05
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_TOOL_OR_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_combined_pass_06",
+      "category": "combined_supported_claims",
+      "expected": "PASS",
+      "predicted": "REVIEW",
+      "exact_match": false,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000006",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "cancelled"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        },
+        {
+          "claim": {
+            "text": "its total was $18.40."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "CLAIM_WITHOUT_SINGLE_ORDER_BINDING"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_status_fail_07",
+      "category": "status_contradicted_new_wording",
+      "expected": "FAIL",
+      "predicted": "FAIL",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000007",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "pending"
+          },
+          "verdict": "CONTRADICTED",
+          "reason_code": "CLAIM_CONTRADICTS_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_status_fail_08",
+      "category": "status_contradicted_markdown",
+      "expected": "FAIL",
+      "predicted": "FAIL",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000008",
+            "status": "exchange requested"
+          },
+          "actual": {
+            "status": "delivered"
+          },
+          "verdict": "CONTRADICTED",
+          "reason_code": "CLAIM_CONTRADICTS_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_status_fail_09",
+      "category": "status_contradicted_list",
+      "expected": "FAIL",
+      "predicted": "FAIL",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000009",
+            "status": "return requested"
+          },
+          "actual": {
+            "status": "pending"
+          },
+          "verdict": "CONTRADICTED",
+          "reason_code": "CLAIM_CONTRADICTS_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_amount_fail_10",
+      "category": "amount_contradicted_parenthetical",
+      "expected": "FAIL",
+      "predicted": "FAIL",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000010",
+            "single_payment_amount": 46.2
+          },
+          "actual": {
+            "single_payment_amount": 64.2
+          },
+          "verdict": "CONTRADICTED",
+          "reason_code": "CLAIM_CONTRADICTS_TOOL_OR_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_amount_fail_11",
+      "category": "amount_contradicted_tool_fact",
+      "expected": "FAIL",
+      "predicted": "FAIL",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000011",
+            "single_payment_amount": 2100.05
+          },
+          "actual": {
+            "single_payment_amount": 2010.05
+          },
+          "verdict": "CONTRADICTED",
+          "reason_code": "CLAIM_CONTRADICTS_TOOL_OR_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_combined_fail_12",
+      "category": "combined_one_claim_wrong",
+      "expected": "FAIL",
+      "predicted": "REVIEW",
+      "exact_match": false,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000012",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "cancelled"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        },
+        {
+          "claim": {
+            "text": "its total was $99.00."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "CLAIM_WITHOUT_SINGLE_ORDER_BINDING"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_future_13",
+      "category": "future_action",
+      "expected": "REVIEW",
+      "predicted": "REVIEW",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000013",
+            "text": "After you confirm, order #W5000013 will be cancelled."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "UNSUPPORTED_STATUS_WORDING"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_capability_14",
+      "category": "capability_not_completion",
+      "expected": "REVIEW",
+      "predicted": "REVIEW",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000014",
+            "text": "I can cancel order #W5000014 once you approve."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "UNSUPPORTED_STATUS_WORDING"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_negation_15",
+      "category": "negated_status",
+      "expected": "REVIEW",
+      "predicted": "REVIEW",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000015",
+            "text": "Order #W5000015 was not cancelled."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "NEGATED_STATUS_OUTSIDE_V2_SCOPE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_comparative_16",
+      "category": "comparative_selection",
+      "expected": "REVIEW",
+      "predicted": "NOT_APPLICABLE",
+      "exact_match": false,
+      "findings": []
+    },
+    {
+      "case_id": "blind_review_multi_entity_17",
+      "category": "multiple_entities_one_span",
+      "expected": "REVIEW",
+      "predicted": "REVIEW",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "text": "Orders #W5000017 and #W5000018 have been cancelled.",
+            "order_ids": [
+              "#W5000017",
+              "#W5000018"
+            ]
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "MULTIPLE_ORDERS_IN_SINGLE_CLAIM_SPAN"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_multi_amount_18",
+      "category": "multiple_amounts_one_span",
+      "expected": "REVIEW",
+      "predicted": "REVIEW",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000019",
+            "text": "Order #W5000019 shows payments of $30.00 and $12.00."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "MULTIPLE_AMOUNTS_IN_SINGLE_CLAIM_SPAN"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_conflicting_sources_19",
+      "category": "conflicting_facts",
+      "expected": "REVIEW",
+      "predicted": "PASS",
+      "exact_match": false,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000020",
+            "status": "cancelled"
+          },
+          "actual": {
+            "status": "cancelled"
+          },
+          "verdict": "SUPPORTED",
+          "reason_code": "CLAIM_MATCHES_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_unsupported_wording_20",
+      "category": "unsupported_completion_wording",
+      "expected": "REVIEW",
+      "predicted": "NOT_APPLICABLE",
+      "exact_match": false,
+      "findings": []
+    },
+    {
+      "case_id": "blind_review_missing_fact_21",
+      "category": "missing_order_fact",
+      "expected": "REVIEW",
+      "predicted": "REVIEW",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "order_id": "#W5000022",
+            "text": "Order #W5000022 has been cancelled."
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "ORDER_NOT_FOUND_IN_FINAL_STATE"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_review_no_punctuation_22",
+      "category": "unsegmented_multi_entity",
+      "expected": "REVIEW",
+      "predicted": "REVIEW",
+      "exact_match": true,
+      "findings": [
+        {
+          "claim": {
+            "text": "Order #W5000023 has been cancelled and order #W5000024 has been updated to exchange requested status",
+            "order_ids": [
+              "#W5000023",
+              "#W5000024"
+            ]
+          },
+          "verdict": "UNVERIFIED",
+          "reason_code": "MULTIPLE_ORDERS_IN_SINGLE_CLAIM_SPAN"
+        }
+      ]
+    },
+    {
+      "case_id": "blind_na_question_23",
+      "category": "no_completed_claim",
+      "expected": "NOT_APPLICABLE",
+      "predicted": "NOT_APPLICABLE",
+      "exact_match": true,
+      "findings": []
+    },
+    {
+      "case_id": "blind_na_generic_24",
+      "category": "no_claim",
+      "expected": "NOT_APPLICABLE",
+      "predicted": "NOT_APPLICABLE",
+      "exact_match": true,
+      "findings": []
+    }
+  ]
+}
