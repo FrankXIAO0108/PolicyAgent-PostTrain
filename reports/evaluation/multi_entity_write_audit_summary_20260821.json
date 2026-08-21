@@ -1,0 +1,22 @@
+{
+  "schema_version": "retail-multi-entity-write-audit-summary-v1.0.0",
+  "source_schema_version": "retail-process-reward-offline-audit-v1.3.0",
+  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v12/process_reward_audit.json",
+  "source_artifact_sha256": "469FE2E68C519B697379C0C963DB214F4806922138A1C26659BE07B24A025CD9",
+  "trajectory_count": 13,
+  "call_count": 22,
+  "outcome_success_trajectory_count": 4,
+  "outcome_failure_trajectory_count": 9,
+  "tool_success_call_count": 10,
+  "tool_error_call_count": 12,
+  "legitimate_duplicate_item_case": {
+    "task_id": "105",
+    "run_name": "run_a",
+    "item_id": "7292993796",
+    "quantity": 2,
+    "tool_result_error": false
+  },
+  "reward_change_allowed": false,
+  "rejected_rule": "Requiring item_ids to be unique would reject a legitimate quantity-two order representation.",
+  "limitation": "Tool arguments and results alone cannot establish that every user-requested entity was correctly bound; user-intent provenance or independent task gold is required."
+}
