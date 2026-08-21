@@ -1,8 +1,8 @@
 {
   "schema_version": "retail-multi-entity-write-audit-summary-v1.0.0",
-  "source_schema_version": "retail-process-reward-offline-audit-v1.4.0",
-  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v14/process_reward_audit.json",
-  "source_artifact_sha256": "D24E6642ED42F15B5BFBA56BF23E18621459190746BC90E129C039BA11447917",
+  "source_schema_version": "retail-process-reward-offline-audit-v1.5.0",
+  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v18/process_reward_audit.json",
+  "source_artifact_sha256": "99A5DB1504973A5BDD808C87452DD14E75A8803CA402AD251C540D95BBC41FF6",
   "trajectory_count": 13,
   "call_count": 22,
   "outcome_success_trajectory_count": 4,

@@ -20,7 +20,7 @@ from src.rl.retail_agentic_env import (
 from src.training.teacher_evidence_pack import claim_state_consistency
 
 
-SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.4.0"
+SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.5.0"
 
 TRANSFER_NOTICE = "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
 USER_STOP_MARKERS = ("###STOP###", "###TRANSFER###", "###OUT-OF-SCOPE###")
@@ -705,6 +705,20 @@ def build_audit(
         for row in all_success_rows
         if row["confirmation_diagnostics"]["missing_confirmation_count"] > 0
     ]
+    confirmed_binding_counts: Counter[str] = Counter()
+    successful_confirmed_binding_counts: Counter[str] = Counter()
+    for row in all_rows:
+        for check in row["confirmation_diagnostics"]["checks"]:
+            if check["confirmed"]:
+                confirmed_binding_counts.update(
+                    [check["parameter_binding"]["verdict"]]
+                )
+    for row in all_success_rows:
+        for check in row["confirmation_diagnostics"]["checks"]:
+            if check["confirmed"]:
+                successful_confirmed_binding_counts.update(
+                    [check["parameter_binding"]["verdict"]]
+                )
     evaluable_flip_claims = [
         pair
         for pair in flips
@@ -818,6 +832,12 @@ def build_audit(
                 }
                 for row in confirmation_missing_on_success
             ],
+            "confirmation_parameter_binding_verdict_counts": dict(
+                sorted(confirmed_binding_counts.items())
+            ),
+            "successful_confirmation_parameter_binding_verdict_counts": dict(
+                sorted(successful_confirmed_binding_counts.items())
+            ),
             "claim_state_failure_on_success_count": len(
                 claim_failures_on_success
             ),
@@ -843,6 +863,14 @@ def build_audit(
             ),
             "confirmation_has_zero_missing_writes_on_frozen_successes": (
                 not confirmation_missing_on_success
+            ),
+            "confirmation_parameter_binding_all_pass_on_frozen_successes": (
+                sum(
+                    count
+                    for verdict, count in successful_confirmed_binding_counts.items()
+                    if verdict != "PASS"
+                )
+                == 0
             ),
             "ready_to_use_v1_reward_for_grpo": False,
         },

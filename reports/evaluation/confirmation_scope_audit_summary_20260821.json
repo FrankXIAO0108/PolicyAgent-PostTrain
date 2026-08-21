@@ -1,9 +1,9 @@
 {
   "schema_version": "retail-confirmation-scope-audit-summary-v1.0.0",
-  "source_schema_version": "retail-process-reward-offline-audit-v1.4.0",
-  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v14/process_reward_audit.json",
-  "source_artifact_sha256": "D24E6642ED42F15B5BFBA56BF23E18621459190746BC90E129C039BA11447917",
-  "source_summary_sha256": "57CF9018A541511448D208B034FDA0EFD316247D6C11EB264ECC263F4A31B2E7",
+  "source_schema_version": "retail-process-reward-offline-audit-v1.5.0",
+  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v18/process_reward_audit.json",
+  "source_artifact_sha256": "99A5DB1504973A5BDD808C87452DD14E75A8803CA402AD251C540D95BBC41FF6",
+  "source_summary_sha256": "52FE069991D134E5A028F1C89C968F37F8E358C920AFF11FC570497372180596",
   "write_count": 74,
   "confirmed_write_count": 59,
   "missing_confirmation_count": 15,

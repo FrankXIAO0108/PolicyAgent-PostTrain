@@ -227,6 +227,250 @@ _AFFIRMATIVE = re.compile(
     re.IGNORECASE,
 )
 
+_CONFIRMATION_PARAMETER_FIELDS = {
+    "cancel_pending_order": ("order_id", "reason"),
+    "exchange_delivered_order_items": (
+        "order_id",
+        "item_pairs",
+        "payment_method_id",
+    ),
+    "modify_pending_order_items": (
+        "order_id",
+        "item_pairs",
+        "payment_method_id",
+    ),
+    "modify_pending_order_payment": ("order_id", "payment_method_id"),
+    "return_delivered_order_items": (
+        "order_id",
+        "item_ids",
+        "payment_method_id",
+    ),
+}
+
+
+def _literal_occurrences(text: str, value: Any) -> int:
+    literal = str(value or "").strip().lower()
+    if not literal:
+        return 0
+    return len(
+        re.findall(
+            rf"(?<![\w]){re.escape(literal)}(?![\w])",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _payment_aliases_before_write(
+    messages: list[Any],
+    write_index: int,
+    arguments: dict[str, Any],
+) -> dict[str, list[str]]:
+    """Resolve payment aliases only from tool-observed user/order state."""
+
+    expected = str(arguments.get("payment_method_id") or "")
+    order_id = str(arguments.get("order_id") or "")
+    if not expected:
+        return {}
+
+    aliases: set[str] = set()
+    original_payment_ids: set[str] = set()
+    ids_by_brand: dict[str, set[str]] = {}
+    ids_by_source: dict[str, set[str]] = {}
+    expected_brand = ""
+    expected_source = ""
+    for message in messages[:write_index]:
+        if getattr(message, "role", None) != "tool":
+            continue
+        try:
+            payload = json.loads(str(getattr(message, "content", "") or ""))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+
+        methods = payload.get("payment_methods")
+        if isinstance(methods, dict):
+            for method_id, details in methods.items():
+                if not isinstance(details, dict):
+                    continue
+                method_id = str(method_id)
+                source = str(details.get("source") or "").replace("_", " ")
+                brand = str(details.get("brand") or "")
+                if brand:
+                    ids_by_brand.setdefault(brand.lower(), set()).add(method_id)
+                if source:
+                    ids_by_source.setdefault(source.lower(), set()).add(method_id)
+                if method_id != expected:
+                    continue
+                expected_brand = brand.lower()
+                expected_source = source.lower()
+                last_four = str(details.get("last_four") or "")
+                suffix = expected.rsplit("_", 1)[-1]
+                display_number = last_four or suffix
+                labels = {source, brand}
+                if source == "paypal":
+                    labels.add("paypal account")
+                for label in labels:
+                    if label and display_number:
+                        aliases.add(f"{label} ending in {display_number}")
+                        aliases.add(f"{label} ending {display_number}")
+
+        if str(payload.get("order_id") or "") == order_id:
+            for payment in payload.get("payment_history") or []:
+                if (
+                    isinstance(payment, dict)
+                    and payment.get("transaction_type") == "payment"
+                ):
+                    original_payment_ids.add(str(payment.get("payment_method_id") or ""))
+
+    if expected in original_payment_ids:
+        aliases.add("original payment method")
+    if expected_brand and ids_by_brand.get(expected_brand) == {expected}:
+        aliases.add(expected_brand)
+    if expected_source and ids_by_source.get(expected_source) == {expected}:
+        aliases.add(expected_source)
+    return {expected: sorted(aliases)} if aliases else {}
+
+
+def confirmation_parameter_binding(
+    tool: str,
+    arguments: dict[str, Any],
+    confirmation_text: str,
+    *,
+    value_aliases: dict[str, list[str]] | None = None,
+) -> dict[str, Any]:
+    """Check literal parameter binding in an explicit confirmation summary.
+
+    PASS is deliberately high precision: every supported material parameter must
+    be present, and item replacements must preserve old-to-new pairing. Missing
+    evidence is REVIEW rather than FAIL because users may use aliases that this
+    deterministic checker cannot resolve. This remains diagnostic-only.
+    """
+
+    required_fields = _CONFIRMATION_PARAMETER_FIELDS.get(tool)
+    if not required_fields:
+        return {
+            "verdict": "NOT_EVALUABLE",
+            "tool": tool,
+            "field_checks": [],
+            "unsupported_reason": "tool_parameter_contract_not_defined",
+            "used_as_reward": False,
+        }
+
+    text = re.sub(r"\s+", " ", str(confirmation_text or "").lower()).strip()
+    value_aliases = value_aliases or {}
+    checks: list[dict[str, Any]] = []
+    for field in required_fields:
+        if field == "item_pairs":
+            old_items = list(arguments.get("item_ids") or [])
+            new_items = list(arguments.get("new_item_ids") or [])
+            pairs = list(zip(old_items, new_items))
+            pair_checks = []
+            for old_item, new_item in dict.fromkeys(pairs):
+                old = re.escape(str(old_item).lower())
+                new = re.escape(str(new_item).lower())
+                relation = re.compile(
+                    rf"(?<![\w]){old}(?![\w])\s*"
+                    rf"(?:to|for|with|->|→|换成|替换为)\s*(?:item\s+)?"
+                    rf"(?<![\w]){new}(?![\w])",
+                    re.IGNORECASE,
+                )
+                required_count = pairs.count((old_item, new_item))
+                found_count = len(relation.findall(text))
+                pair_checks.append(
+                    {
+                        "old_item_id": str(old_item),
+                        "new_item_id": str(new_item),
+                        "required_count": required_count,
+                        "found_count": found_count,
+                        "covered": found_count >= required_count,
+                    }
+                )
+            if len(pairs) == 1:
+                old_item, new_item = pairs[0]
+                pair_checks[0]["covered"] = bool(
+                    _literal_occurrences(text, old_item)
+                    and _literal_occurrences(text, new_item)
+                )
+            elif pairs and len(set(old_items + new_items)) == len(old_items + new_items):
+                positions = []
+                for old_item, new_item in pairs:
+                    for role, value in (("old", old_item), ("new", new_item)):
+                        match = re.search(
+                            rf"(?<![\w]){re.escape(str(value).lower())}(?![\w])",
+                            text,
+                            re.IGNORECASE,
+                        )
+                        if match:
+                            positions.append((match.start(), role, str(value)))
+                if len(positions) == 2 * len(pairs):
+                    ordered = sorted(positions)
+                    observed_pairs = [
+                        (ordered[index][2], ordered[index + 1][2])
+                        for index in range(0, len(ordered), 2)
+                        if ordered[index][1] == "old"
+                        and ordered[index + 1][1] == "new"
+                    ]
+                    if Counter(observed_pairs) == Counter(
+                        (str(old), str(new)) for old, new in pairs
+                    ):
+                        for item in pair_checks:
+                            item["covered"] = True
+            covered = (
+                bool(pairs)
+                and len(old_items) == len(new_items)
+                and all(item["covered"] for item in pair_checks)
+            )
+            checks.append(
+                {
+                    "field": field,
+                    "covered": covered,
+                    "pairs": pair_checks,
+                    "length_match": len(old_items) == len(new_items),
+                }
+            )
+            continue
+
+        raw_value = arguments.get(field)
+        values = list(raw_value or []) if field == "item_ids" else [raw_value]
+        value_checks = []
+        for value in values:
+            required_count = values.count(value)
+            found_count = _literal_occurrences(text, value)
+            matched_aliases = [
+                alias
+                for alias in value_aliases.get(str(value), [])
+                if _literal_occurrences(text, alias)
+            ]
+            effective_count = max(found_count, 1 if matched_aliases else 0)
+            value_checks.append(
+                {
+                    "value": str(value),
+                    "required_count": required_count,
+                    "found_count": found_count,
+                    "matched_aliases": matched_aliases,
+                    "covered": effective_count >= required_count,
+                }
+            )
+        checks.append(
+            {
+                "field": field,
+                "covered": bool(value_checks)
+                and all(item["covered"] for item in value_checks),
+                "values": value_checks,
+            }
+        )
+
+    missing_fields = [item["field"] for item in checks if not item["covered"]]
+    return {
+        "verdict": "PASS" if not missing_fields else "REVIEW",
+        "tool": tool,
+        "field_checks": checks,
+        "missing_fields": missing_fields,
+        "used_as_reward": False,
+    }
+
 
 def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
     """Conservatively detect explicit confirmation before Retail write calls.
@@ -295,6 +539,16 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
                     "tool_call_id": str(call.id),
                     "tool": call.name,
                     "confirmed": confirmed,
+                    "parameter_binding": confirmation_parameter_binding(
+                        call.name,
+                        dict(call.arguments),
+                        confirmation_text,
+                        value_aliases=_payment_aliases_before_write(
+                            messages,
+                            index,
+                            dict(call.arguments),
+                        ),
+                    ),
                 }
             )
             if has_confirmation:

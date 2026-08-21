@@ -51,6 +51,10 @@ def _user(content: str):
     return SimpleNamespace(role="user", content=content, tool_calls=[])
 
 
+def _tool(content: str):
+    return SimpleNamespace(role="tool", content=content, tool_calls=[])
+
+
 def _task_with_actions(actions: list[_ExpectedAction]):
     return SimpleNamespace(
         evaluation_criteria=SimpleNamespace(actions=actions)
@@ -412,6 +416,123 @@ class ProcessRewardSignalTests(unittest.TestCase):
 
         self.assertEqual(result["confirmed_write_count"], 1)
         self.assertEqual(result["missing_confirmation_count"], 1)
+
+    def test_payment_alias_is_resolved_from_tool_observed_order_state(self) -> None:
+        action = _call(
+            "c1",
+            "return_delivered_order_items",
+            {
+                "order_id": "#1",
+                "item_ids": ["item-1"],
+                "payment_method_id": "credit_card_123",
+            },
+        )
+        order = json.dumps(
+            {
+                "order_id": "#1",
+                "payment_history": [
+                    {
+                        "transaction_type": "payment",
+                        "payment_method_id": "credit_card_123",
+                    }
+                ],
+            }
+        )
+
+        result = confirmation_diagnostics(
+            [
+                _tool(order),
+                _assistant(
+                    content=(
+                        "Confirm returning item-1 from order #1 to the original "
+                        "payment method?"
+                    )
+                ),
+                _user("Yes, proceed."),
+                _assistant(calls=[action]),
+            ]
+        )
+
+        binding = result["checks"][0]["parameter_binding"]
+        self.assertEqual(binding["verdict"], "PASS")
+        self.assertEqual(
+            binding["field_checks"][2]["values"][0]["matched_aliases"],
+            ["original payment method"],
+        )
+
+    def test_unique_card_brand_is_resolved_from_tool_observed_user_state(self) -> None:
+        action = _call(
+            "c1",
+            "modify_pending_order_payment",
+            {"order_id": "#1", "payment_method_id": "credit_card_visa"},
+        )
+        user = json.dumps(
+            {
+                "payment_methods": {
+                    "credit_card_visa": {
+                        "source": "credit_card",
+                        "brand": "visa",
+                        "last_four": "8902",
+                    },
+                    "credit_card_mastercard": {
+                        "source": "credit_card",
+                        "brand": "mastercard",
+                        "last_four": "4336",
+                    },
+                }
+            }
+        )
+
+        result = confirmation_diagnostics(
+            [
+                _tool(user),
+                _assistant(content="Confirm changing order #1 to your Visa?"),
+                _user("Yes, use my Visa."),
+                _assistant(calls=[action]),
+            ]
+        )
+
+        binding = result["checks"][0]["parameter_binding"]
+        self.assertEqual(binding["verdict"], "PASS")
+        self.assertIn(
+            "visa", binding["field_checks"][1]["values"][0]["matched_aliases"]
+        )
+
+    def test_ambiguous_card_brand_is_not_accepted_as_payment_binding(self) -> None:
+        action = _call(
+            "c1",
+            "modify_pending_order_payment",
+            {"order_id": "#1", "payment_method_id": "credit_card_visa_a"},
+        )
+        user = json.dumps(
+            {
+                "payment_methods": {
+                    "credit_card_visa_a": {
+                        "source": "credit_card",
+                        "brand": "visa",
+                        "last_four": "1111",
+                    },
+                    "credit_card_visa_b": {
+                        "source": "credit_card",
+                        "brand": "visa",
+                        "last_four": "2222",
+                    },
+                }
+            }
+        )
+
+        result = confirmation_diagnostics(
+            [
+                _tool(user),
+                _assistant(content="Confirm changing order #1 to your Visa?"),
+                _user("Yes, use my Visa."),
+                _assistant(calls=[action]),
+            ]
+        )
+
+        binding = result["checks"][0]["parameter_binding"]
+        self.assertEqual(binding["verdict"], "REVIEW")
+        self.assertIn("payment_method_id", binding["missing_fields"])
 
 
 class RetailAgenticSplitTests(unittest.TestCase):

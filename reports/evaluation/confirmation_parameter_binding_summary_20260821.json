@@ -1,0 +1,31 @@
+{
+  "schema_version": "retail-confirmation-parameter-binding-summary-v1.0.0",
+  "source_schema_version": "retail-process-reward-offline-audit-v1.5.0",
+  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v18/process_reward_audit.json",
+  "source_artifact_sha256": "99A5DB1504973A5BDD808C87452DD14E75A8803CA402AD251C540D95BBC41FF6",
+  "source_summary_sha256": "52FE069991D134E5A028F1C89C968F37F8E358C920AFF11FC570497372180596",
+  "contract_holdout_config": "configs/confirmation_parameter_holdout_v1.json",
+  "contract_holdout_config_sha256": "8FC52B7EAF654044ABF0BE9137CB2082E329B36FFD3989BCE249C0809E161710",
+  "contract_holdout_report": "reports/evaluation/confirmation_parameter_holdout_report_20260821.json",
+  "contract_holdout_report_sha256": "63ABD26284258D636EF67431DF158DA19EC10627B382746F0845E56389DAB6C4",
+  "contract_holdout_case_count": 18,
+  "contract_holdout_matched_count": 18,
+  "confirmed_write_verdict_counts": {
+    "PASS": 34,
+    "REVIEW": 18,
+    "NOT_EVALUABLE": 7
+  },
+  "successful_confirmed_write_verdict_counts": {
+    "PASS": 21,
+    "REVIEW": 5,
+    "NOT_EVALUABLE": 5
+  },
+  "successful_review_rows": [
+    {"task_id": "59", "run_name": "run_b", "missing_fields": ["reason"]},
+    {"task_id": "79", "run_name": "run_b", "missing_fields": ["order_id", "item_pairs", "payment_method_id"]},
+    {"task_id": "100", "run_name": "run_a", "missing_fields": ["item_ids"]},
+    {"task_id": "107", "run_name": "run_a", "missing_fields": ["item_pairs", "payment_method_id"], "write_count": 2}
+  ],
+  "reward_integration_allowed": false,
+  "reason": "Synthetic contract exact match does not establish real-trajectory precision. Successful trajectories still contain REVIEW and NOT_EVALUABLE writes, and address parameters remain outside the v1 contract."
+}
