@@ -236,12 +236,22 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
 
     confirmed_after = -1
     confirmation_text = ""
+    confirmation_user_index = -1
+    authorized_write_count = 0
+    authorized_signatures: set[str] = set()
     last_write = -1
     checks: list[dict[str, Any]] = []
     for index, message in enumerate(messages):
         role = getattr(message, "role", None)
         content = str(getattr(message, "content", "") or "")
-        if role == "user" and _AFFIRMATIVE.search(content):
+        if role == "user":
+            if index > confirmation_user_index:
+                confirmed_after = -1
+                confirmation_text = ""
+                confirmation_user_index = -1
+                authorized_write_count = 0
+                authorized_signatures.clear()
+            affirmative = _AFFIRMATIVE.search(content)
             prior_asks = [
                 prior
                 for prior in range(last_write + 1, index)
@@ -250,13 +260,15 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
                     str(getattr(messages[prior], "content", "") or "")
                 )
             ]
-            if prior_asks:
+            if affirmative and prior_asks:
                 confirmed_after = max(prior_asks)
+                confirmation_user_index = index
                 confirmation_text = (
                     str(getattr(messages[confirmed_after], "content", "") or "")
                     + " "
                     + content
                 ).lower()
+                authorized_signatures.clear()
         if role != "assistant":
             continue
         write_calls = [
@@ -264,19 +276,20 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
             for call in (getattr(message, "tool_calls", None) or [])
             if call.name in WRITE_TOOLS
         ]
-        has_confirmation = bool(write_calls) and confirmed_after > last_write
+        has_confirmation = bool(write_calls) and confirmation_user_index >= 0
         order_ids = [
             str(getattr(call, "arguments", {}).get("order_id") or "").lower()
             for call in write_calls
         ]
         for call in write_calls:
+            signature = _tool_signature(call.name, dict(call.arguments))
             order_id = str(
                 getattr(call, "arguments", {}).get("order_id") or ""
             ).lower()
             confirmed = has_confirmation and (
-                len(write_calls) == 1
+                (len(write_calls) == 1 and authorized_write_count == 0)
                 or (all(order_ids) and order_id in confirmation_text)
-            )
+            ) and signature not in authorized_signatures
             checks.append(
                 {
                     "tool_call_id": str(call.id),
@@ -284,15 +297,17 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
                     "confirmed": confirmed,
                 }
             )
+            if has_confirmation:
+                authorized_signatures.add(signature)
         if write_calls:
             last_write = index
-            confirmed_after = -1
-            confirmation_text = ""
+            authorized_write_count += len(write_calls)
     return {
         "write_count": len(checks),
         "confirmed_write_count": sum(item["confirmed"] for item in checks),
         "missing_confirmation_count": sum(not item["confirmed"] for item in checks),
         "checks": checks,
+        "diagnostic_version": "v2_batch_confirmation_scope",
         "used_as_reward": False,
     }
 

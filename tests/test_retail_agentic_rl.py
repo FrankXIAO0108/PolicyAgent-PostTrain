@@ -364,6 +364,55 @@ class ProcessRewardSignalTests(unittest.TestCase):
         self.assertEqual(result["confirmed_write_count"], 1)
         self.assertEqual(result["missing_confirmation_count"], 1)
 
+    def test_confirmation_covers_sequential_writes_for_mentioned_order(self) -> None:
+        address = _call(
+            "c1",
+            "modify_pending_order_address",
+            {"order_id": "#1", "new_address": {"zip": "10001"}},
+        )
+        items = _call(
+            "c2",
+            "modify_pending_order_items",
+            {"order_id": "#1", "item_ids": ["a"], "new_item_ids": ["b"]},
+        )
+
+        result = confirmation_diagnostics(
+            [
+                _assistant(content="Do you confirm both changes for order #1?"),
+                _user("Yes, proceed with both changes for order #1."),
+                _assistant(calls=[address]),
+                _assistant(calls=[items]),
+            ]
+        )
+
+        self.assertEqual(result["confirmed_write_count"], 2)
+        self.assertEqual(result["missing_confirmation_count"], 0)
+
+    def test_new_user_message_invalidates_unused_batch_confirmation(self) -> None:
+        first = _call(
+            "c1",
+            "modify_pending_order_address",
+            {"order_id": "#1", "new_address": {"zip": "10001"}},
+        )
+        second = _call(
+            "c2",
+            "modify_pending_order_items",
+            {"order_id": "#1", "item_ids": ["a"], "new_item_ids": ["b"]},
+        )
+
+        result = confirmation_diagnostics(
+            [
+                _assistant(content="Do you confirm both changes for order #1?"),
+                _user("Yes, proceed with both changes for order #1."),
+                _assistant(calls=[first]),
+                _user("Actually, I want something different now."),
+                _assistant(calls=[second]),
+            ]
+        )
+
+        self.assertEqual(result["confirmed_write_count"], 1)
+        self.assertEqual(result["missing_confirmation_count"], 1)
+
 
 class RetailAgenticSplitTests(unittest.TestCase):
     def test_frozen_split_is_disjoint_and_reserves_official_test(self) -> None:

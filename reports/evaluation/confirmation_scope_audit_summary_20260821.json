@@ -1,0 +1,30 @@
+{
+  "schema_version": "retail-confirmation-scope-audit-summary-v1.0.0",
+  "source_schema_version": "retail-process-reward-offline-audit-v1.4.0",
+  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v14/process_reward_audit.json",
+  "source_artifact_sha256": "D24E6642ED42F15B5BFBA56BF23E18621459190746BC90E129C039BA11447917",
+  "source_summary_sha256": "57CF9018A541511448D208B034FDA0EFD316247D6C11EB264ECC263F4A31B2E7",
+  "write_count": 74,
+  "confirmed_write_count": 59,
+  "missing_confirmation_count": 15,
+  "missing_confirmation_on_success_count": 4,
+  "missing_on_success_rows": [
+    {
+      "task_id": "66",
+      "run_name": "run_b",
+      "missing_write_count": 2
+    },
+    {
+      "task_id": "100",
+      "run_name": "run_a",
+      "missing_write_count": 1
+    },
+    {
+      "task_id": "107",
+      "run_name": "run_a",
+      "missing_write_count": 1
+    }
+  ],
+  "reward_integration_allowed": false,
+  "remaining_gap": "The diagnostic binds confirmation timing, batch lifetime, and later order scope, but does not yet validate every item, new item, payment method, or reason against the confirmed text."
+}

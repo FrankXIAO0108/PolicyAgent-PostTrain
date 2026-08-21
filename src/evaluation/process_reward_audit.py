@@ -13,13 +13,14 @@ from src.evaluation.replay_evaluator import Tau2Runtime
 from src.guards.retail_pre_action import WRITE_TOOLS
 from src.rl.retail_agentic_env import (
     DEFAULT_REWARD_CONFIG,
+    confirmation_diagnostics,
     gate_environment_state_reward,
     one_to_one_action_progress,
 )
 from src.training.teacher_evidence_pack import claim_state_consistency
 
 
-SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.3.0"
+SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.4.0"
 
 TRANSFER_NOTICE = "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
 USER_STOP_MARKERS = ("###STOP###", "###TRANSFER###", "###OUT-OF-SCOPE###")
@@ -424,6 +425,7 @@ def audit_trajectory(
         raw_messages,
         termination_reason=str(raw_simulation.get("termination_reason") or ""),
     )
+    confirmation_check = confirmation_diagnostics(list(simulation.messages or []))
     return {
         "task_id": str(raw_task.get("id")),
         "run_name": run_name,
@@ -441,6 +443,7 @@ def audit_trajectory(
         "error_recovery": recovery,
         "error_penalty_sensitivity": error_penalty_sensitivity,
         "stopping_condition": stopping_check,
+        "confirmation_diagnostics": confirmation_check,
         "claim_state_consistency": claim_check,
         "efficiency_bonus_eligible": outcome_reward == 1.0
         and bool(db_check.get("db_match")),
@@ -451,6 +454,7 @@ def audit_trajectory(
             "NL assertions are reported but are not part of the implemented v1 Agentic GRPO reward.",
             "Claim-state consistency is diagnostic only and does not change the v1 proxy score.",
             "Stopping-condition consistency is diagnostic only and does not change the v1 proxy score.",
+            "Confirmation diagnostics are policy signals only and do not change the v1 proxy score.",
             "No new reward weights are introduced by this audit.",
         ],
     }
@@ -696,6 +700,11 @@ def build_audit(
     stopping_failures_on_success = [
         row for row in all_success_rows if row["stopping_condition"]["verdict"] == "FAIL"
     ]
+    confirmation_missing_on_success = [
+        row
+        for row in all_success_rows
+        if row["confirmation_diagnostics"]["missing_confirmation_count"] > 0
+    ]
     evaluable_flip_claims = [
         pair
         for pair in flips
@@ -783,6 +792,32 @@ def build_audit(
             "stopping_condition_failure_on_success_count": len(
                 stopping_failures_on_success
             ),
+            "confirmation_write_count": sum(
+                int(row["confirmation_diagnostics"]["write_count"])
+                for row in all_rows
+            ),
+            "confirmation_confirmed_write_count": sum(
+                int(row["confirmation_diagnostics"]["confirmed_write_count"])
+                for row in all_rows
+            ),
+            "confirmation_missing_write_count": sum(
+                int(row["confirmation_diagnostics"]["missing_confirmation_count"])
+                for row in all_rows
+            ),
+            "confirmation_missing_on_success_count": sum(
+                int(row["confirmation_diagnostics"]["missing_confirmation_count"])
+                for row in all_success_rows
+            ),
+            "confirmation_missing_on_success_tasks": [
+                {
+                    "task_id": row["task_id"],
+                    "run_name": row["run_name"],
+                    "missing_write_count": row["confirmation_diagnostics"][
+                        "missing_confirmation_count"
+                    ],
+                }
+                for row in confirmation_missing_on_success
+            ],
             "claim_state_failure_on_success_count": len(
                 claim_failures_on_success
             ),
@@ -805,6 +840,9 @@ def build_audit(
             "claim_state_has_zero_failures_on_frozen_successes": not claim_failures_on_success,
             "stopping_condition_has_zero_failures_on_frozen_successes": (
                 not stopping_failures_on_success
+            ),
+            "confirmation_has_zero_missing_writes_on_frozen_successes": (
+                not confirmation_missing_on_success
             ),
             "ready_to_use_v1_reward_for_grpo": False,
         },
