@@ -89,8 +89,45 @@ def load_reward_config() -> dict[str, Any]:
     return reward
 
 
+def _normalized_action_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
+    """Normalize only Retail action fields whose list order is not semantic.
+
+    ``item_ids`` is a set for return/cancel-style actions.  For modification or
+    exchange, ``item_ids`` and ``new_item_ids`` are positional pairs, so the
+    pair order may change while the old-to-new mapping must remain intact.
+    Other list-valued arguments are intentionally left untouched.
+    """
+
+    normalized = deepcopy(arguments)
+    item_ids = normalized.get("item_ids")
+    new_item_ids = normalized.get("new_item_ids")
+    if isinstance(item_ids, list) and isinstance(new_item_ids, list):
+        if len(item_ids) == len(new_item_ids):
+            normalized.pop("item_ids")
+            normalized.pop("new_item_ids")
+            normalized["item_pairs"] = sorted(
+                ([str(item_id), str(new_item_id)]
+                 for item_id, new_item_id in zip(item_ids, new_item_ids, strict=True)),
+                key=lambda pair: (pair[0], pair[1]),
+            )
+    elif isinstance(item_ids, list):
+        normalized["item_ids"] = sorted(str(item_id) for item_id in item_ids)
+    return normalized
+
+
 def _tool_signature(name: str, arguments: dict[str, Any]) -> str:
-    return f"{name}:{json.dumps(arguments, ensure_ascii=False, sort_keys=True)}"
+    normalized = _normalized_action_arguments(arguments)
+    return f"{name}:{json.dumps(normalized, ensure_ascii=False, sort_keys=True)}"
+
+
+def _action_matches(action: Any, call: Any) -> bool:
+    if action.compare_with_tool_call(call):
+        return True
+    return (
+        action.name == call.name
+        and _normalized_action_arguments(dict(action.arguments))
+        == _normalized_action_arguments(dict(call.arguments))
+    )
 
 
 def gate_environment_state_reward(
@@ -134,7 +171,7 @@ def one_to_one_action_progress(task: Any, messages: list[Any]) -> dict[str, Any]
             (
                 index
                 for index in sorted(unused)
-                if action.compare_with_tool_call(predicted[index])
+                if _action_matches(action, predicted[index])
             ),
             None,
         )

@@ -287,6 +287,110 @@ class TeacherEvidencePackTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "REVIEW")
         self.assertEqual(result["findings"][0]["verdict"], "UNVERIFIED")
 
+    def test_order_bound_amount_is_checked_against_tool_observation(self):
+        messages = [
+            {
+                "role": "tool",
+                "content": json.dumps(
+                    {
+                        "order_id": "#W0000001",
+                        "status": "pending",
+                        "payment_history": [
+                            {"transaction_type": "payment", "amount": 829.43}
+                        ],
+                    }
+                ),
+                "error": False,
+            },
+            {
+                "role": "assistant",
+                "content": "The total for order #W0000001, which was $829.43.",
+            },
+        ]
+
+        result = claim_state_consistency(messages, {"agent": {"orders": {}}})
+
+        self.assertEqual(result["verdict"], "PASS")
+        self.assertEqual(result["findings"][0]["verdict"], "SUPPORTED")
+
+    def test_wrong_order_bound_amount_is_contradicted(self):
+        messages = [
+            {
+                "role": "tool",
+                "content": json.dumps(
+                    {
+                        "order_id": "#W0000001",
+                        "payment_history": [
+                            {"transaction_type": "payment", "amount": 829.43}
+                        ],
+                    }
+                ),
+                "error": False,
+            },
+            {
+                "role": "assistant",
+                "content": "Order #W0000001 had a total of $919.67.",
+            },
+        ]
+
+        result = claim_state_consistency(messages, {"agent": {"orders": {}}})
+
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(result["findings"][0]["verdict"], "CONTRADICTED")
+
+    def test_asserted_most_recent_selection_without_dates_requires_review(self):
+        messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    "I believe the most recent order would be Order #W0000001 "
+                    "with a total of $829.43."
+                ),
+            }
+        ]
+
+        result = claim_state_consistency(messages, {"agent": {"orders": {}}})
+
+        self.assertEqual(result["verdict"], "REVIEW")
+        self.assertIn(
+            "COMPARATIVE_SELECTION_OUTSIDE_PROGRAMMATIC_CHECKER_SCOPE",
+            {finding["reason_code"] for finding in result["findings"]},
+        )
+
+    def test_markdown_and_explanation_do_not_hide_most_recent_claim(self):
+        messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    'You asked about your "most recent" order. I believe that '
+                    "would be **Order #W0000001** with a total of **$829.43**."
+                ),
+            }
+        ]
+
+        result = claim_state_consistency(messages, {"agent": {"orders": {}}})
+
+        self.assertEqual(result["verdict"], "REVIEW")
+        self.assertIn(
+            "COMPARATIVE_SELECTION_OUTSIDE_PROGRAMMATIC_CHECKER_SCOPE",
+            {finding["reason_code"] for finding in result["findings"]},
+        )
+
+    def test_explicit_uncertainty_is_not_misread_as_selection_claim(self):
+        messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    "The order data has no dates, so I cannot determine the most "
+                    "recent order."
+                ),
+            }
+        ]
+
+        result = claim_state_consistency(messages, {"agent": {"orders": {}}})
+
+        self.assertEqual(result["verdict"], "NOT_APPLICABLE")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -207,6 +207,80 @@ class ProcessRewardSignalTests(unittest.TestCase):
         self.assertEqual(progress["recall"], 1.0)
         self.assertEqual(progress["duplicate_excess_count"], 0)
 
+    def test_item_id_order_does_not_invalidate_equivalent_return(self) -> None:
+        task = _task_with_actions(
+            [
+                _ExpectedAction(
+                    "a1",
+                    "return_delivered_order_items",
+                    {
+                        "order_id": "#1",
+                        "item_ids": ["A", "B", "C"],
+                        "payment_method_id": "pm_1",
+                    },
+                )
+            ]
+        )
+        messages = [
+            _assistant(
+                calls=[
+                    _call(
+                        "c1",
+                        "return_delivered_order_items",
+                        {
+                            "order_id": "#1",
+                            "item_ids": ["C", "B", "A"],
+                            "payment_method_id": "pm_1",
+                        },
+                    )
+                ]
+            )
+        ]
+
+        progress = one_to_one_action_progress(task, messages)
+
+        self.assertEqual(progress["recall"], 1.0)
+        self.assertEqual(progress["unexpected_write_count"], 0)
+
+    def test_reordered_item_pairs_match_but_changed_mapping_does_not(self) -> None:
+        expected = {
+            "order_id": "#1",
+            "item_ids": ["A", "B"],
+            "new_item_ids": ["X", "Y"],
+            "payment_method_id": "pm_1",
+        }
+        task = _task_with_actions(
+            [_ExpectedAction("a1", "modify_pending_order_items", expected)]
+        )
+        equivalent = _call(
+            "c1",
+            "modify_pending_order_items",
+            {
+                **expected,
+                "item_ids": ["B", "A"],
+                "new_item_ids": ["Y", "X"],
+            },
+        )
+        wrong_mapping = _call(
+            "c2",
+            "modify_pending_order_items",
+            {
+                **expected,
+                "item_ids": ["B", "A"],
+                "new_item_ids": ["X", "Y"],
+            },
+        )
+
+        equivalent_progress = one_to_one_action_progress(
+            task, [_assistant(calls=[equivalent])]
+        )
+        wrong_progress = one_to_one_action_progress(
+            task, [_assistant(calls=[wrong_mapping])]
+        )
+
+        self.assertEqual(equivalent_progress["recall"], 1.0)
+        self.assertEqual(wrong_progress["recall"], 0.0)
+
     def test_excess_repeated_call_and_unexpected_write_are_counted(self) -> None:
         expected_args = {"order_id": "#1"}
         unexpected_args = {"order_id": "#1", "payment_method_id": "pm_2"}

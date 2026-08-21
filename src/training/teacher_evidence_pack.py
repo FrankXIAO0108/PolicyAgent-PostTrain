@@ -6,6 +6,18 @@ from typing import Any
 
 
 ORDER_ID = re.compile(r"#?W\d{7}", re.IGNORECASE)
+AMOUNT_CLAIM = re.compile(
+    r"(?:(?:total(?:\s+paid)?|paid|amount)(?:\s+(?:was|is|of))?|which\s+was)"
+    r"\s*[:=-]?\s*\*{0,2}"
+    r"\$\s*([0-9][0-9,]*(?:\.\d{2})?)",
+    re.IGNORECASE,
+)
+UNSUPPORTED_SELECTION_CLAIM = re.compile(
+    r"\b(?:most recent|latest)\b[\s\S]{0,160}?"
+    r"(?:is|was|would be|appears to be)\s+\*{0,2}(?:order\s+)?"
+    r"\*{0,2}#?W\d{7}\b",
+    re.IGNORECASE,
+)
 STATUS_PATTERNS = {
     "cancelled": re.compile(
         r"\b(?:has been|was successfully|is now|successfully) "
@@ -43,6 +55,84 @@ def final_answer(messages: list[dict[str, Any]]) -> str:
         if message.get("role") == "assistant" and str(message.get("content") or "").strip():
             return str(message["content"]).strip()
     return ""
+
+
+def _normalise_order_id(value: str) -> str:
+    result = value.upper()
+    return result if result.startswith("#") else f"#{result}"
+
+
+def _single_payment_amount(order: dict[str, Any]) -> float | None:
+    """Return only an unambiguous single payment amount.
+
+    Exchange/refund histories can contain multiple transactions whose business
+    meaning cannot be recovered safely by blindly summing them.
+    """
+
+    payments = [
+        row.get("amount")
+        for row in (order.get("payment_history") or [])
+        if str(row.get("transaction_type") or "").lower() == "payment"
+        and row.get("amount") is not None
+    ]
+    return float(payments[0]) if len(payments) == 1 else None
+
+
+def _order_facts(
+    messages: list[dict[str, Any]], final_state: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
+    facts: dict[str, dict[str, Any]] = {}
+    state_orders = ((final_state.get("agent") or {}).get("orders") or {})
+    for key, value in state_orders.items():
+        if not isinstance(value, dict):
+            continue
+        order_id = _normalise_order_id(str(value.get("order_id") or key))
+        facts[order_id] = {
+            "status": value.get("status"),
+            "single_payment_amount": _single_payment_amount(value),
+            "sources": ["final_state"],
+        }
+
+    for message in messages:
+        if message.get("role") != "tool" or bool(message.get("error", False)):
+            continue
+        content = message.get("content")
+        if not isinstance(content, str):
+            continue
+        try:
+            value = json.loads(content)
+        except (TypeError, json.JSONDecodeError):
+            continue
+        if not isinstance(value, dict) or not value.get("order_id"):
+            continue
+        order_id = _normalise_order_id(str(value["order_id"]))
+        fact = facts.setdefault(order_id, {"sources": []})
+        if value.get("status") is not None:
+            fact["status"] = value["status"]
+        amount = _single_payment_amount(value)
+        if amount is not None:
+            fact["single_payment_amount"] = amount
+        fact["sources"].append("tool_observation")
+    return facts
+
+
+def _order_mentions(answer: str) -> list[tuple[str, str]]:
+    """Split an answer into local order-bound segments.
+
+    The segment ends at the next order ID so an amount listed for one order is
+    not accidentally bound to a neighbouring order.
+    """
+
+    matches = list(ORDER_ID.finditer(answer))
+    return [
+        (
+            _normalise_order_id(match.group(0)),
+            answer[match.start() : matches[index + 1].start()]
+            if index + 1 < len(matches)
+            else answer[match.start() :],
+        )
+        for index, match in enumerate(matches)
+    ]
 
 
 def state_diff(before: Any, after: Any, path: str = "") -> list[dict[str, Any]]:
@@ -106,7 +196,7 @@ def claim_state_consistency(
     messages: list[dict[str, Any]], final_state: dict[str, Any]
 ) -> dict[str, Any]:
     answer = final_answer(messages)
-    orders = ((final_state.get("agent") or {}).get("orders") or {})
+    orders = _order_facts(messages, final_state)
     findings: list[dict[str, Any]] = []
     explicit_order_ids = {
         (value if value.startswith("#") else f"#{value}").upper()
@@ -132,12 +222,65 @@ def claim_state_consistency(
                     "reason_code": "CLAIM_MATCHES_FINAL_STATE" if actual_status == claimed_status else "CLAIM_CONTRADICTS_FINAL_STATE",
                 }
             )
+    for order_id, segment in _order_mentions(answer):
+        order = orders.get(order_id)
+        for match in AMOUNT_CLAIM.finditer(segment):
+            claimed_amount = float(match.group(1).replace(",", ""))
+            actual_amount = (
+                order.get("single_payment_amount") if order is not None else None
+            )
+            if actual_amount is None:
+                findings.append(
+                    {
+                        "claim": {
+                            "order_id": order_id,
+                            "single_payment_amount": claimed_amount,
+                        },
+                        "verdict": "UNVERIFIED",
+                        "reason_code": "ORDER_PAYMENT_AMOUNT_NOT_UNAMBIGUOUSLY_AVAILABLE",
+                    }
+                )
+                continue
+            matches_amount = abs(float(actual_amount) - claimed_amount) < 0.005
+            findings.append(
+                {
+                    "claim": {
+                        "order_id": order_id,
+                        "single_payment_amount": claimed_amount,
+                    },
+                    "actual": {"single_payment_amount": float(actual_amount)},
+                    "verdict": "SUPPORTED" if matches_amount else "CONTRADICTED",
+                    "reason_code": (
+                        "CLAIM_MATCHES_TOOL_OR_FINAL_STATE"
+                        if matches_amount
+                        else "CLAIM_CONTRADICTS_TOOL_OR_FINAL_STATE"
+                    ),
+                }
+            )
+    selection_match = UNSUPPORTED_SELECTION_CLAIM.search(answer)
+    if selection_match:
+        findings.append(
+            {
+                "claim": {"text": selection_match.group(0)},
+                "verdict": "UNVERIFIED",
+                "reason_code": "COMPARATIVE_SELECTION_OUTSIDE_PROGRAMMATIC_CHECKER_SCOPE",
+            }
+        )
     status_language = bool(AMBIGUOUS_STATUS_LANGUAGE.search(answer))
     if status_language and not findings:
         findings.append({"claim": {"text": answer}, "verdict": "UNVERIFIED", "reason_code": "BROAD_STATUS_CLAIM_WITHOUT_ENTITY_BINDING"})
     verdicts = {row["verdict"] for row in findings}
     overall = "FAIL" if "CONTRADICTED" in verdicts else "REVIEW" if "UNVERIFIED" in verdicts else "PASS" if findings else "NOT_APPLICABLE"
-    return {"verdict": overall, "final_answer": answer, "findings": findings}
+    return {
+        "verdict": overall,
+        "final_answer": answer,
+        "findings": findings,
+        "scope_notes": [
+            "Only explicit order-bound status and unambiguous single-payment claims are checked.",
+            "Comparative selections such as latest/most recent are outside the current checker scope and are routed to review.",
+            "This checker does not use Tau2 hidden reference actions or NL assertions.",
+        ],
+    }
 
 
 def compact_trajectory(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
