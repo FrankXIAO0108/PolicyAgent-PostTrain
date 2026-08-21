@@ -1,0 +1,237 @@
+{
+  "schema_version": "retail-claim-state-holdout-candidate-v2.0",
+  "created_at": "2026-08-21",
+  "checker_frozen_commit": "0455684bd3ddb2221098a0275307af3479f50991",
+  "review_status": "PENDING_PROJECT_OWNER_REVIEW",
+  "policy": {
+    "training_allowed": false,
+    "rule_tuning_allowed": false,
+    "evaluation_allowed": false,
+    "evaluation_requires_owner_approval": true
+  },
+  "label_policy": {
+    "PASS": "The answer makes an explicit, unambiguous claim supported by the supplied facts.",
+    "FAIL": "The answer makes an explicit, unambiguous claim contradicted by the supplied facts.",
+    "REVIEW": "The text contains a claim but automatic binding is unsafe, unsupported, conditional, negated, or fact-conflicted.",
+    "NOT_APPLICABLE": "The answer contains no completed-state or payment claim to verify."
+  },
+  "cases": [
+    {
+      "case_id": "blind_status_pass_01",
+      "category": "status_supported_new_wording",
+      "answer": "I successfully cancelled order #W5000001.",
+      "orders": [{"order_id": "#W5000001", "status": "cancelled"}],
+      "proposed_verdict": "PASS",
+      "rationale": "The completed cancellation claim matches the final order status.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_status_pass_02",
+      "category": "status_supported_markdown",
+      "answer": "**Order #W5000002** has been updated to **exchange requested** status.",
+      "orders": [{"order_id": "#W5000002", "status": "exchange requested"}],
+      "proposed_verdict": "PASS",
+      "rationale": "Markdown does not change the explicit supported status claim.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_status_pass_03",
+      "category": "status_supported_list",
+      "answer": "Completed update:\n- Order #W5000003: return request was submitted.",
+      "orders": [{"order_id": "#W5000003", "status": "return requested"}],
+      "proposed_verdict": "PASS",
+      "rationale": "The list item explicitly binds the order to its supported status.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_amount_pass_04",
+      "category": "amount_supported_parenthetical",
+      "answer": "The payment ($64.20) belongs to order #W5000004.",
+      "orders": [{"order_id": "#W5000004", "status": "delivered", "payments": [64.20]}],
+      "proposed_verdict": "PASS",
+      "rationale": "A single payment amount is explicitly bound to one order and matches the facts.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_amount_pass_05",
+      "category": "amount_supported_tool_fact",
+      "answer": "For #W5000005, the total paid was $2,010.05.",
+      "tool_orders": [{"order_id": "#W5000005", "status": "delivered", "payments": [2010.05]}],
+      "proposed_verdict": "PASS",
+      "rationale": "The explicit amount matches the unambiguous tool observation.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_combined_pass_06",
+      "category": "combined_supported_claims",
+      "answer": "Order #W5000006 has been cancelled; its total was $18.40.",
+      "orders": [{"order_id": "#W5000006", "status": "cancelled", "payments": [18.40]}],
+      "proposed_verdict": "PASS",
+      "rationale": "Both the completed status and payment amount match the same order facts.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_status_fail_07",
+      "category": "status_contradicted_new_wording",
+      "answer": "I successfully cancelled order #W5000007.",
+      "orders": [{"order_id": "#W5000007", "status": "pending"}],
+      "proposed_verdict": "FAIL",
+      "rationale": "The answer claims completed cancellation but the order remains pending.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_status_fail_08",
+      "category": "status_contradicted_markdown",
+      "answer": "Order **#W5000008** has been updated to **exchange requested** status.",
+      "orders": [{"order_id": "#W5000008", "status": "delivered"}],
+      "proposed_verdict": "FAIL",
+      "rationale": "The explicit exchange status contradicts the supplied delivered status.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_status_fail_09",
+      "category": "status_contradicted_list",
+      "answer": "Result:\n- Order #W5000009: return request was submitted.",
+      "orders": [{"order_id": "#W5000009", "status": "pending"}],
+      "proposed_verdict": "FAIL",
+      "rationale": "The submitted return claim conflicts with the pending status.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_amount_fail_10",
+      "category": "amount_contradicted_parenthetical",
+      "answer": "The payment ($46.20) belongs to order #W5000010.",
+      "orders": [{"order_id": "#W5000010", "status": "delivered", "payments": [64.20]}],
+      "proposed_verdict": "FAIL",
+      "rationale": "The explicit payment amount is different from the sole payment fact.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_amount_fail_11",
+      "category": "amount_contradicted_tool_fact",
+      "answer": "For #W5000011, the total paid was $2,100.05.",
+      "tool_orders": [{"order_id": "#W5000011", "status": "delivered", "payments": [2010.05]}],
+      "proposed_verdict": "FAIL",
+      "rationale": "The claimed amount contradicts the unambiguous tool observation.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_combined_fail_12",
+      "category": "combined_one_claim_wrong",
+      "answer": "Order #W5000012 has been cancelled; its total was $99.00.",
+      "orders": [{"order_id": "#W5000012", "status": "cancelled", "payments": [19.00]}],
+      "proposed_verdict": "FAIL",
+      "rationale": "The status is supported but the explicit amount is contradicted, so the overall result is FAIL.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_future_13",
+      "category": "future_action",
+      "answer": "After you confirm, order #W5000013 will be cancelled.",
+      "orders": [{"order_id": "#W5000013", "status": "pending"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "This is a conditional future action, not a completed-state claim.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_capability_14",
+      "category": "capability_not_completion",
+      "answer": "I can cancel order #W5000014 once you approve.",
+      "orders": [{"order_id": "#W5000014", "status": "pending"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "Capability and intent must not be interpreted as completed cancellation.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_negation_15",
+      "category": "negated_status",
+      "answer": "Order #W5000015 was not cancelled.",
+      "orders": [{"order_id": "#W5000015", "status": "pending"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "V2 deliberately abstains on negated status claims rather than reversing their meaning.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_comparative_16",
+      "category": "comparative_selection",
+      "answer": "Among the records, #W5000016 appears to be the newest order.",
+      "orders": [{"order_id": "#W5000016", "status": "delivered", "created_at": "2026-05-03"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "Comparative selection is outside the automatic checker scope.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_multi_entity_17",
+      "category": "multiple_entities_one_span",
+      "answer": "Orders #W5000017 and #W5000018 have been cancelled.",
+      "orders": [{"order_id": "#W5000017", "status": "cancelled"}, {"order_id": "#W5000018", "status": "cancelled"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "Two entities share one claim span; V2 conservatively requires review.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_multi_amount_18",
+      "category": "multiple_amounts_one_span",
+      "answer": "Order #W5000019 shows payments of $30.00 and $12.00.",
+      "orders": [{"order_id": "#W5000019", "status": "delivered", "payments": [42.00]}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "Multiple amounts cannot be safely mapped to the single-payment fact.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_conflicting_sources_19",
+      "category": "conflicting_facts",
+      "answer": "Order #W5000020 has been cancelled.",
+      "orders": [{"order_id": "#W5000020", "status": "pending"}],
+      "tool_orders": [{"order_id": "#W5000020", "status": "cancelled"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "Final-state and tool-observation facts conflict; neither should silently override the other.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_unsupported_wording_20",
+      "category": "unsupported_completion_wording",
+      "answer": "Cancellation for order #W5000021 is complete.",
+      "orders": [{"order_id": "#W5000021", "status": "cancelled"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "This is a real completed-state claim, but its unseen wording should be routed rather than assumed supported.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_missing_fact_21",
+      "category": "missing_order_fact",
+      "answer": "Order #W5000022 has been cancelled.",
+      "orders": [],
+      "proposed_verdict": "REVIEW",
+      "rationale": "The claim cannot be checked because no fact for the referenced order is supplied.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_review_no_punctuation_22",
+      "category": "unsegmented_multi_entity",
+      "answer": "Order #W5000023 has been cancelled and order #W5000024 has been updated to exchange requested status",
+      "orders": [{"order_id": "#W5000023", "status": "cancelled"}, {"order_id": "#W5000024", "status": "exchange requested"}],
+      "proposed_verdict": "REVIEW",
+      "rationale": "Without a reliable boundary, two order-state bindings share one span and require review.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_na_question_23",
+      "category": "no_completed_claim",
+      "answer": "Would you like me to check order #W5000025?",
+      "orders": [{"order_id": "#W5000025", "status": "pending"}],
+      "proposed_verdict": "NOT_APPLICABLE",
+      "rationale": "This is a question and makes no completed-state or payment claim.",
+      "owner_review": "PENDING"
+    },
+    {
+      "case_id": "blind_na_generic_24",
+      "category": "no_claim",
+      "answer": "Thank you for your patience. How else may I help?",
+      "orders": [],
+      "proposed_verdict": "NOT_APPLICABLE",
+      "rationale": "No order state or payment assertion is present.",
+      "owner_review": "PENDING"
+    }
+  ]
+}
