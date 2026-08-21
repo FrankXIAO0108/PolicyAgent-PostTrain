@@ -299,6 +299,7 @@ Precision/Recall/F1 或生产可靠性结论。治理边界见
 | Claim-State 对抗评测 | 24 条冻结合成样本精确匹配 20/24；FAIL F1 76.92%，Reward 接入门禁未通过 |
 | Claim-State V2 开发版 | 20/20 开发规格；60 条既有轨迹中 0 个假 FAIL，但仅 1 PASS、42 REVIEW，等待全新 holdout |
 | Claim-State V2 盲测 | owner-reviewed 24 条首次评测为 19/24；FAIL P/R/F1=100%/83.33%/90.91%，REVIEW 召回 70%，禁止接入 Reward |
+| 停止条件离线诊断 | 冻结 60 条轨迹中 59 PASS、1 个异常终止 FAIL；3 条成功人工转接序列均正确，真实违规负例覆盖不足，尚未接入 Reward |
 | 正式 Retail DPO | 未运行；偏好数据与独立验证门禁未通过 |
 | 正式 Retail Agentic GRPO | 未运行；Reward holdout 与抗钻空子门禁未通过 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
@@ -322,8 +323,10 @@ SFT→DPO→GRPO GPU 工程实操包，使用开发者合成工具调用数据�
 写操作组成轨迹级过程奖励。44 条 train、10 条 validation、既有 development audit
 严格拆分，官方 test 保留。后续完成了 Tool-SFT、多步 Tool-SFT、教师轨迹 SFT、多 seed
 30-task 评测和过程 Reward 离线审计。当前 Reward 在 8 个观察到 outcome 翻转的任务中正确
-排序 7 个，task67 因最终自然语言目标选择不同而并列；claim-state 诊断能够将其路由为复核，
-但尚未进入标量 Reward。因此当前不能声称 Agentic GRPO 带来业务提升。详见
+排序 7 个，task67 因最终自然语言目标选择不同而并列；claim-state 诊断能够将其路由为复核。
+停止条件诊断在 60 条冻结轨迹中识别出 1 个 `too_many_errors` 异常终止，且未误罚 32 条成功
+轨迹；但真实停止违规负例仍不足。两类诊断均未进入标量 Reward。因此当前不能声称
+Agentic GRPO 带来业务提升。详见
 [Retail 智能体强化学习设计](docs/04_数据治理与后训练/2026-08-11_Retail智能体强化学习设计.md)和
 [过程 Reward 离线正向验证报告](docs/04_数据治理与后训练/2026-08-21_过程Reward离线正向验证报告.md)。
 
@@ -380,10 +383,9 @@ src/
 ```
 
 完整 V7 重放测试需要使用已安装上游依赖的 tau2 虚拟环境；仅运行不依赖 tau2 的
-单元测试时也可使用当前项目 Python。2026-08-13 使用当前本机 Python 复核：114 项
-通过、9 个子测试通过、8 项失败。8 项均依赖本地 tau2 导入链，首个根因是缺少
-`addict`；云端固定环境中的相关专项测试此前为 19/19 通过。不能把本机结果表述成
-“全部测试通过”。
+单元测试时也可使用当前项目 Python。2026-08-21 使用 `D:\tau2-bench\.venv` 完整回归：
+`295 passed, 2 skipped, 1 warning, 12 subtests passed`。唯一 warning 为 Python `audioop`
+弃用提示；2 个 skip 需按各测试自身条件解释，不能写成 296/296。
 
 ### 重放 V7
 
@@ -455,7 +457,7 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
 ## 后续计划
 
 1. 暂停把 Claim-State V2 接入 Reward；它只作为离线诊断和人工路由信号；
-2. 优先验证停止条件、错误恢复、多实体写操作和联合约束等程序化过程信号；
+2. 停止条件已完成首轮离线兼容性诊断；下一步优先验证错误恢复、多实体写操作和联合约束；
 3. 若开发 Claim-State V3，必须先解决事实来源冲突，再在全新 holdout 上评测；
 4. 做 SFT 数据规模与多 seed 消融，区分数据不足、行为方差和模型容量限制；
 5. 只有高精度且覆盖率足够的过程信号通过独立验证后，才启动小规模 Agentic GRPO。

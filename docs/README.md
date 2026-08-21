@@ -54,6 +54,7 @@
 | [Claim-State 冻结对抗集评测报告](03_Verifier与Guard/2026-08-21_Claim-State冻结对抗集评测报告.md) | 检查最终回答中的订单状态、金额与多实体绑定 | v1 未通过 Reward 接入门禁 |
 | [Claim-State V2 开发与真实轨迹兼容性报告](03_Verifier与Guard/2026-08-21_Claim-State-V2开发与真实轨迹兼容性报告.md) | 局部 span 绑定、开发集和 60 条既有轨迹兼容性诊断 | 开发版完成；等待全新 holdout |
 | [Claim-State V2 盲测评测报告](03_Verifier与Guard/2026-08-21_Claim-State-V2盲测评测报告.md) | 项目所有者审阅后首次揭盲的 24 条评测 | 19/24，未通过 Reward 接入门禁 |
+| [过程 Reward 离线正向验证报告](04_数据治理与后训练/2026-08-21_过程Reward离线正向验证报告.md) | 冻结轨迹上的 Reward 正向审计、Claim-State 与停止条件诊断 | 7/8 翻转对正确排序；停止条件真实负例覆盖不足，GRPO 门禁关闭 |
 | [人工审计记录](03_Verifier与Guard/人工审计记录/) | 三批规则审计和 Baseline20 验证记录 | 细节证据，按需阅读 |
 
 ## 04_数据治理与后训练

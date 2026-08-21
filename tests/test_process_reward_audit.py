@@ -6,10 +6,182 @@ from src.evaluation.process_reward_audit import (
     _claim_verdict_rank,
     _compose_v1_proxy,
     error_recovery_diagnostics,
+    stopping_condition_diagnostics,
 )
 
 
 class ProcessRewardAuditTests(unittest.TestCase):
+    def test_normal_user_stop_passes_stopping_diagnostic(self) -> None:
+        messages = [
+            {"role": "assistant", "content": "Anything else?"},
+            {"role": "user", "content": "No thanks. ###STOP###"},
+        ]
+
+        result = stopping_condition_diagnostics(
+            messages, termination_reason="user_stop"
+        )
+
+        self.assertEqual(result["verdict"], "PASS")
+        self.assertEqual(result["findings"], [])
+
+    def test_activity_after_stop_fails_stopping_diagnostic(self) -> None:
+        messages = [
+            {"role": "user", "content": "Done. ###STOP###"},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {"id": "c1", "name": "get_order_details", "arguments": {}}
+                ],
+            },
+        ]
+
+        result = stopping_condition_diagnostics(
+            messages, termination_reason="user_stop"
+        )
+
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(
+            result["findings"][0]["reason_code"], "ACTIVITY_AFTER_USER_STOP"
+        )
+
+    def test_successful_transfer_requires_notice_and_terminal_marker(self) -> None:
+        messages = [
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "t1",
+                        "name": "transfer_to_human_agents",
+                        "arguments": {"summary": "Escalation requested"},
+                    }
+                ],
+            },
+            {
+                "id": "t1",
+                "role": "tool",
+                "content": "Transfer successful",
+                "error": False,
+            },
+            {"role": "assistant", "content": "Someone will contact you later."},
+            {"role": "user", "content": "Okay."},
+        ]
+
+        result = stopping_condition_diagnostics(
+            messages, termination_reason="user_stop"
+        )
+
+        codes = {finding["reason_code"] for finding in result["findings"]}
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertIn("MISSING_REQUIRED_TRANSFER_NOTICE", codes)
+        self.assertIn("MISSING_TRANSFER_TERMINATION_MARKER", codes)
+
+    def test_valid_transfer_sequence_passes_stopping_diagnostic(self) -> None:
+        messages = [
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "t1",
+                        "name": "transfer_to_human_agents",
+                        "arguments": {"summary": "Escalation requested"},
+                    }
+                ],
+            },
+            {
+                "id": "t1",
+                "role": "tool",
+                "content": "Transfer successful",
+                "error": False,
+            },
+            {
+                "role": "assistant",
+                "content": "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.",
+            },
+            {"role": "user", "content": "###TRANSFER###"},
+        ]
+
+        result = stopping_condition_diagnostics(
+            messages, termination_reason="user_stop"
+        )
+
+        self.assertEqual(result["verdict"], "PASS")
+
+    def test_tool_call_after_successful_transfer_fails_stopping_diagnostic(self) -> None:
+        messages = [
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "t1",
+                        "name": "transfer_to_human_agents",
+                        "arguments": {"summary": "Escalation requested"},
+                    }
+                ],
+            },
+            {
+                "id": "t1",
+                "role": "tool",
+                "content": "Transfer successful",
+                "error": False,
+            },
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {"id": "c2", "name": "get_order_details", "arguments": {}}
+                ],
+            },
+            {"id": "c2", "role": "tool", "content": "{}", "error": False},
+            {
+                "role": "assistant",
+                "content": "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.",
+            },
+            {"role": "user", "content": "###TRANSFER###"},
+        ]
+
+        result = stopping_condition_diagnostics(
+            messages, termination_reason="user_stop"
+        )
+
+        codes = {finding["reason_code"] for finding in result["findings"]}
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertIn("TOOL_CALL_AFTER_SUCCESSFUL_TRANSFER", codes)
+
+    def test_transfer_without_tool_result_is_not_assumed_successful(self) -> None:
+        messages = [
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "t1",
+                        "name": "transfer_to_human_agents",
+                        "arguments": {"summary": "Escalation requested"},
+                    }
+                ],
+            },
+            {"role": "user", "content": "###STOP###"},
+        ]
+
+        result = stopping_condition_diagnostics(
+            messages, termination_reason="user_stop"
+        )
+
+        self.assertEqual(result["verdict"], "REVIEW")
+        self.assertEqual(result["successful_transfer_count"], 0)
+        self.assertEqual(
+            result["findings"][0]["reason_code"], "TRANSFER_RESULT_MISSING"
+        )
+
+    def test_abnormal_termination_without_marker_fails_stopping_diagnostic(self) -> None:
+        result = stopping_condition_diagnostics(
+            [{"role": "assistant", "content": "Still working"}],
+            termination_reason="too_many_errors",
+        )
+
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(
+            result["findings"][0]["reason_code"], "NO_EXPLICIT_TERMINAL_MARKER"
+        )
+
     def test_claim_diagnostic_rank_does_not_treat_not_applicable_as_pass(self) -> None:
         self.assertGreater(_claim_verdict_rank("PASS"), _claim_verdict_rank("REVIEW"))
         self.assertGreater(_claim_verdict_rank("REVIEW"), _claim_verdict_rank("FAIL"))

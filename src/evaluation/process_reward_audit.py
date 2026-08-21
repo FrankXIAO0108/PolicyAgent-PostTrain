@@ -18,7 +18,10 @@ from src.rl.retail_agentic_env import (
 from src.training.teacher_evidence_pack import claim_state_consistency
 
 
-SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.1.0"
+SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.2.0"
+
+TRANSFER_NOTICE = "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
+USER_STOP_MARKERS = ("###STOP###", "###TRANSFER###", "###OUT-OF-SCOPE###")
 
 
 def _sha256(path: Path) -> str:
@@ -62,7 +65,9 @@ def _call_records(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "name": name,
                     "arguments": arguments,
                     "signature": _signature(name, arguments),
+                    "result_found": call_id in results,
                     "result_error": bool(result.get("error", False)),
+                    "result_content": str(result.get("content") or ""),
                 }
             )
     return records
@@ -93,6 +98,121 @@ def error_recovery_diagnostics(
             "Diagnostic only: a changed later call is evidence of strategy change, "
             "not proof that the error was causally recovered."
         ),
+    }
+
+
+def stopping_condition_diagnostics(
+    messages: list[dict[str, Any]], *, termination_reason: str | None
+) -> dict[str, Any]:
+    """Check only explicit, mechanically observable terminal behavior.
+
+    This diagnostic deliberately does not infer that a business task was complete.
+    It checks the Tau2 stop markers, abnormal termination, and the Retail policy's
+    required sequence after a successful human-transfer tool call.
+    """
+
+    stop_indices = [
+        index
+        for index, message in enumerate(messages)
+        if any(
+            marker in str(message.get("content") or "")
+            for marker in USER_STOP_MARKERS
+        )
+    ]
+    calls = _call_records(messages)
+    transfer_calls = [
+        call for call in calls if call["name"] == "transfer_to_human_agents"
+    ]
+    findings: list[dict[str, Any]] = []
+
+    if stop_indices and stop_indices[0] != len(messages) - 1:
+        findings.append(
+            {
+                "reason_code": "ACTIVITY_AFTER_USER_STOP",
+                "message_index": stop_indices[0],
+                "severity": "FAIL",
+            }
+        )
+    if not stop_indices and termination_reason not in {"agent_stop"}:
+        findings.append(
+            {
+                "reason_code": "NO_EXPLICIT_TERMINAL_MARKER",
+                "termination_reason": termination_reason,
+                "severity": "FAIL",
+            }
+        )
+
+    for transfer in transfer_calls:
+        if not transfer["result_found"]:
+            findings.append(
+                {
+                    "reason_code": "TRANSFER_RESULT_MISSING",
+                    "message_index": int(transfer["message_index"]),
+                    "severity": "REVIEW",
+                }
+            )
+    successful_transfers = [
+        call
+        for call in transfer_calls
+        if call["result_found"]
+        and not call["result_error"]
+        and call["result_content"].strip() == "Transfer successful"
+    ]
+    for transfer in successful_transfers:
+        transfer_index = int(transfer["message_index"])
+        later_tool_calls = [
+            call for call in calls if int(call["message_index"]) > transfer_index
+        ]
+        if later_tool_calls:
+            findings.append(
+                {
+                    "reason_code": "TOOL_CALL_AFTER_SUCCESSFUL_TRANSFER",
+                    "message_index": int(later_tool_calls[0]["message_index"]),
+                    "tool_name": later_tool_calls[0]["name"],
+                    "severity": "FAIL",
+                }
+            )
+        later_assistant_texts = [
+            str(message.get("content") or "").strip()
+            for message in messages[transfer_index + 1 :]
+            if message.get("role") == "assistant" and message.get("content")
+        ]
+        if TRANSFER_NOTICE not in later_assistant_texts:
+            findings.append(
+                {
+                    "reason_code": "MISSING_REQUIRED_TRANSFER_NOTICE",
+                    "message_index": transfer_index,
+                    "severity": "FAIL",
+                }
+            )
+        later_user_text = "\n".join(
+            str(message.get("content") or "")
+            for message in messages[transfer_index + 1 :]
+            if message.get("role") == "user"
+        )
+        if "###TRANSFER###" not in later_user_text:
+            findings.append(
+                {
+                    "reason_code": "MISSING_TRANSFER_TERMINATION_MARKER",
+                    "message_index": transfer_index,
+                    "severity": "FAIL",
+                }
+            )
+
+    severities = {finding["severity"] for finding in findings}
+    return {
+        "verdict": (
+            "FAIL" if "FAIL" in severities else "REVIEW" if findings else "PASS"
+        ),
+        "termination_reason": termination_reason,
+        "stop_marker_count": len(stop_indices),
+        "successful_transfer_count": len(successful_transfers),
+        "findings": findings,
+        "scope_notes": [
+            "Only explicit Tau2 terminal markers and successful-transfer sequencing are checked.",
+            "Business-task completion is not inferred from the final answer or hidden reference actions.",
+            "This diagnostic does not change the scalar reward.",
+        ],
     }
 
 
@@ -230,6 +350,10 @@ def audit_trajectory(
     )
     nl_checks = reward_info.get("nl_assertions") or []
     claim_check = claim_state_consistency(raw_messages, {"agent": {"orders": {}}})
+    stopping_check = stopping_condition_diagnostics(
+        raw_messages,
+        termination_reason=str(raw_simulation.get("termination_reason") or ""),
+    )
     return {
         "task_id": str(raw_task.get("id")),
         "run_name": run_name,
@@ -245,6 +369,7 @@ def audit_trajectory(
         "v1_reward_proxy": proxy,
         "action_progress": action_progress,
         "error_recovery": recovery,
+        "stopping_condition": stopping_check,
         "claim_state_consistency": claim_check,
         "efficiency_bonus_eligible": outcome_reward == 1.0
         and bool(db_check.get("db_match")),
@@ -254,6 +379,7 @@ def audit_trajectory(
             "Tau2 reference actions are benchmark-only diagnostics and are not deployable runtime knowledge.",
             "NL assertions are reported but are not part of the implemented v1 Agentic GRPO reward.",
             "Claim-state consistency is diagnostic only and does not change the v1 proxy score.",
+            "Stopping-condition consistency is diagnostic only and does not change the v1 proxy score.",
             "No new reward weights are introduced by this audit.",
         ],
     }
@@ -440,6 +566,22 @@ def build_audit(
         for row in all_success_rows
         if row["claim_state_consistency"]["verdict"] == "FAIL"
     ]
+    all_rows = [pair[run] for pair in pairs for run in ("run_a", "run_b")]
+    stopping_failures = [
+        row for row in all_rows if row["stopping_condition"]["verdict"] == "FAIL"
+    ]
+    stopping_reviews = [
+        row for row in all_rows if row["stopping_condition"]["verdict"] == "REVIEW"
+    ]
+    stopping_passes = [
+        row for row in all_rows if row["stopping_condition"]["verdict"] == "PASS"
+    ]
+    termination_reason_counts = Counter(
+        str(row["benchmark"]["termination_reason"]) for row in all_rows
+    )
+    stopping_failures_on_success = [
+        row for row in all_success_rows if row["stopping_condition"]["verdict"] == "FAIL"
+    ]
     evaluable_flip_claims = [
         pair
         for pair in flips
@@ -494,6 +636,27 @@ def build_audit(
                 {"task_id": row["task_id"], "run_name": row["run_name"]}
                 for row in successful_with_errors
             ],
+            "stopping_condition_failure_count": len(stopping_failures),
+            "stopping_condition_pass_count": len(stopping_passes),
+            "stopping_condition_failure_tasks": [
+                {"task_id": row["task_id"], "run_name": row["run_name"]}
+                for row in stopping_failures
+            ],
+            "stopping_condition_review_count": len(stopping_reviews),
+            "stopping_condition_review_tasks": [
+                {"task_id": row["task_id"], "run_name": row["run_name"]}
+                for row in stopping_reviews
+            ],
+            "successful_transfer_sequence_count": sum(
+                int(row["stopping_condition"]["successful_transfer_count"])
+                for row in all_rows
+            ),
+            "termination_reason_counts": dict(
+                sorted(termination_reason_counts.items())
+            ),
+            "stopping_condition_failure_on_success_count": len(
+                stopping_failures_on_success
+            ),
             "claim_state_failure_on_success_count": len(
                 claim_failures_on_success
             ),
@@ -514,6 +677,9 @@ def build_audit(
             "positive_validation_executed": bool(common_success_rows),
             "all_flip_successes_ranked_higher": len(flip_ranked) == len(flips),
             "claim_state_has_zero_failures_on_frozen_successes": not claim_failures_on_success,
+            "stopping_condition_has_zero_failures_on_frozen_successes": (
+                not stopping_failures_on_success
+            ),
             "ready_to_use_v1_reward_for_grpo": False,
         },
         "validity_notes": [
