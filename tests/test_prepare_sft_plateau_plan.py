@@ -115,6 +115,10 @@ class PrepareSftPlateauPlanTests(unittest.TestCase):
             self.assertEqual(
                 variants["opt_full_s80"]["config_path"], "configs/source.json"
             )
+            generated_config = json.loads(
+                (output / "configs" / "opt_full_s20.json").read_text()
+            )
+            self.assertFalse(generated_config["artifacts"]["save_merged_model"])
             quarter = variants["data_25_equal_epoch"]
             half = variants["data_50_equal_epoch"]
             self.assertLessEqual(quarter["train_tasks"], half["train_tasks"])

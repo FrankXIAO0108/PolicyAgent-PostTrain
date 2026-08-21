@@ -7,6 +7,7 @@ from src.training.run_teacher_sft import (
     tokenize_row,
     _assistant_nll,
     _truncate_batch_tail,
+    save_merged_model_enabled,
 )
 
 try:
@@ -382,6 +383,20 @@ class ValidationTruncationTest(unittest.TestCase):
         }
         with self.assertRaises(ValueError):
             _truncate_batch_tail(batch, 0)
+
+
+class MergedArtifactPolicyTest(unittest.TestCase):
+    def test_default_preserves_historical_merged_artifact(self):
+        self.assertTrue(save_merged_model_enabled({}))
+
+    def test_plateau_config_can_disable_merged_artifact(self):
+        self.assertFalse(
+            save_merged_model_enabled({"artifacts": {"save_merged_model": False}})
+        )
+
+    def test_rejects_non_boolean_value(self):
+        with self.assertRaisesRegex(ValueError, "must be a boolean"):
+            save_merged_model_enabled({"artifacts": {"save_merged_model": "no"}})
 
 
 @unittest.skipUnless(_torch is not None, "torch not installed")

@@ -97,6 +97,7 @@ def _variant_config(
     config["data_dir"] = _repo_relative(data_dir)
     config["seed"] = seed
     config["sft"]["max_steps"] = max_steps
+    config["artifacts"] = {"save_merged_model": False}
     config["plateau_protocol"] = {
         "scope": "TEACHER_TRAJECTORY_SFT_PLATEAU",
         "development_only": True,

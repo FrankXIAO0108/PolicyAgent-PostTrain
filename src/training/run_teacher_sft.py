@@ -40,6 +40,20 @@ SCOPE = "TEACHER_TRAJECTORY_SFT"
 SUPPORTED_SCOPES = {SCOPE}
 
 
+def save_merged_model_enabled(config: dict[str, Any]) -> bool:
+    """Return whether the merged checkpoint should be persisted.
+
+    Formal/default Teacher-SFT runs retain the historical behavior. Controlled
+    plateau variants may disable the multi-gigabyte merged copy while still
+    evaluating the in-memory merged model and preserving the LoRA adapter.
+    """
+    artifacts = config.get("artifacts", {})
+    value = artifacts.get("save_merged_model", True)
+    if not isinstance(value, bool):
+        raise ValueError("artifacts.save_merged_model must be a boolean")
+    return value
+
+
 def git_value(*args: str) -> str:
     return subprocess.run(
         ["git", *args], cwd=REPO_ROOT, check=True, capture_output=True, text=True
@@ -386,6 +400,7 @@ def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
         raise ValueError("Teacher SFT must leave the formal Retail gate unchanged")
     if claims.get("business_improvement_claim_allowed") is not False:
         raise ValueError("Teacher SFT config cannot carry a business claim")
+    save_merged_model_enabled(config)
     quantization = config.get("quantization", {})
     if quantization != {
         "enabled": True,
@@ -617,14 +632,17 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     )
     merged = runtime["PeftModel"].from_pretrained(base, str(adapter_dir)).merge_and_unload()
     merged_dir = output_dir / "teacher_sft_merged"
-    merged.save_pretrained(merged_dir, safe_serialization=True)
-    tokenizer.save_pretrained(merged_dir)
-    del base, merged
-    torch.cuda.empty_cache()
-
-    sft_model = runtime["AutoModelForCausalLM"].from_pretrained(
-        str(merged_dir), dtype=torch.bfloat16, low_cpu_mem_usage=True
-    ).to(device)
+    persist_merged = save_merged_model_enabled(config)
+    if persist_merged:
+        merged.save_pretrained(merged_dir, safe_serialization=True)
+        tokenizer.save_pretrained(merged_dir)
+        del base, merged
+        torch.cuda.empty_cache()
+        sft_model = runtime["AutoModelForCausalLM"].from_pretrained(
+            str(merged_dir), dtype=torch.bfloat16, low_cpu_mem_usage=True
+        ).to(device)
+    else:
+        sft_model = merged.to(device)
     sft_model.eval()
     sft_metrics = evaluate_validation(
         sft_model,
@@ -638,6 +656,8 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     )
     save_json(output_dir / "evaluation_sft.json", sft_metrics)
     del sft_model
+    if not persist_merged:
+        del base, merged
     torch.cuda.empty_cache()
 
     base_loss = base_metrics["mean_assistant_loss"]
@@ -690,10 +710,20 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
                 "path": str(adapter_dir),
                 "sha256": directory_sha256(adapter_dir),
             },
-            "merged_model": {
-                "path": str(merged_dir),
-                "sha256": directory_sha256(merged_dir),
-            },
+            "merged_model": (
+                {
+                    "saved": True,
+                    "path": str(merged_dir),
+                    "sha256": directory_sha256(merged_dir),
+                }
+                if persist_merged
+                else {
+                    "saved": False,
+                    "path": None,
+                    "sha256": None,
+                    "reason": "disabled_by_config_for_storage_bounded_ablation",
+                }
+            ),
         },
         "formal_retail_readiness_gate_opened": False,
         "business_improvement_claim_allowed": False,

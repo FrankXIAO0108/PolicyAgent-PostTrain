@@ -40,6 +40,11 @@ Stage 1 只比较实体隔离验证集的 assistant loss，复用既有 80-step 
 训练：full-20、full-40、data-25%-equal-epoch、data-50%-equal-epoch。该阶段不调用
 DeepSeek 用户模拟器或 Judge，也不支持业务正确率结论。
 
+远程数据盘预检仅剩约 13GB，而单个 merged Qwen3-4B 约 7.6GB。Stage-1 配置因此设置
+`artifacts.save_merged_model=false`：保留约 74MB LoRA adapter、trainer 状态、loss、日志
+和 manifest，在内存中完成 merge 与 validation 后不落盘完整 merged 副本。历史正式
+80-step 运行继续保留 merged 模型；默认训练器行为也仍为保存 merged，避免改变既有协议。
+
 Stage 2 只有 Stage 1 曲线趋平时才启动：对最多两个 checkpoint family 补足三个训练 seed，
 再运行冻结 tau2 30-task 开发评测。不能把 10 条人工复核评测任务回灌训练。
 
@@ -75,14 +80,14 @@ RL 不是天然的“负反馈”。只有工具错误、重复调用、非预�
 
 - 冻结协议：`configs/retail_teacher_sft_plateau_v1.json`
 - 计划生成器：`src/training/prepare_sft_plateau_plan.py`
-- 当前权威本地计划：`_local_private_runs/teacher_sft_plateau_v1_r1/`
+- 当前权威本地计划：`_local_private_runs/teacher_sft_plateau_v1_r2/`
 
 只生成计划，不启动训练：
 
 ```powershell
 D:\tau2-bench\.venv\Scripts\python.exe -m src.training.prepare_sft_plateau_plan `
   --protocol configs/retail_teacher_sft_plateau_v1.json `
-  --output-dir _local_private_runs/teacher_sft_plateau_v1_r1
+  --output-dir _local_private_runs/teacher_sft_plateau_v1_r2
 ```
 
 生成的 `plan_manifest.json` 明确记录 `PREPARED_NOT_RUN`、所有配置/数据哈希、Stage-1 命令
@@ -107,6 +112,6 @@ D:\tau2-bench\.venv\Scripts\python.exe -m src.training.prepare_sft_plateau_plan 
 - 25% task 集是 50% task 集的严格子集；
 - 两个数据缩放变体均原样保留 13 条 VALIDATION；
 - `plan_manifest.json` SHA-256：
-  `FBE021C1B0DA1E0B17F8076B02DA055B9964FD83EC1910E10AB7829A4454F686`；
+  `B3856ED47EA4CF74E6457D6CB68FA355C3801FD10826339A8BA2BA0E2C88AAC2`；
 - `gpu_training_started=false`、`tau2_evaluation_started=false`、
   `sft_plateau_established=false`、`rl_justified=false`。
