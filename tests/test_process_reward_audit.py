@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from src.evaluation.process_reward_audit import (
+    _auth_lookup_penalty_sensitivity,
     _claim_verdict_rank,
     _compose_v1_proxy,
     error_recovery_diagnostics,
@@ -11,6 +12,33 @@ from src.evaluation.process_reward_audit import (
 
 
 class ProcessRewardAuditTests(unittest.TestCase):
+    def test_auth_lookup_penalty_sensitivity_does_not_change_observed_reward(self) -> None:
+        proxy = {
+            "score": 0.9,
+            "raw_reward": 1.0,
+            "penalties": {
+                "tool_error": 0.1,
+                "repeated_call": 0.0,
+                "unexpected_write": 0.0,
+                "unfinished_interaction": 0.0,
+            },
+        }
+        recovery = {
+            "tool_error_count": 2,
+            "error_category_counts": {"AUTH_LOOKUP_MISS": 2},
+        }
+        config = {"tool_error_penalty_each": 0.05, "tool_error_penalty_cap": 0.2}
+
+        result = _auth_lookup_penalty_sensitivity(
+            proxy=proxy,
+            recovery=recovery,
+            reward_config=config,
+        )
+
+        self.assertEqual(result["observed_score"], 0.9)
+        self.assertEqual(result["counterfactual_score"], 1.0)
+        self.assertFalse(result["reward_change_proposed"])
+
     def test_normal_user_stop_passes_stopping_diagnostic(self) -> None:
         messages = [
             {"role": "assistant", "content": "Anything else?"},
@@ -218,6 +246,54 @@ class ProcessRewardAuditTests(unittest.TestCase):
         self.assertEqual(result["tool_error_count"], 2)
         self.assertEqual(result["repeated_failed_exact_call_count"], 1)
         self.assertEqual(result["error_events_followed_by_changed_call"], 0)
+        self.assertEqual(result["error_category_counts"], {"WRITE_TOOL_ERROR": 2})
+
+    def test_auth_lookup_miss_is_separate_from_write_error(self) -> None:
+        messages = [
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "c1",
+                        "name": "find_user_id_by_name_zip",
+                        "arguments": {
+                            "first_name": "Noah",
+                            "last_name": "Ito",
+                            "zip": "98178",
+                        },
+                    }
+                ],
+            },
+            {
+                "id": "c1",
+                "role": "tool",
+                "content": "Error: User not found",
+                "error": True,
+            },
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "c2",
+                        "name": "return_delivered_order_items",
+                        "arguments": {"order_id": "#1"},
+                    }
+                ],
+            },
+            {
+                "id": "c2",
+                "role": "tool",
+                "content": "Error: Non-delivered order cannot be returned",
+                "error": True,
+            },
+        ]
+
+        result = error_recovery_diagnostics(messages, outcome_success=False)
+
+        self.assertEqual(
+            result["error_category_counts"],
+            {"AUTH_LOOKUP_MISS": 1, "WRITE_TOOL_ERROR": 1},
+        )
 
     def test_changed_call_after_error_is_not_treated_as_exact_repeat(self) -> None:
         messages = [

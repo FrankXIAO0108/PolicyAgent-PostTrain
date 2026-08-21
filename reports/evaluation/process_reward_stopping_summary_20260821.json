@@ -1,9 +1,9 @@
 {
   "schema_version": "retail-stopping-condition-audit-summary-v1.0.0",
-  "source_schema_version": "retail-process-reward-offline-audit-v1.2.0",
-  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v10/process_reward_audit.json",
-  "source_artifact_sha256": "96EADE9E919E61F0ED22587F279FC601E9B9877523E5838D8EE45938A75AE689",
-  "source_summary_sha256": "1F29F93E50FF6104C2AC14C3182EFC8D4AD39C7920238A98552F4750FA325BE4",
+  "source_schema_version": "retail-process-reward-offline-audit-v1.3.0",
+  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v12/process_reward_audit.json",
+  "source_artifact_sha256": "469FE2E68C519B697379C0C963DB214F4806922138A1C26659BE07B24A025CD9",
+  "source_summary_sha256": "A31A1E8E9F25EEDEFDAB2213A78EC163406FAE68A978D0151FDF71A1FB2749FE",
   "trajectory_count": 60,
   "verdict_counts": {
     "PASS": 59,

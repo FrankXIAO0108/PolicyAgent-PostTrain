@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from src.evaluation.replay_evaluator import Tau2Runtime
+from src.guards.retail_pre_action import WRITE_TOOLS
 from src.rl.retail_agentic_env import (
     DEFAULT_REWARD_CONFIG,
     gate_environment_state_reward,
@@ -18,7 +19,7 @@ from src.rl.retail_agentic_env import (
 from src.training.teacher_evidence_pack import claim_state_consistency
 
 
-SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.2.0"
+SCHEMA_VERSION = "retail-process-reward-offline-audit-v1.3.0"
 
 TRANSFER_NOTICE = "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
 USER_STOP_MARKERS = ("###STOP###", "###TRANSFER###", "###OUT-OF-SCOPE###")
@@ -80,6 +81,27 @@ def error_recovery_diagnostics(
 
     calls = _call_records(messages)
     failed = [call for call in calls if call["result_error"]]
+    categories: list[dict[str, Any]] = []
+    for call in failed:
+        result_text = call["result_content"].strip().lower()
+        if (
+            call["name"]
+            in {"find_user_id_by_email", "find_user_id_by_name_zip"}
+            and result_text == "error: user not found"
+        ):
+            category = "AUTH_LOOKUP_MISS"
+        elif call["name"] in WRITE_TOOLS:
+            category = "WRITE_TOOL_ERROR"
+        else:
+            category = "READ_TOOL_ERROR"
+        categories.append(
+            {
+                "message_index": int(call["message_index"]),
+                "tool_name": call["name"],
+                "category": category,
+            }
+        )
+    category_counts = Counter(item["category"] for item in categories)
     failed_counts = Counter(call["signature"] for call in failed)
     repeated_failed = sum(max(0, count - 1) for count in failed_counts.values())
     changed_after_error = 0
@@ -94,9 +116,13 @@ def error_recovery_diagnostics(
         "failed_signature_counts": dict(sorted(failed_counts.items())),
         "error_events_followed_by_changed_call": changed_after_error,
         "successful_despite_tool_error": outcome_success and bool(failed),
+        "error_category_counts": dict(sorted(category_counts.items())),
+        "error_categories": categories,
         "interpretation": (
             "Diagnostic only: a changed later call is evidence of strategy change, "
-            "not proof that the error was causally recovered."
+            "not proof that the error was causally recovered. AUTH_LOOKUP_MISS "
+            "describes a non-mutating lookup result, not a claim that the miss was "
+            "necessary or agent-independent."
         ),
     }
 
@@ -308,6 +334,45 @@ def _compose_v1_proxy(
     }
 
 
+def _auth_lookup_penalty_sensitivity(
+    *,
+    proxy: dict[str, Any],
+    recovery: dict[str, Any],
+    reward_config: dict[str, Any],
+) -> dict[str, Any]:
+    """Recompute score without AUTH_LOOKUP_MISS penalty, for diagnosis only."""
+
+    auth_misses = int(
+        recovery["error_category_counts"].get("AUTH_LOOKUP_MISS", 0)
+    )
+    non_auth_errors = max(0, int(recovery["tool_error_count"]) - auth_misses)
+    counterfactual_error_penalty = min(
+        float(reward_config["tool_error_penalty_cap"]),
+        float(reward_config["tool_error_penalty_each"]) * non_auth_errors,
+    )
+    penalties = proxy["penalties"]
+    counterfactual_score = max(
+        0.0,
+        float(proxy["raw_reward"])
+        - counterfactual_error_penalty
+        - float(penalties["repeated_call"])
+        - float(penalties["unexpected_write"])
+        - float(penalties["unfinished_interaction"]),
+    )
+    return {
+        "auth_lookup_miss_count": auth_misses,
+        "observed_score": float(proxy["score"]),
+        "counterfactual_score": counterfactual_score,
+        "score_delta": counterfactual_score - float(proxy["score"]),
+        "counterfactual_tool_error_penalty": counterfactual_error_penalty,
+        "reward_change_proposed": False,
+        "interpretation": (
+            "Counterfactual only. Excluding a read-only lookup miss does not prove "
+            "that every such miss is necessary or agent-independent."
+        ),
+    }
+
+
 def audit_trajectory(
     result_path: str | Path,
     *,
@@ -348,6 +413,11 @@ def audit_trajectory(
         user_stopped=str(raw_simulation.get("termination_reason")) == "user_stop",
         reward_config=config,
     )
+    error_penalty_sensitivity = _auth_lookup_penalty_sensitivity(
+        proxy=proxy,
+        recovery=recovery,
+        reward_config=config,
+    )
     nl_checks = reward_info.get("nl_assertions") or []
     claim_check = claim_state_consistency(raw_messages, {"agent": {"orders": {}}})
     stopping_check = stopping_condition_diagnostics(
@@ -369,6 +439,7 @@ def audit_trajectory(
         "v1_reward_proxy": proxy,
         "action_progress": action_progress,
         "error_recovery": recovery,
+        "error_penalty_sensitivity": error_penalty_sensitivity,
         "stopping_condition": stopping_check,
         "claim_state_consistency": claim_check,
         "efficiency_bonus_eligible": outcome_reward == 1.0
@@ -478,6 +549,20 @@ def build_audit(
             if successful_run == "run_b"
             else None
         )
+        successful_auth_counterfactual = (
+            a["error_penalty_sensitivity"]["counterfactual_score"]
+            if successful_run == "run_a"
+            else b["error_penalty_sensitivity"]["counterfactual_score"]
+            if successful_run == "run_b"
+            else None
+        )
+        failed_auth_counterfactual = (
+            b["error_penalty_sensitivity"]["counterfactual_score"]
+            if successful_run == "run_a"
+            else a["error_penalty_sensitivity"]["counterfactual_score"]
+            if successful_run == "run_b"
+            else None
+        )
         successful_claim_rank = (
             _claim_verdict_rank(
                 a["claim_state_consistency"]["verdict"]
@@ -537,6 +622,22 @@ def build_audit(
                     if successful_run is not None
                     else None
                 ),
+                "auth_lookup_penalty_sensitivity": (
+                    {
+                        "successful_score": successful_auth_counterfactual,
+                        "failed_score": failed_auth_counterfactual,
+                        "success_ranked_higher": (
+                            successful_auth_counterfactual
+                            > failed_auth_counterfactual
+                        ),
+                        "score_tied": (
+                            successful_auth_counterfactual
+                            == failed_auth_counterfactual
+                        ),
+                    }
+                    if successful_run is not None
+                    else None
+                ),
             }
         )
     common_success = [pair for pair in pairs if pair["cohort"] == "common_success"]
@@ -556,6 +657,11 @@ def build_audit(
         pair for pair in flips if pair["flip_ranking"]["success_ranked_higher"]
     ]
     flip_tied = [pair for pair in flips if pair["flip_ranking"]["score_tied"]]
+    auth_counterfactual_ranked = [
+        pair
+        for pair in flips
+        if pair["auth_lookup_penalty_sensitivity"]["success_ranked_higher"]
+    ]
     successful_with_errors = [
         row
         for row in all_success_rows
@@ -579,6 +685,14 @@ def build_audit(
     termination_reason_counts = Counter(
         str(row["benchmark"]["termination_reason"]) for row in all_rows
     )
+    error_category_counts: Counter[str] = Counter()
+    for row in all_rows:
+        error_category_counts.update(row["error_recovery"]["error_category_counts"])
+    successful_error_category_counts: Counter[str] = Counter()
+    for row in all_success_rows:
+        successful_error_category_counts.update(
+            row["error_recovery"]["error_category_counts"]
+        )
     stopping_failures_on_success = [
         row for row in all_success_rows if row["stopping_condition"]["verdict"] == "FAIL"
     ]
@@ -620,6 +734,14 @@ def build_audit(
             "flip_task_count": len(flips),
             "flip_success_ranked_higher_count": len(flip_ranked),
             "flip_score_tied_count": len(flip_tied),
+            "auth_lookup_penalty_counterfactual_success_ranked_higher_count": len(
+                auth_counterfactual_ranked
+            ),
+            "auth_lookup_penalty_counterfactual_not_higher_task_ids": [
+                pair["task_id"]
+                for pair in flips
+                if pair not in auth_counterfactual_ranked
+            ],
             "flip_success_not_ranked_higher_task_ids": [
                 pair["task_id"] for pair in flips if pair not in flip_ranked
             ],
@@ -636,6 +758,10 @@ def build_audit(
                 {"task_id": row["task_id"], "run_name": row["run_name"]}
                 for row in successful_with_errors
             ],
+            "error_category_counts": dict(sorted(error_category_counts.items())),
+            "successful_error_category_counts": dict(
+                sorted(successful_error_category_counts.items())
+            ),
             "stopping_condition_failure_count": len(stopping_failures),
             "stopping_condition_pass_count": len(stopping_passes),
             "stopping_condition_failure_tasks": [

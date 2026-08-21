@@ -1,0 +1,25 @@
+{
+  "schema_version": "retail-tool-error-audit-summary-v1.0.0",
+  "source_schema_version": "retail-process-reward-offline-audit-v1.3.0",
+  "source_artifact": "_local_private_runs/process_reward_audit_20260821_v12/process_reward_audit.json",
+  "source_artifact_sha256": "469FE2E68C519B697379C0C963DB214F4806922138A1C26659BE07B24A025CD9",
+  "source_summary_sha256": "A31A1E8E9F25EEDEFDAB2213A78EC163406FAE68A978D0151FDF71A1FB2749FE",
+  "trajectory_count": 60,
+  "error_event_count": 31,
+  "error_category_counts": {
+    "AUTH_LOOKUP_MISS": 13,
+    "READ_TOOL_ERROR": 3,
+    "WRITE_TOOL_ERROR": 15
+  },
+  "successful_error_category_counts": {
+    "AUTH_LOOKUP_MISS": 2,
+    "WRITE_TOOL_ERROR": 4
+  },
+  "observed_flip_success_ranked_higher_count": 7,
+  "auth_lookup_penalty_counterfactual_success_ranked_higher_count": 7,
+  "counterfactual_not_higher_task_ids": [
+    "67"
+  ],
+  "reward_change_allowed": false,
+  "limitation": "AUTH_LOOKUP_MISS identifies a non-mutating lookup result but does not prove that the miss was necessary, user-caused, or correctly recovered."
+}
