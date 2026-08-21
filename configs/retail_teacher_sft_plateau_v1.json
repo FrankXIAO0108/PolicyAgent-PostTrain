@@ -1,0 +1,53 @@
+{
+  "schema_version": "retail-teacher-sft-plateau-protocol-v1",
+  "scope": "TEACHER_TRAJECTORY_SFT_PLATEAU",
+  "source_config": "configs/retail_teacher_sft_qwen3_4b_v1.json",
+  "source_data_dir": "_local_private_runs/merged_sft_v1",
+  "existing_full_run": "_local_private_runs/teacher_sft_v1",
+  "selection_seed": 20260821,
+  "optimization_steps": [
+    20,
+    40,
+    80
+  ],
+  "data_fractions": [
+    0.25,
+    0.5,
+    1.0
+  ],
+  "full_reference_steps": 80,
+  "stability_seeds": [
+    20260818,
+    20260819,
+    20260820
+  ],
+  "screening": {
+    "stage_1_metric": "entity_disjoint_validation_assistant_loss",
+    "relative_loss_plateau_threshold": 0.05,
+    "notes": [
+      "The 5% threshold is a preregistered project heuristic, not a universal theorem.",
+      "Stage 1 cannot support a Retail task-success claim."
+    ]
+  },
+  "stage_2": {
+    "frozen_eval_config": "configs/retail_teacher_eval_v1.json",
+    "minimum_training_seeds": 3,
+    "maximum_selected_checkpoint_families": 2,
+    "task_success_plateau_max_gain_tasks": 1,
+    "notes": [
+      "One task on the 30-task development protocol equals 3.33 percentage points.",
+      "The reviewed 10-task audit remains evaluation evidence and must not be added to training."
+    ]
+  },
+  "decision_policy": {
+    "continue_sft": "More data or more optimization still improves frozen validation and task outcomes without worsening severe process errors.",
+    "consider_dpo": "Protocol competence is stable and candidate trajectories can be ranked, but a trustworthy scalar environment reward is unavailable.",
+    "consider_grpo": "Residual failures are sequential, environment consequences are reproducible, and the process reward passes owner-reviewed FP/FN checks.",
+    "hold": "Reward or evaluation is not reliable enough to distinguish improvements from reward hacking."
+  },
+  "claims": {
+    "business_improvement_claim_allowed": false,
+    "sft_plateau_claim_allowed_before_stage_2": false,
+    "independent_human_gold_available": false
+  }
+}
