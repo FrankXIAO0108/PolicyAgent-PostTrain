@@ -60,12 +60,16 @@ the project had not entered the baseline stage is superseded by the completed
 - Programmatic Policy Grounding V2.2 and its 20-row development diagnostic
   exist. All 20 policy labels are `PROVISIONAL`; zero are independently
   `ADJUDICATED`.
+- A 10-task paired Base/SFT owner-review batch completed on 2026-08-21:
+  5 `RAW_GOLD` and 5 `CORRECTION_REQUIRED`. These are owner-reviewed
+  development labels, not independent business-expert gold.
 - A label-blind policy-review packet and independent two-reviewer plus
   third-reviewer adjudication tooling exist.
-- Downstream correction, quality, SFT-release, and post-training readiness
-  gates are implemented but remain closed.
-- Formal Retail SFT, DPO, Outcome-GRPO, Policy-aware GRPO, and final frozen
-  comparison remain blocked and are not confirmed as completed.
+- Development correction, quality, SFT-release, and post-training readiness
+  gates are implemented. Owner-reviewed data may enter development training
+  after correction replay, leakage checks, hashes, and release approval.
+- Independent-gold metric release, production Policy claims, and the final
+  frozen comparison remain closed unless supported by the required evidence.
 - A separate synthetic engineering smoke was completed on 2026-08-02 using
   Qwen2.5-0.5B on one RTX 4090: 30-step SFT, 20-step DPO, 10-step GRPO,
   stage merges, hashes, logs, and an eight-row frozen comparison. Its automated
@@ -89,8 +93,9 @@ the project had not entered the baseline stage is superseded by the completed
   negative training example.
 - A successful tool call does not prove correct authorization, policy
   compliance, state integrity, or truthful final communication.
-- High-false-positive verifier rules remain diagnostic until validated against
-  human gold with precision, recall, F1, FP, and FN.
+- High-false-positive verifier rules remain diagnostic. Owner-reviewed cases
+  may support development FP/FN analysis, but formal precision, recall, F1,
+  FP, and FN claims still require independent human gold.
 - Do not expose or commit API keys. Record only where a secret is configured.
 - Do not change agent model, user model, judge, prompt, task set, and runtime
   config simultaneously when the goal is causal diagnosis.
@@ -132,21 +137,26 @@ data policy. In particular:
 - Benchmark-label conflicts must not be naively learned as negatives.
 
 Analyst review now provides provisional coverage for all 20 tasks, but this
-must not be generalized into human gold. There are zero independently
-adjudicated policy labels, and no provisional label may release training data.
+must not be generalized into independent human gold. For development training,
+use the owner-review protocol in
+`docs/04_数据治理与后训练/2026-08-21_单人复核与开发训练门禁决策.md`.
+No `PROVISIONAL` label may release data without owner review, deterministic
+checks, correction replay where needed, and the ordinary split/hash gates.
 
 ## Priority order
 
-1. Obtain two independent blind policy reviews for all 20 rows, resolve
-   conflicts, and validate V2.2 against adjudicated-only gold.
-2. Independently adjudicate trajectory quality and review all verifier FP/FN
-   cases.
-3. Establish a trustworthy data pool, approve corrections, then construct
-   strictly split and hashed SFT data.
+1. Complete owner review of selected high-risk and comparison trajectories,
+   correct `CORRECTION_REQUIRED` rows, and rerun deterministic verification.
+2. Review Verifier FP/FN cases against owner-reviewed evidence while keeping
+   all resulting metrics explicitly developmental.
+3. Establish a trustworthy development data pool, approve corrections, then
+   construct strictly split and hashed SFT data.
 4. Run SFT and re-evaluate Base vs SFT vs Verifier-assisted variants on a
    frozen protocol.
 5. Proceed to preference optimization or RL only if residual systematic
-   failures and a reliable reward signal justify it.
+   failures and a reliable development reward signal justify it. Independent
+   expert gold is not a hard blocker for engineering runs, but is still needed
+   for formal Verifier metrics or production claims.
 
 Do not let extra models, UI work, larger task sets, or additional complexity
 displace these priorities.
