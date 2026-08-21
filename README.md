@@ -296,6 +296,7 @@ Precision/Recall/F1 或生产可靠性结论。治理边界见
 | Qwen3-4B 教师 SFT | 三个训练 seed、80 steps、merge 与 30-task 开发重评测已完成 |
 | 教师 SFT 行为结果 | seed18/19/20 开发视图为 17/30、16/30、16/30；多 seed 逐任务一致率 73.3% |
 | 过程 Reward 离线审计 | 8 个翻转对中成功轨迹排序更高 7/8；task67 标量分数并列 |
+| Claim-State 对抗评测 | 24 条冻结合成样本精确匹配 20/24；FAIL F1 76.92%，Reward 接入门禁未通过 |
 | 正式 Retail DPO | 未运行；偏好数据与独立验证门禁未通过 |
 | 正式 Retail Agentic GRPO | 未运行；Reward holdout 与抗钻空子门禁未通过 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
@@ -451,11 +452,11 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
 
 ## 后续计划
 
-1. 冻结 claim-state discovery 规则，建立训练禁用的对抗诊断集并报告 Precision、Recall、F1 与 REVIEW 覆盖率；
-2. 针对停止条件、错误恢复、多实体绑定和联合约束建立过程级反事实测试；
-3. 做 SFT 数据规模与多 seed 消融，区分数据不足、行为方差和模型容量限制；
-4. 只有高置信过程信号通过未参与规则开发的数据验证后，才启动小规模 Agentic GRPO；
-5. 使用相同冻结协议比较 Base、SFT 与后续候选模型，不以单一 reward 代替过程质量。
+1. 在独立 development cases 上把 claim-state checker 改为实体级 span 绑定，解决金额语序与多订单窗口污染；
+2. 冻结 v2 后建立新的训练禁用 holdout，不使用已暴露的 v1 对抗集调规则或阈值；
+3. 针对停止条件、错误恢复、多实体绑定和联合约束建立过程级反事实测试；
+4. 做 SFT 数据规模与多 seed 消融，区分数据不足、行为方差和模型容量限制；
+5. 只有高置信过程信号通过未参与规则开发的数据验证后，才启动小规模 Agentic GRPO。
 
 ## 结论
 

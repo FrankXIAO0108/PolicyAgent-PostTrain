@@ -1,0 +1,37 @@
+{
+  "schema_version": "policyagent-experiment-manifest-v1.0",
+  "experiment_id": "20260821_claim_state_holdout_v1",
+  "status": "completed",
+  "project_commit": "de3ea7764262a3556d7ffeeae4b6283a3d7f85d0",
+  "evaluator": "src.evaluation.claim_state_holdout",
+  "checker_under_test": "src.training.teacher_evidence_pack.claim_state_consistency",
+  "checker_policy": "frozen_during_holdout_evaluation",
+  "dataset": {
+    "path": "data/claim_state_holdout_v1.json",
+    "sha256": "D49CA938D8624FDD770A4867B76487EB58550AAC7A1C9F15CC5B7DBFDFF97C93",
+    "case_count": 24,
+    "training_allowed": false,
+    "rule_tuning_allowed": false
+  },
+  "command": "python -m src.evaluation.claim_state_holdout data/claim_state_holdout_v1.json --output experiments/20260821_claim_state_holdout_v1/evaluation.json",
+  "external_model_calls": 0,
+  "output": {
+    "path": "experiments/20260821_claim_state_holdout_v1/evaluation.json",
+    "sha256": "CDBD1162B87B6310FB323A2E18A6983C5A2E0C2EA454EDDFC47CE5DCFDB48F85"
+  },
+  "result": {
+    "exact_match": "20/24",
+    "fail_precision": 0.7142857142857143,
+    "fail_recall": 0.8333333333333334,
+    "fail_f1": 0.7692307692307692,
+    "review_routing_recall": 0.8888888888888888,
+    "false_fail_count": 2,
+    "review_auto_pass_count": 0,
+    "ready_for_reward_penalty": false
+  },
+  "limitations": [
+    "Expected labels are project-authored synthetic oracles, not independent business-expert gold.",
+    "The set is small, English-only, and targets explicit claim-state edge cases.",
+    "Thresholds are conservative engineering gates, not production-calibrated operating points."
+  ]
+}
