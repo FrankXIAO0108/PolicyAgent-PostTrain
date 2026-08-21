@@ -297,6 +297,7 @@ Precision/Recall/F1 或生产可靠性结论。治理边界见
 | 教师 SFT 行为结果 | seed18/19/20 开发视图为 17/30、16/30、16/30；多 seed 逐任务一致率 73.3% |
 | 过程 Reward 离线审计 | 8 个翻转对中成功轨迹排序更高 7/8；task67 标量分数并列 |
 | Claim-State 对抗评测 | 24 条冻结合成样本精确匹配 20/24；FAIL F1 76.92%，Reward 接入门禁未通过 |
+| Claim-State V2 开发版 | 20/20 开发规格；60 条既有轨迹中 0 个假 FAIL，但仅 1 PASS、42 REVIEW，等待全新 holdout |
 | 正式 Retail DPO | 未运行；偏好数据与独立验证门禁未通过 |
 | 正式 Retail Agentic GRPO | 未运行；Reward holdout 与抗钻空子门禁未通过 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
@@ -452,8 +453,8 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
 
 ## 后续计划
 
-1. 在独立 development cases 上把 claim-state checker 改为实体级 span 绑定，解决金额语序与多订单窗口污染；
-2. 冻结 v2 后建立新的训练禁用 holdout，不使用已暴露的 v1 对抗集调规则或阈值；
+1. 冻结 Claim-State V2 开发版，建立新的训练禁用 holdout，并由项目所有者审阅预期标签；
+2. 不使用已暴露的 v1 对抗集调规则或宣称 V2 泛化；
 3. 针对停止条件、错误恢复、多实体绑定和联合约束建立过程级反事实测试；
 4. 做 SFT 数据规模与多 seed 消融，区分数据不足、行为方差和模型容量限制；
 5. 只有高置信过程信号通过未参与规则开发的数据验证后，才启动小规模 Agentic GRPO。

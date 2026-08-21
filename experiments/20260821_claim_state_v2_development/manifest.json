@@ -1,0 +1,38 @@
+{
+  "schema_version": "policyagent-experiment-manifest-v1.0",
+  "experiment_id": "20260821_claim_state_v2_development",
+  "status": "completed_development_only",
+  "project_commit": "77d9b80d12387a2bf051a050c2cbb2cb8ef8470a",
+  "checker": "src.training.teacher_evidence_pack.claim_state_consistency_v2",
+  "checker_version": "claim-state-v2-development",
+  "development_suite": {
+    "path": "data/claim_state_v2_development.json",
+    "sha256": "950598CACCCEF248C38DA9AA18C5A2E7306D9E48BE7F60F747789965FC79FFF1",
+    "case_count": 20,
+    "training_allowed": false,
+    "rule_tuning_allowed": true
+  },
+  "development_evaluation": {
+    "path": "experiments/20260821_claim_state_v2_development/development_evaluation.json",
+    "sha256": "8FF10ED2A7AF30010AC066EA69445F95744DF1DE2296D3DD66704329507DC1C7",
+    "exact_match": "20/20"
+  },
+  "real_trajectory_compatibility": {
+    "source_path": "_local_private_runs/process_reward_audit_20260821_v7/process_reward_audit.json",
+    "source_sha256": "C913E059F9BB0764DEA0C60CF5877F66081AEF632DEBB069C0DC827F9B251EB0",
+    "output_path": "_local_private_runs/claim_state_v2_real_trajectory_20260821/audit.json",
+    "output_sha256": "B6A9B123732FAD83E396AEB5B3B3358ECFE500A536DA3AAB208A8CE5192105BE",
+    "trajectory_count": 60,
+    "benchmark_success_count": 32,
+    "claim_state_failure_on_success_count": 0,
+    "verdict_counts": {"PASS": 1, "REVIEW": 42, "NOT_APPLICABLE": 17, "FAIL": 0}
+  },
+  "external_model_calls": 0,
+  "ready_for_reward_penalty": false,
+  "validity": [
+    "The 20/20 result is development-set conformance, not generalization.",
+    "The 60 trajectories are previously inspected discovery evidence, not an untouched holdout.",
+    "The V1 holdout was not used to claim V2 performance.",
+    "A new untouched and project-owner-reviewed holdout is required before reward integration."
+  ]
+}
