@@ -10,7 +10,12 @@ from typing import Any, Iterable
 
 
 LABELS = ("PASS", "REVIEW", "FAIL")
-STATUSES = ("ADJUDICATED", "PROVISIONAL", "UNREVIEWED")
+STATUSES = (
+    "ADJUDICATED",
+    "HUMAN_ADJUDICATED",
+    "PROVISIONAL",
+    "UNREVIEWED",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -175,6 +180,12 @@ def evaluate_annotations(
     precision = _safe_divide(true_positive, true_positive + false_positive)
     recall = _safe_divide(true_positive, true_positive + false_negative)
     review_count = sum(row["prediction"] == "REVIEW" for row in rows)
+    all_rows_independently_adjudicated = (
+        status_counts.get("ADJUDICATED", 0) > 0
+        and status_counts.get("HUMAN_ADJUDICATED", 0) == 0
+        and status_counts.get("PROVISIONAL", 0) == 0
+        and status_counts.get("UNREVIEWED", 0) == 0
+    )
 
     return {
         "schema_version": "policy-grounding-gold-validation-v0.1",
@@ -224,17 +235,13 @@ def evaluate_annotations(
         "release_gate": {
             "official_metrics_allowed": (
                 not include_provisional
-                and status_counts.get("ADJUDICATED", 0) > 0
-                and status_counts.get("PROVISIONAL", 0) == 0
-                and status_counts.get("UNREVIEWED", 0) == 0
+                and all_rows_independently_adjudicated
             ),
             "reason": (
                 "All rows are adjudicated."
                 if (
                     not include_provisional
-                    and status_counts.get("ADJUDICATED", 0) > 0
-                    and status_counts.get("PROVISIONAL", 0) == 0
-                    and status_counts.get("UNREVIEWED", 0) == 0
+                    and all_rows_independently_adjudicated
                 )
                 else "Human adjudication is incomplete; metrics are diagnostic only."
             ),
@@ -257,6 +264,8 @@ def render_markdown(result: dict[str, Any]) -> str:
         f"- Mode: `{result['mode']}`",
         f"- Evaluated rows: {coverage['evaluated_rows']}",
         f"- Adjudicated: {coverage['status_counts']['ADJUDICATED']}",
+        f"- Owner-reviewed development: "
+        f"{coverage['status_counts']['HUMAN_ADJUDICATED']}",
         f"- Provisional: {coverage['status_counts']['PROVISIONAL']}",
         f"- Unreviewed: {coverage['status_counts']['UNREVIEWED']}",
         f"- Official metric release allowed: `{str(gate['official_metrics_allowed']).lower()}`",
@@ -294,6 +303,9 @@ def render_markdown(result: dict[str, Any]) -> str:
             "",
             "- `PROVISIONAL` labels are seeded from existing project audits and are not "
             "a substitute for independent human adjudication.",
+            "- `HUMAN_ADJUDICATED` labels are owner-reviewed development evidence. "
+            "They do not contribute to formal metrics and keep the official release "
+            "gate closed.",
             "- `UNREVIEWED` rows do not contribute to metrics.",
             "- A `REVIEW` prediction is an abstention. For FAIL detection it counts as a "
             "miss when the gold label is FAIL.",

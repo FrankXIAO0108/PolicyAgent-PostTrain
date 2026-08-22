@@ -63,6 +63,45 @@ def decision(
 
 
 class SftReleaseTests(unittest.TestCase):
+    def test_owner_reviewed_development_requires_explicit_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "raw.json"
+            raw_source(source)
+            row = {
+                "task_id": "1",
+                "status": "HUMAN_ADJUDICATED",
+                "disposition": "RAW_POSITIVE",
+                "split": "TRAIN",
+                "source_split": "TRAIN",
+                "source_path": str(source),
+                "source_sha256": sha256(source),
+                "group_ids": ["user:1"],
+                "rationale": "owner reviewed development row",
+            }
+            with self.assertRaisesRegex(ValueError, "not permitted"):
+                QualityDecision.from_dict(row)
+
+            owner_decision = QualityDecision.from_dict(
+                row, allow_owner_reviewed_development=True
+            )
+            owner_annotation = annotation(
+                "1", "PASS", "HUMAN_ADJUDICATED"
+            )
+            blocked = assess_release(
+                [owner_annotation], {"1": owner_decision}
+            )
+            self.assertFalse(blocked["ready"])
+
+            allowed = assess_release(
+                [owner_annotation],
+                {"1": owner_decision},
+                allow_owner_reviewed_development=True,
+            )
+            self.assertTrue(allowed["ready"])
+            self.assertEqual(
+                allowed["review_mode"], "OWNER_REVIEWED_DEVELOPMENT"
+            )
+
     def test_corrected_positive_requires_ready_bound_validation(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -153,6 +192,11 @@ class SftReleaseTests(unittest.TestCase):
             self.assertEqual(
                 [message["loss_mask"] for message in result["records"][0]["messages"]],
                 [0, 1],
+            )
+            self.assertTrue(
+                result["records"][0]["candidate_id"].startswith(
+                    "policy-agent-task-1-"
+                )
             )
             output = Path(temp_dir) / "release"
             write_release(result, output)

@@ -46,14 +46,14 @@ class SftDecisionBuilderTests(unittest.TestCase):
         )
         return path
 
-    def quality(self, label: str) -> Path:
+    def quality(self, label: str, status: str = "ADJUDICATED") -> Path:
         path = self.root / f"quality_{label}.jsonl"
         jsonl(
             path,
             [
                 {
                     "task_id": "1",
-                    "status": "ADJUDICATED",
+                    "status": status,
                     "quality_label": label,
                     "policy_label": "PASS",
                     "source_path": str(self.source),
@@ -107,6 +107,35 @@ class SftDecisionBuilderTests(unittest.TestCase):
         )
         self.assertFalse(result["ready"])
         self.assertIn("Correction registry", result["reasons"][0])
+
+    def test_owner_reviewed_development_requires_explicit_mode(self) -> None:
+        split = self.root / "split_owner.jsonl"
+        jsonl(
+            split,
+            [{"task_id": "1", "split": "TRAIN", "source_split": "TRAIN"}],
+        )
+        blocked = build_sft_decisions(
+            self.policy("HUMAN_ADJUDICATED"),
+            adjudicated_quality_path=self.quality(
+                "RAW_GOLD", "HUMAN_ADJUDICATED"
+            ),
+            split_plan_path=split,
+        )
+        self.assertFalse(blocked["ready"])
+
+        allowed = build_sft_decisions(
+            self.policy("HUMAN_ADJUDICATED"),
+            adjudicated_quality_path=self.quality(
+                "RAW_GOLD", "HUMAN_ADJUDICATED"
+            ),
+            split_plan_path=split,
+            allow_owner_reviewed_development=True,
+        )
+        self.assertTrue(allowed["ready"])
+        self.assertEqual(allowed["review_mode"], "OWNER_REVIEWED_DEVELOPMENT")
+        self.assertEqual(
+            allowed["decisions"][0]["status"], "HUMAN_ADJUDICATED"
+        )
 
 
 if __name__ == "__main__":

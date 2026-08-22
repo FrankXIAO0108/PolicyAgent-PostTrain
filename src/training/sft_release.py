@@ -36,7 +36,12 @@ class QualityDecision:
     rationale: str
 
     @classmethod
-    def from_dict(cls, row: dict[str, Any]) -> QualityDecision:
+    def from_dict(
+        cls,
+        row: dict[str, Any],
+        *,
+        allow_owner_reviewed_development: bool = False,
+    ) -> QualityDecision:
         task_id = str(row["task_id"])
         status = str(row.get("status", "")).upper()
         disposition = str(row.get("disposition", "")).upper()
@@ -68,8 +73,14 @@ class QualityDecision:
         )
         rationale = str(row.get("rationale", "")).strip()
 
-        if status != "ADJUDICATED":
-            raise ValueError(f"Task {task_id}: quality status must be ADJUDICATED")
+        accepted_statuses = {"ADJUDICATED"}
+        if allow_owner_reviewed_development:
+            accepted_statuses.add("HUMAN_ADJUDICATED")
+        if status not in accepted_statuses:
+            raise ValueError(
+                f"Task {task_id}: quality status {status!r} is not permitted "
+                "in the selected review mode"
+            )
         if disposition not in DISPOSITIONS:
             raise ValueError(
                 f"Task {task_id}: disposition must be one of {sorted(DISPOSITIONS)}"
@@ -133,10 +144,17 @@ class QualityDecision:
         )
 
 
-def load_decisions(path: Path) -> dict[str, QualityDecision]:
+def load_decisions(
+    path: Path,
+    *,
+    allow_owner_reviewed_development: bool = False,
+) -> dict[str, QualityDecision]:
     decisions: dict[str, QualityDecision] = {}
     for row in load_jsonl(path):
-        decision = QualityDecision.from_dict(row)
+        decision = QualityDecision.from_dict(
+            row,
+            allow_owner_reviewed_development=allow_owner_reviewed_development,
+        )
         if decision.task_id in decisions:
             raise ValueError(f"Duplicate quality decision task ID: {decision.task_id}")
         decisions[decision.task_id] = decision
@@ -229,10 +247,15 @@ def _normalize_messages(
 def assess_release(
     annotations: list[GoldAnnotation],
     decisions: dict[str, QualityDecision] | None,
+    *,
+    allow_owner_reviewed_development: bool = False,
 ) -> dict[str, Any]:
     reasons: list[str] = []
+    accepted_statuses = {"ADJUDICATED"}
+    if allow_owner_reviewed_development:
+        accepted_statuses.add("HUMAN_ADJUDICATED")
     non_adjudicated = sorted(
-        row.task_id for row in annotations if row.status != "ADJUDICATED"
+        row.task_id for row in annotations if row.status not in accepted_statuses
     )
     if non_adjudicated:
         reasons.append(
@@ -319,6 +342,10 @@ def assess_release(
                 group_splits[group_id].add(str(decision.split))
             records.append(
                 {
+                    "candidate_id": (
+                        f"policy-agent-task-{task_id}-"
+                        f"{selected_hash[:12].lower()}"
+                    ),
                     "task_id": task_id,
                     "split": decision.split,
                     "disposition": decision.disposition,
@@ -340,6 +367,11 @@ def assess_release(
     return {
         "ready": not reasons,
         "reasons": reasons,
+        "review_mode": (
+            "OWNER_REVIEWED_DEVELOPMENT"
+            if allow_owner_reviewed_development
+            else "INDEPENDENT_ADJUDICATION"
+        ),
         "records": records,
         "counts": {
             "annotations": len(annotations),
@@ -368,6 +400,7 @@ def write_release(result: dict[str, Any], output_dir: Path) -> None:
             json.dumps(
                 {
                     "schema_version": "policy-agent-sft-v0.1",
+                    "review_mode": result["review_mode"],
                     "dataset_sha256": sha256(dataset),
                     "counts": result["counts"],
                 },
@@ -383,11 +416,30 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Fail-closed SFT data release gate.")
     parser.add_argument("--annotations", type=Path, required=True)
     parser.add_argument("--decisions", type=Path)
+    parser.add_argument(
+        "--allow-owner-reviewed-development",
+        action="store_true",
+        help=(
+            "Permit HUMAN_ADJUDICATED owner-review evidence for development "
+            "training only; does not create independent gold."
+        ),
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     annotations = load_annotations(args.annotations)
-    decisions = load_decisions(args.decisions) if args.decisions else None
-    result = assess_release(annotations, decisions)
+    decisions = (
+        load_decisions(
+            args.decisions,
+            allow_owner_reviewed_development=args.allow_owner_reviewed_development,
+        )
+        if args.decisions
+        else None
+    )
+    result = assess_release(
+        annotations,
+        decisions,
+        allow_owner_reviewed_development=args.allow_owner_reviewed_development,
+    )
     write_release(result, args.output)
     print(json.dumps(result["counts"], ensure_ascii=False))
     if not result["ready"]:

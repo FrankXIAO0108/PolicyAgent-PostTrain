@@ -26,12 +26,16 @@ def build_sft_decisions(
     adjudicated_quality_path: Path | None = None,
     corrections_path: Path | None = None,
     split_plan_path: Path | None = None,
+    allow_owner_reviewed_development: bool = False,
 ) -> dict[str, Any]:
     policy = load_annotations(policy_annotations_path)
+    accepted_statuses = {"ADJUDICATED"}
+    if allow_owner_reviewed_development:
+        accepted_statuses.add("HUMAN_ADJUDICATED")
     blocked = sorted(
         row.task_id
         for row in policy
-        if row.status != "ADJUDICATED" or row.label is None
+        if row.status not in accepted_statuses or row.label is None
     )
     reasons: list[str] = []
     if blocked:
@@ -69,8 +73,11 @@ def build_sft_decisions(
     for task_id, row in quality.items():
         if task_id not in policy_by_task:
             continue
-        if row.get("status") != "ADJUDICATED":
-            reasons.append(f"Task {task_id}: quality status is not ADJUDICATED.")
+        if str(row.get("status", "")).upper() not in accepted_statuses:
+            reasons.append(
+                f"Task {task_id}: quality status is not permitted in the "
+                "selected review mode."
+            )
         if str(row.get("quality_label")) not in QUALITY_LABELS:
             reasons.append(f"Task {task_id}: unsupported quality label.")
         if str(row.get("policy_label")) != str(policy_by_task[task_id].label):
@@ -170,7 +177,7 @@ def build_sft_decisions(
         source = Path(str(row["source_path"]))
         base = {
             "task_id": task_id,
-            "status": "ADJUDICATED",
+            "status": str(row["status"]).upper(),
             "source_path": str(source),
             "source_sha256": str(row["source_sha256"]).upper(),
             "group_ids": sorted(entity_groups(source)),
@@ -218,12 +225,20 @@ def build_sft_decisions(
                     correction["correction_validation_sha256"]
                 ).upper(),
             }
-        QualityDecision.from_dict(decision)
+        QualityDecision.from_dict(
+            decision,
+            allow_owner_reviewed_development=allow_owner_reviewed_development,
+        )
         decisions.append(decision)
 
     return {
         "ready": True,
         "reasons": [],
+        "review_mode": (
+            "OWNER_REVIEWED_DEVELOPMENT"
+            if allow_owner_reviewed_development
+            else "INDEPENDENT_ADJUDICATION"
+        ),
         "decisions": decisions,
         "inputs": {
             "policy_annotations": {
@@ -279,6 +294,14 @@ def main() -> None:
     parser.add_argument("--adjudicated-quality", type=Path)
     parser.add_argument("--corrections", type=Path)
     parser.add_argument("--split-plan", type=Path)
+    parser.add_argument(
+        "--allow-owner-reviewed-development",
+        action="store_true",
+        help=(
+            "Permit HUMAN_ADJUDICATED owner-review evidence for development "
+            "training only; does not create independent gold."
+        ),
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     result = build_sft_decisions(
@@ -286,6 +309,7 @@ def main() -> None:
         adjudicated_quality_path=args.adjudicated_quality,
         corrections_path=args.corrections,
         split_plan_path=args.split_plan,
+        allow_owner_reviewed_development=args.allow_owner_reviewed_development,
     )
     write_outputs(result, args.output)
     print(json.dumps({"ready": result["ready"], "count": len(result["decisions"])}))

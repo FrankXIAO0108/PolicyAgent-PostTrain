@@ -78,6 +78,34 @@ class GoldValidationTests(unittest.TestCase):
         self.assertEqual(result["fail_detection"]["precision"], 1.0)
         self.assertEqual(result["fail_detection"]["recall"], 1.0)
 
+    def test_owner_reviewed_development_rows_never_become_formal_gold(self) -> None:
+        annotations = [
+            annotation("1", "PASS", "ADJUDICATED"),
+            annotation("2", "FAIL", "HUMAN_ADJUDICATED"),
+        ]
+        predictions = {"1": "PASS", "2": "FAIL"}
+
+        for include_provisional in (False, True):
+            with self.subTest(include_provisional=include_provisional):
+                result = evaluate_annotations(
+                    annotations,
+                    predictions,
+                    include_provisional=include_provisional,
+                )
+
+                self.assertEqual(result["coverage"]["evaluated_rows"], 1)
+                self.assertEqual(
+                    result["coverage"]["status_counts"]["HUMAN_ADJUDICATED"],
+                    1,
+                )
+                self.assertEqual(
+                    [row["task_id"] for row in result["task_results"]],
+                    ["1"],
+                )
+                self.assertFalse(
+                    result["release_gate"]["official_metrics_allowed"]
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,51 @@
+{
+  "schema_version": "retail-teacher-sft-config-v1",
+  "scope": "TEACHER_TRAJECTORY_SFT",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "human_adjudicated_business_gold": false,
+    "business_improvement_claim_allowed": false
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "model": {
+    "name_or_path": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+    "expected_sha256": "F34D14D691C94109D42451A4C9E63391FCEDEFFA43571AF6B63EF2F421EF1737"
+  },
+  "data_dir": "_local_private_runs/merged_sft_v2_owner_corrected",
+  "seed": 20260818,
+  "precision": "bf16",
+  "max_length": 16384,
+  "validation_max_length": 8192,
+  "quantization": {
+    "enabled": true,
+    "mode": "4bit_nf4",
+    "double_quant": true
+  },
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "sft": {
+    "max_steps": 80,
+    "learning_rate": 0.0001,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 4
+  }
+}
