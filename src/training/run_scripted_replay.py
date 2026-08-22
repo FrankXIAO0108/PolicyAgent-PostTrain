@@ -103,7 +103,13 @@ def remap_path(raw: str, remaps: list[tuple[str, str]]) -> str:
     '''Apply OLD=NEW prefix remaps (case-insensitive) to an absolute path.'''
     for old, new in remaps:
         if raw.lower().startswith(old.lower()):
-            return new + raw[len(old):]
+            mapped = new + raw[len(old):]
+            # Specs are authored on Windows but replayed on Linux.  Prefix
+            # replacement alone leaves Windows separators in the suffix,
+            # producing paths such as ``/root/project\_local_private_runs``.
+            if '/' in new and '\\' not in new:
+                mapped = mapped.replace('\\', '/')
+            return mapped
     return raw
 
 
