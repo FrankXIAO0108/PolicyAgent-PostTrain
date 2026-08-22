@@ -84,18 +84,27 @@ class ScriptedReplayPathRemapTests(unittest.TestCase):
         }
 
         with TemporaryDirectory() as temp_dir:
-            run(
+            manifest = run(
                 validated,
                 Path(temp_dir) / "output",
                 20260818,
                 "deepseek/deepseek-chat",
                 False,
                 "SOURCE-PACKAGE-HASH",
+                ["python", "-m", "src.training.run_scripted_replay"],
             )
 
         validate_upstream_mock.assert_called_once_with(
             "upstream-commit",
             expected_package_sha256="SOURCE-PACKAGE-HASH",
+        )
+        self.assertEqual(
+            manifest["evaluation"]["type"],
+            "ALL_IGNORE_BASIS",
+        )
+        self.assertEqual(
+            manifest["command"],
+            ["python", "-m", "src.training.run_scripted_replay"],
         )
 
 

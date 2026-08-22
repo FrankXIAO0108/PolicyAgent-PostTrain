@@ -1187,6 +1187,7 @@ def run(
     llm_user: str,
     allow_dirty: bool,
     upstream_package_sha256: Optional[str] = None,
+    command: Optional[list[str]] = None,
 ) -> dict[str, Any]:
     from src.training.run_retail_agentic_grpo import validate_upstream_checkout
 
@@ -1223,7 +1224,7 @@ def run(
         'bindings': bindings,
         'task_ids': [rec['task_id'] for rec in validated['specs']],
         'evaluation': {
-            'type': 'ALL',
+            'type': REPLAY_EVALUATION_TYPE,
             'num_trials': 1,
             'max_steps': 120,
             'max_errors': 5,
@@ -1236,6 +1237,7 @@ def run(
             'user_replies_regenerated_by_frozen_simulator': True,
             'reward_not_a_gate': True,
         },
+        'command': command,
     }
     write_json(output_dir / 'run_manifest.json', manifest)
 
@@ -1371,6 +1373,12 @@ def main(argv: Optional[list[str]] = None) -> None:
         args.llm_user,
         args.allow_dirty,
         args.upstream_package_sha256,
+        [
+            sys.executable,
+            '-m',
+            'src.training.run_scripted_replay',
+            *(argv if argv is not None else sys.argv[1:]),
+        ],
     )
     print(json.dumps(manifest, indent=2, ensure_ascii=False))
 
