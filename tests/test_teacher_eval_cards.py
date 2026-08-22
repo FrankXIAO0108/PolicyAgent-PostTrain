@@ -52,10 +52,7 @@ def _write_result(
             "action_checks": (
                 None
                 if premature
-                else [
-                    {"action_match": matched}
-                    for matched in (action_matches or [])
-                ]
+                else [{"action_match": matched} for matched in (action_matches or [])]
             ),
             "nl_assertions": [],
             "communicate_checks": [],
@@ -78,6 +75,31 @@ def _write_result(
     path = task_dir / "returned_results.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
     return path
+
+
+def _write_multi_result(
+    root: Path,
+    task_id: str,
+    trials: list[tuple[float | None, list[tuple[str, dict]]]],
+) -> Path:
+    staging = root.parent / f".{root.name}_staging"
+    paths = [
+        _write_result(
+            staging / f"trial_{index}",
+            task_id,
+            reward=reward,
+            calls=calls,
+        )
+        for index, (reward, calls) in enumerate(trials)
+    ]
+    simulations = []
+    for path in paths:
+        simulations.extend(json.loads(path.read_text(encoding="utf-8"))["simulations"])
+    destination = root / "combined" / "private_evaluation" / f"task_{task_id}"
+    destination.mkdir(parents=True)
+    result = destination / "returned_results.json"
+    result.write_text(json.dumps({"simulations": simulations}), encoding="utf-8")
+    return result
 
 
 class TeacherEvalCardTests(unittest.TestCase):
@@ -116,9 +138,7 @@ class TeacherEvalCardTests(unittest.TestCase):
 
     def test_premature_model_failure_has_unavailable_action_evaluation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            path = _write_result(
-                Path(tmp), "3", reward=0, calls=[], premature=True
-            )
+            path = _write_result(Path(tmp), "3", reward=0, calls=[], premature=True)
             card = analyze_task(path, run_name="sft")
 
         self.assertTrue(card["infrastructure"]["valid"])
@@ -148,6 +168,51 @@ class TeacherEvalCardTests(unittest.TestCase):
         self.assertTrue(cards[0]["artifact"]["is_replacement"])
         self.assertTrue(cards[0]["infrastructure"]["valid"])
         self.assertEqual(cards[0]["tool_use"]["total_calls"], 1)
+
+    def test_multi_trial_results_are_loaded_and_summarized_by_task_and_trial(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base = root / "base"
+            candidate = root / "candidate"
+            _write_multi_result(
+                base,
+                "7",
+                [(1, [("get_order_details", {"order_id": "7"})]), (0, [])],
+            )
+            _write_multi_result(
+                candidate,
+                "7",
+                [(1, [("get_order_details", {"order_id": "7"})]), (1, [])],
+            )
+            base_cards = load_run_cards(base, run_name="base")
+            candidate_cards = load_run_cards(candidate, run_name="sft")
+            result = compare_cards(base_cards, candidate_cards)
+
+        self.assertEqual([card["trial_index"] for card in base_cards], [0, 1])
+        self.assertEqual(result["base"]["task_count"], 1)
+        self.assertEqual(result["base"]["trial_count"], 2)
+        self.assertEqual(result["base"]["stable_success_task_count"], 0)
+        self.assertEqual(result["candidate"]["stable_success_task_count"], 1)
+        self.assertEqual(result["strata"]["improved"]["task_trial_ids"], ["7:1"])
+
+    def test_multi_trial_replacement_replaces_the_entire_task(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            original = root / "original"
+            replacement = root / "replacement"
+            _write_multi_result(original, "9", [(None, []), (None, [])])
+            _write_multi_result(replacement, "9", [(1, []), (0, [])])
+            cards = load_run_cards(
+                original,
+                run_name="sft",
+                replacements={"9": replacement},
+            )
+
+        self.assertEqual(len(cards), 2)
+        self.assertTrue(all(card["artifact"]["is_replacement"] for card in cards))
+        self.assertEqual([card["outcome"]["reward"] for card in cards], [1, 0])
 
     def test_compare_stratifies_outcome_transitions(self) -> None:
         def card(task_id: str, success: bool, calls: int) -> dict:

@@ -14,7 +14,7 @@ from src.verifiers.policy_grounding_v2 import verify_trajectory
 from src.verifiers.schemas import MessageEvent, ToolCall, Verdict
 
 
-SCHEMA_VERSION = "teacher-eval-cards-1.0.0"
+SCHEMA_VERSION = "teacher-eval-cards-1.1.0"
 
 
 def _sha256(path: Path) -> str:
@@ -88,10 +88,46 @@ def analyze_task(
     path = Path(result_path).resolve()
     payload = json.loads(path.read_text(encoding="utf-8"))
     simulation = _single_simulation(payload, path)
+    return _analyze_simulation(
+        simulation,
+        path,
+        run_name=run_name,
+        source_split=source_split,
+        is_replacement=is_replacement,
+        trial_index=0,
+    )
+
+
+def _analyze_simulation(
+    simulation: dict[str, Any],
+    path: Path,
+    *,
+    run_name: str,
+    source_split: str | None,
+    is_replacement: bool,
+    trial_index: int,
+) -> dict[str, Any]:
     task_id = str(simulation.get("task_id"))
     reward_info = simulation.get("reward_info")
     messages = simulation.get("messages") or []
     events = _message_events(messages, path)
+
+    observed_usage: dict[str, dict[str, int]] = {}
+    for role in ("assistant", "user"):
+        role_messages = [message for message in messages if message.get("role") == role]
+        usage_rows = [
+            message.get("usage") for message in role_messages if message.get("usage")
+        ]
+        prompt_tokens = sum(int(row.get("prompt_tokens") or 0) for row in usage_rows)
+        completion_tokens = sum(
+            int(row.get("completion_tokens") or 0) for row in usage_rows
+        )
+        observed_usage[role] = {
+            "messages_with_usage": len(usage_rows),
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens,
+        }
 
     calls = [call for event in events for call in event.tool_calls]
     call_names = [call.name for call in calls]
@@ -118,9 +154,11 @@ def analyze_task(
     action_evaluation_status = (
         "evaluated"
         if isinstance(raw_action_checks, list)
-        else "no_reference_actions"
-        if action_note == "No actions to evaluate"
-        else "unavailable"
+        else (
+            "no_reference_actions"
+            if action_note == "No actions to evaluate"
+            else "unavailable"
+        )
     )
     matched_actions = sum(bool(check.get("action_match")) for check in action_checks)
     reference_actions = len(action_checks)
@@ -133,9 +171,7 @@ def analyze_task(
     benchmark_verdict = (
         Verdict.PASS
         if reward == 1
-        else Verdict.FAIL
-        if reward == 0
-        else Verdict.NOT_EVALUATED
+        else Verdict.FAIL if reward == 0 else Verdict.NOT_EVALUATED
     )
     policy = verify_trajectory(
         events,
@@ -145,6 +181,7 @@ def analyze_task(
 
     return {
         "task_id": task_id,
+        "trial_index": trial_index,
         "run_name": run_name,
         "source_split": source_split,
         "artifact": {
@@ -155,6 +192,17 @@ def analyze_task(
         "infrastructure": {
             "valid": infrastructure_valid,
             "termination_reason": simulation.get("termination_reason"),
+            "duration_seconds": simulation.get("duration"),
+        },
+        "observed_token_usage": {
+            "agent_assistant_messages": observed_usage["assistant"],
+            "user_simulator_messages": observed_usage["user"],
+            "judge_usage_recorded": False,
+            "cost_fields": {
+                "agent_cost": simulation.get("agent_cost"),
+                "user_cost": simulation.get("user_cost"),
+                "billing_reliable": False,
+            },
         },
         "outcome": {
             "reward": reward,
@@ -183,9 +231,7 @@ def analyze_task(
             "dominant_tool_call_count": (
                 name_counts.most_common(1)[0][1] if name_counts else 0
             ),
-            "max_consecutive_same_tool_name": _max_consecutive_same_name(
-                call_names
-            ),
+            "max_consecutive_same_tool_name": _max_consecutive_same_name(call_names),
             "tool_error_results": tool_errors,
             "reference_action_evaluation_status": action_evaluation_status,
             "reference_action_count": reference_actions,
@@ -213,7 +259,11 @@ def analyze_task(
         },
         "dimension_card": {
             "task_outcome": {
-                "value": "PASS" if reward == 1 else "FAIL" if reward == 0 else "NOT_EVALUATED",
+                "value": (
+                    "PASS"
+                    if reward == 1
+                    else "FAIL" if reward == 0 else "NOT_EVALUATED"
+                ),
                 "evidence": "Tau2 reward",
                 "authority": "BENCHMARK_OUTCOME",
             },
@@ -266,6 +316,8 @@ def analyze_task(
             "exact repeated calls are loop/redundancy candidates, not automatically errors when state changed between calls.",
             "policy_diagnostic uses unadjudicated verifier V2.2 and is not a human-gold policy score.",
             "intent_grounding is a verifier proxy rather than an independently labeled intent-accuracy metric.",
+            "message token usage covers agent and user-simulator messages only; NL-judge usage is not recorded in returned_results.",
+            "serialized agent_cost/user_cost are not treated as billing evidence.",
         ],
     }
 
@@ -274,8 +326,13 @@ def _task_result_paths(run_dir: Path) -> dict[str, Path]:
     result: dict[str, Path] = {}
     for path in sorted(run_dir.rglob("returned_results.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
-        simulation = _single_simulation(payload, path)
-        task_id = str(simulation.get("task_id"))
+        simulations = payload.get("simulations") or []
+        if not simulations:
+            raise ValueError(f"No simulations in {path}")
+        task_ids = {str(simulation.get("task_id")) for simulation in simulations}
+        if len(task_ids) != 1:
+            raise ValueError(f"Multiple task IDs in {path}: {sorted(task_ids)}")
+        task_id = task_ids.pop()
         if task_id in result:
             raise ValueError(f"Duplicate task {task_id} under {run_dir}")
         result[task_id] = path
@@ -313,28 +370,39 @@ def load_run_cards(
         paths[str(task_id)] = replacement_paths[str(task_id)]
         replacement_ids.add(str(task_id))
         splits.update(_source_splits(replacement_root))
-    return [
-        analyze_task(
-            paths[task_id],
-            run_name=run_name,
-            source_split=splits.get(task_id),
-            is_replacement=task_id in replacement_ids,
-        )
-        for task_id in sorted(paths, key=int)
-    ]
+    cards: list[dict[str, Any]] = []
+    for task_id in sorted(paths, key=int):
+        path = paths[task_id]
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        simulations = payload.get("simulations") or []
+        for trial_index, simulation in enumerate(simulations):
+            cards.append(
+                _analyze_simulation(
+                    simulation,
+                    path,
+                    run_name=run_name,
+                    source_split=splits.get(task_id),
+                    is_replacement=task_id in replacement_ids,
+                    trial_index=trial_index,
+                )
+            )
+    return cards
 
 
 def _mean(cards: Iterable[dict[str, Any]], section: str, metric: str) -> float | None:
     values = [
-        card[section][metric]
-        for card in cards
-        if card[section].get(metric) is not None
+        card[section][metric] for card in cards if card[section].get(metric) is not None
     ]
     return statistics.fmean(values) if values else None
 
 
 def _summary(cards: list[dict[str, Any]]) -> dict[str, Any]:
     valid = [card for card in cards if card["infrastructure"]["valid"]]
+    task_ids = sorted({card["task_id"] for card in cards}, key=int)
+    by_task = {
+        task_id: [card for card in cards if card["task_id"] == task_id]
+        for task_id in task_ids
+    }
     action_evaluable = [
         card
         for card in valid
@@ -347,15 +415,61 @@ def _summary(cards: list[dict[str, Any]]) -> dict[str, Any]:
         card["tool_use"]["reference_action_count"] for card in action_evaluable
     )
     policy_counts = Counter(card["policy_diagnostic"]["verdict"] for card in valid)
+    successful_trials = sum(card["outcome"]["success"] for card in valid)
+    agent_tokens = sum(
+        card.get("observed_token_usage", {})
+        .get("agent_assistant_messages", {})
+        .get("total_tokens", 0)
+        for card in valid
+    )
+    user_tokens = sum(
+        card.get("observed_token_usage", {})
+        .get("user_simulator_messages", {})
+        .get("total_tokens", 0)
+        for card in valid
+    )
     return {
-        "task_count": len(cards),
+        "task_count": len(task_ids),
+        "trial_count": len(cards),
         "infrastructure_valid_count": len(valid),
-        "success_count": sum(card["outcome"]["success"] for card in valid),
-        "success_rate": (
-            sum(card["outcome"]["success"] for card in valid) / len(valid)
-            if valid
+        "success_count": successful_trials,
+        "success_rate": (successful_trials / len(valid) if valid else None),
+        "success_rate_semantics": "successful infrastructure-valid trials",
+        "stable_success_task_count": sum(
+            bool(rows)
+            and all(card["infrastructure"]["valid"] for card in rows)
+            and all(card["outcome"]["success"] for card in rows)
+            for rows in by_task.values()
+        ),
+        "any_success_task_count": sum(
+            any(
+                card["infrastructure"]["valid"] and card["outcome"]["success"]
+                for card in rows
+            )
+            for rows in by_task.values()
+        ),
+        "mean_duration_seconds": (
+            statistics.fmean(
+                card["infrastructure"]["duration_seconds"]
+                for card in valid
+                if card["infrastructure"].get("duration_seconds") is not None
+            )
+            if any(
+                card["infrastructure"].get("duration_seconds") is not None
+                for card in valid
+            )
             else None
         ),
+        "observed_tokens": {
+            "agent_total": agent_tokens,
+            "agent_mean_per_trial": agent_tokens / len(valid) if valid else None,
+            "user_simulator_total": user_tokens,
+            "user_simulator_mean_per_trial": (
+                user_tokens / len(valid) if valid else None
+            ),
+            "judge_total": None,
+            "billing_cost": None,
+        },
         "mean_tool_calls": _mean(valid, "tool_use", "total_calls"),
         "median_tool_calls": (
             statistics.median(card["tool_use"]["total_calls"] for card in valid)
@@ -364,9 +478,7 @@ def _summary(cards: list[dict[str, Any]]) -> dict[str, Any]:
         ),
         "mean_read_calls": _mean(valid, "tool_use", "read_calls"),
         "mean_write_calls": _mean(valid, "tool_use", "write_calls"),
-        "mean_repeated_exact_calls": _mean(
-            valid, "tool_use", "repeated_exact_calls"
-        ),
+        "mean_repeated_exact_calls": _mean(valid, "tool_use", "repeated_exact_calls"),
         "mean_consecutive_exact_repeats": _mean(
             valid, "tool_use", "consecutive_exact_repeats"
         ),
@@ -399,37 +511,49 @@ def _transition(base: dict[str, Any], candidate: dict[str, Any]) -> str:
     return "both_failure"
 
 
+def _card_key(card: dict[str, Any]) -> tuple[str, int]:
+    return card["task_id"], int(card.get("trial_index", 0))
+
+
 def compare_cards(
     base_cards: list[dict[str, Any]], candidate_cards: list[dict[str, Any]]
 ) -> dict[str, Any]:
-    base_by_id = {card["task_id"]: card for card in base_cards}
-    candidate_by_id = {card["task_id"]: card for card in candidate_cards}
+    base_by_id = {_card_key(card): card for card in base_cards}
+    candidate_by_id = {_card_key(card): card for card in candidate_cards}
+    if len(base_by_id) != len(base_cards) or len(candidate_by_id) != len(
+        candidate_cards
+    ):
+        raise ValueError("Duplicate task/trial card")
     if set(base_by_id) != set(candidate_by_id):
-        raise ValueError("Base and candidate task IDs differ")
+        raise ValueError("Base and candidate task/trial IDs differ")
     pairs = [
         {
-            "task_id": task_id,
-            "transition": _transition(base_by_id[task_id], candidate_by_id[task_id]),
-            "base_success": base_by_id[task_id]["outcome"]["success"],
-            "candidate_success": candidate_by_id[task_id]["outcome"]["success"],
-            "base_tool_calls": base_by_id[task_id]["tool_use"]["total_calls"],
-            "candidate_tool_calls": candidate_by_id[task_id]["tool_use"]["total_calls"],
+            "task_id": key[0],
+            "trial_index": key[1],
+            "transition": _transition(base_by_id[key], candidate_by_id[key]),
+            "base_success": base_by_id[key]["outcome"]["success"],
+            "candidate_success": candidate_by_id[key]["outcome"]["success"],
+            "base_tool_calls": base_by_id[key]["tool_use"]["total_calls"],
+            "candidate_tool_calls": candidate_by_id[key]["tool_use"]["total_calls"],
             "tool_call_delta": (
-                candidate_by_id[task_id]["tool_use"]["total_calls"]
-                - base_by_id[task_id]["tool_use"]["total_calls"]
+                candidate_by_id[key]["tool_use"]["total_calls"]
+                - base_by_id[key]["tool_use"]["total_calls"]
             ),
-            "candidate_is_replacement": candidate_by_id[task_id]["artifact"][
+            "candidate_is_replacement": candidate_by_id[key]["artifact"][
                 "is_replacement"
             ],
         }
-        for task_id in sorted(base_by_id, key=int)
+        for key in sorted(base_by_id, key=lambda value: (int(value[0]), value[1]))
     ]
     strata: dict[str, Any] = {}
     for transition in ("both_success", "improved", "regressed", "both_failure"):
         rows = [row for row in pairs if row["transition"] == transition]
         strata[transition] = {
-            "task_ids": [row["task_id"] for row in rows],
-            "task_count": len(rows),
+            "task_ids": sorted({row["task_id"] for row in rows}, key=int),
+            "task_trial_ids": [
+                f"{row['task_id']}:{row['trial_index']}" for row in rows
+            ],
+            "pair_count": len(rows),
             "base_mean_tool_calls": (
                 statistics.fmean(row["base_tool_calls"] for row in rows)
                 if rows
@@ -447,16 +571,14 @@ def compare_cards(
             ),
         }
     comparable_action_pairs = [
-        (base_by_id[task_id], candidate_by_id[task_id])
-        for task_id in sorted(base_by_id, key=int)
-        if base_by_id[task_id]["tool_use"]["reference_action_evaluation_status"]
+        (base_by_id[key], candidate_by_id[key])
+        for key in sorted(base_by_id, key=lambda value: (int(value[0]), value[1]))
+        if base_by_id[key]["tool_use"]["reference_action_evaluation_status"]
         != "unavailable"
-        and candidate_by_id[task_id]["tool_use"][
-            "reference_action_evaluation_status"
-        ]
+        and candidate_by_id[key]["tool_use"]["reference_action_evaluation_status"]
         != "unavailable"
-        and base_by_id[task_id]["tool_use"]["reference_action_count"]
-        == candidate_by_id[task_id]["tool_use"]["reference_action_count"]
+        and base_by_id[key]["tool_use"]["reference_action_count"]
+        == candidate_by_id[key]["tool_use"]["reference_action_count"]
     ]
     base_action_matched = sum(
         base["tool_use"]["matched_reference_actions"]
@@ -476,14 +598,15 @@ def compare_cards(
     return {
         "base": _summary(base_cards),
         "candidate": _summary(candidate_cards),
-        "replacement_task_ids": [
-            row["task_id"] for row in pairs if row["candidate_is_replacement"]
-        ],
+        "replacement_task_ids": sorted(
+            {row["task_id"] for row in pairs if row["candidate_is_replacement"]},
+            key=int,
+        ),
         "paired_rows": pairs,
         "strata": strata,
         "paired_reference_action_comparison": {
             "task_ids": [base["task_id"] for base, _ in comparable_action_pairs],
-            "task_count": len(comparable_action_pairs),
+            "trial_count": len(comparable_action_pairs),
             "reference_action_total": comparable_action_total,
             "base_matched": base_action_matched,
             "candidate_matched": candidate_action_matched,
@@ -498,8 +621,12 @@ def compare_cards(
                 else None
             ),
             "excluded_task_ids": sorted(
-                set(base_by_id)
-                - {base["task_id"] for base, _ in comparable_action_pairs},
+                {
+                    task_id
+                    for task_id, trial_index in set(base_by_id)
+                    if (task_id, trial_index)
+                    not in {_card_key(base) for base, _ in comparable_action_pairs}
+                },
                 key=int,
             ),
         },
@@ -529,13 +656,18 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "| 指标 | Base | SFT |",
         "|---|---:|---:|",
-        f"| 成功率 | {_fmt(base['success_rate'], percent=True)} | {_fmt(candidate['success_rate'], percent=True)} |",
+        f"| Trial 成功率 | {base['success_count']}/{base['infrastructure_valid_count']} = {_fmt(base['success_rate'], percent=True)} | {candidate['success_count']}/{candidate['infrastructure_valid_count']} = {_fmt(candidate['success_rate'], percent=True)} |",
+        f"| 全 trial 稳定成功任务 | {base['stable_success_task_count']}/{base['task_count']} | {candidate['stable_success_task_count']}/{candidate['task_count']} |",
+        f"| 至少一次成功任务 | {base['any_success_task_count']}/{base['task_count']} | {candidate['any_success_task_count']}/{candidate['task_count']} |",
         f"| 平均工具调用数 | {_fmt(base['mean_tool_calls'])} | {_fmt(candidate['mean_tool_calls'])} |",
         f"| 工具调用中位数 | {_fmt(base['median_tool_calls'])} | {_fmt(candidate['median_tool_calls'])} |",
         f"| 平均读取调用数 | {_fmt(base['mean_read_calls'])} | {_fmt(candidate['mean_read_calls'])} |",
         f"| 平均写入调用数 | {_fmt(base['mean_write_calls'])} | {_fmt(candidate['mean_write_calls'])} |",
         f"| 平均完全重复调用数 | {_fmt(base['mean_repeated_exact_calls'])} | {_fmt(candidate['mean_repeated_exact_calls'])} |",
         f"| 平均同工具最长连续调用 | {_fmt(base['mean_max_consecutive_same_tool_name'])} | {_fmt(candidate['mean_max_consecutive_same_tool_name'])} |",
+        f"| 平均 trial 耗时（秒） | {_fmt(base['mean_duration_seconds'])} | {_fmt(candidate['mean_duration_seconds'])} |",
+        f"| Agent 观测 token / trial | {_fmt(base['observed_tokens']['agent_mean_per_trial'])} | {_fmt(candidate['observed_tokens']['agent_mean_per_trial'])} |",
+        f"| 用户模拟器观测 token / trial | {_fmt(base['observed_tokens']['user_simulator_mean_per_trial'])} | {_fmt(candidate['observed_tokens']['user_simulator_mean_per_trial'])} |",
         "",
         f"SFT 替换重跑任务：{comparison['replacement_task_ids']}。",
         "",
@@ -543,7 +675,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         (
             f"在双方 action checks 均可用且参考动作数一致的 "
-            f"{comparison['paired_reference_action_comparison']['task_count']} 个任务上，"
+            f"{comparison['paired_reference_action_comparison']['trial_count']} 个 task-trial 对上，"
             f"Base/SFT 微平均召回分别为 "
             f"{_fmt(comparison['paired_reference_action_comparison']['base_micro_recall'], percent=True)} / "
             f"{_fmt(comparison['paired_reference_action_comparison']['candidate_micro_recall'], percent=True)}；"
@@ -552,12 +684,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "## 按结果变化分层的工具效率",
         "",
-        "| 分层 | 任务 | Base均值 | SFT均值 | 平均变化(SFT-Base) |",
+        "| 分层 | task:trial | Base均值 | SFT均值 | 平均变化(SFT-Base) |",
         "|---|---|---:|---:|---:|",
     ]
     for name, row in comparison["strata"].items():
         lines.append(
-            f"| {name} | {row['task_ids']} | {_fmt(row['base_mean_tool_calls'])} | "
+            f"| {name} | {row['task_trial_ids']} | {_fmt(row['base_mean_tool_calls'])} | "
             f"{_fmt(row['candidate_mean_tool_calls'])} | {_fmt(row['mean_tool_call_delta'])} |"
         )
     lines.extend(
@@ -565,13 +697,13 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             "## 工具调用膨胀 Top 5",
             "",
-            "| 任务 | 结果变化 | Base | SFT | 增量 |",
+            "| task:trial | 结果变化 | Base | SFT | 增量 |",
             "|---|---|---:|---:|---:|",
         ]
     )
     for row in comparison["top_tool_call_increases"]:
         lines.append(
-            f"| {row['task_id']} | {row['transition']} | {row['base_tool_calls']} | "
+            f"| {row['task_id']}:{row['trial_index']} | {row['transition']} | {row['base_tool_calls']} | "
             f"{row['candidate_tool_calls']} | {row['tool_call_delta']:+d} |"
         )
     lines.extend(
@@ -584,6 +716,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             "- 完全重复调用只是循环/冗余候选；若中间状态发生变化，重复调用可能合理。",
             "- Policy V2.2 尚未基于独立人工金标完成验证，因此这里只作为 provisional diagnostic，不进入正式成功率。",
             "- 用户意图识别目前只能通过最终断言、参考动作覆盖和 verifier finding 间接观察，不能伪造为独立准确率。",
+            "- Token 仅汇总 `returned_results.json` 中消息级 usage：assistant 为本地 Agent，user 为外部用户模拟器；NL Judge token 未记录，不能由此推算完整 API 账单。",
+            "- 序列化 cost 字段均不能替代供应商账单，因此不报告美元成本。",
             "",
             "## 可追溯产物",
             "",
