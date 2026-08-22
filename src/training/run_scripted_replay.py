@@ -1175,6 +1175,7 @@ def run(
     seed_source: int,
     llm_user: str,
     allow_dirty: bool,
+    upstream_package_sha256: Optional[str] = None,
 ) -> dict[str, Any]:
     from src.training.run_retail_agentic_grpo import validate_upstream_checkout
 
@@ -1185,7 +1186,10 @@ def run(
         raise FileExistsError(f'Refusing to overwrite existing output: {output_dir}')
     output_dir.mkdir(parents=True, exist_ok=False)
 
-    upstream = validate_upstream_checkout(validated['upstream_commit'])
+    upstream = validate_upstream_checkout(
+        validated['upstream_commit'],
+        expected_package_sha256=upstream_package_sha256,
+    )
     bindings = {
         'spec_dir': validated['spec_dir'],
         'manifest_sha256_lf': validated['manifest_sha256_lf'],
@@ -1276,6 +1280,10 @@ def main(argv: Optional[list[str]] = None) -> None:
     parser.add_argument('--llm-user', default='deepseek/deepseek-chat')
     parser.add_argument('--path-remap', action='append', default=[], metavar='OLD=NEW')
     parser.add_argument('--upstream-commit', default=UPSTREAM_COMMIT)
+    parser.add_argument(
+        '--upstream-package-sha256',
+        help='required by transferred tau2 checkouts without Git metadata',
+    )
     parser.add_argument('--allow-dirty', action='store_true')
     args = parser.parse_args(argv)
 
@@ -1351,6 +1359,7 @@ def main(argv: Optional[list[str]] = None) -> None:
         args.seed_source,
         args.llm_user,
         args.allow_dirty,
+        args.upstream_package_sha256,
     )
     print(json.dumps(manifest, indent=2, ensure_ascii=False))
 

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import unittest
+from tempfile import TemporaryDirectory
+from pathlib import Path
+from unittest.mock import patch
 
-from src.training.run_scripted_replay import remap_path
+from src.training.run_scripted_replay import remap_path, run
 
 
 class ScriptedReplayPathRemapTests(unittest.TestCase):
@@ -34,6 +37,44 @@ class ScriptedReplayPathRemapTests(unittest.TestCase):
         self.assertEqual(
             remap_path(raw, [(r"D:\PolicyAgent-PostTrain", "/root/project")]),
             raw,
+        )
+
+    @patch("src.training.run_retail_agentic_grpo.validate_upstream_checkout")
+    @patch("src.training.run_scripted_replay.git_value")
+    def test_transferred_upstream_package_hash_is_forwarded(
+        self,
+        git_value_mock,
+        validate_upstream_mock,
+    ) -> None:
+        git_value_mock.side_effect = lambda _root, *args: (
+            "" if args == ("status", "--porcelain") else "test-value"
+        )
+        validate_upstream_mock.return_value = {
+            "commit": "upstream-commit",
+            "verification_method": "commit_marker_and_source_package_sha256",
+        }
+        validated = {
+            "spec_dir": "/tmp/specs",
+            "manifest_sha256_lf": "manifest-hash",
+            "seed_source": 20260818,
+            "derived_seed": 350291,
+            "upstream_commit": "upstream-commit",
+            "specs": [],
+        }
+
+        with TemporaryDirectory() as temp_dir:
+            run(
+                validated,
+                Path(temp_dir) / "output",
+                20260818,
+                "deepseek/deepseek-chat",
+                False,
+                "SOURCE-PACKAGE-HASH",
+            )
+
+        validate_upstream_mock.assert_called_once_with(
+            "upstream-commit",
+            expected_package_sha256="SOURCE-PACKAGE-HASH",
         )
 
 
