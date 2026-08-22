@@ -45,6 +45,7 @@ DEFAULT_SPEC_DIR = (
 )
 UPSTREAM_COMMIT = '58e5e1ace69302e6982d27014569c03e0ffccdd2'
 STOP_TOKEN = '###STOP###'
+REPLAY_EVALUATION_TYPE = 'ALL_IGNORE_BASIS'
 GREETING = 'Hi! How can I help you today?'
 ABORT_TEXT = (
     'I was unable to confirm an allowed cancellation reason, so I did not '
@@ -999,6 +1000,16 @@ def _corrected_message_checks(messages: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _require_replay_reward(simulation: Any) -> float:
+    reward_info = getattr(simulation, 'reward_info', None)
+    if reward_info is None:
+        raise RuntimeError(
+            'Replay simulation completed without reward_info; '
+            f'termination_reason={getattr(simulation, "termination_reason", None)!r}'
+        )
+    return float(reward_info.reward)
+
+
 def run_one(
     rec: dict[str, Any],
     output_dir: Path,
@@ -1051,7 +1062,7 @@ def run_one(
         max_errors=5,
         save_dir=task_dir / 'tau2_artifacts',
         console_display=True,
-        evaluation_type=EvaluationType.ALL,
+        evaluation_type=getattr(EvaluationType, REPLAY_EVALUATION_TYPE),
         max_concurrency=1,
         seed=seed_source,
         log_level='INFO',
@@ -1062,7 +1073,7 @@ def run_one(
     )
 
     sim = results.simulations[0]
-    reward = float(sim.reward_info.reward)
+    reward = _require_replay_reward(sim)
     termination = str(sim.termination_reason)
     messages = [m.model_dump(mode='json') for m in sim.messages]
     corrected = {

@@ -1,14 +1,35 @@
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest.mock import patch
 
-from src.training.run_scripted_replay import remap_path, run
+from src.training.run_scripted_replay import (
+    REPLAY_EVALUATION_TYPE,
+    _require_replay_reward,
+    remap_path,
+    run,
+)
 
 
 class ScriptedReplayPathRemapTests(unittest.TestCase):
+    def test_replay_uses_diagnostic_evaluation_without_nl_judge(self) -> None:
+        self.assertEqual(REPLAY_EVALUATION_TYPE, "ALL_IGNORE_BASIS")
+
+    def test_missing_reward_info_is_reported_as_infrastructure_failure(self) -> None:
+        simulation = SimpleNamespace(
+            reward_info=None,
+            termination_reason="evaluation_failed",
+        )
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "completed without reward_info.*evaluation_failed",
+        ):
+            _require_replay_reward(simulation)
+
     def test_windows_source_path_maps_to_posix_with_normalized_separators(self) -> None:
         raw = (
             r"D:\PolicyAgent-PostTrain\_local_private_runs"
