@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from src.training.run_teacher_eval import (
     DEFAULT_CONFIG,
@@ -13,11 +14,13 @@ from src.training.run_teacher_eval import (
     entity_overlap,
     select_smoke_task,
     simulation_infrastructure_failure,
+    validate_checkpoint_binding,
     validate_config,
 )
 
 LOCAL_TAU2_ROOT = Path(r"D:\tau2-bench")
 REQUIRES_TAU2 = LOCAL_TAU2_ROOT.joinpath("data/tau2/domains/retail/tasks.json").is_file()
+V2_CONFIG = Path("configs/retail_teacher_eval_v2_owner_corrected.json").resolve()
 
 
 def load_real_config() -> dict:
@@ -66,6 +69,23 @@ class TeacherEvalConfigTests(unittest.TestCase):
         )
         self.assertEqual(validated["num_trials"], 1)
         self.assertEqual(validated["seed"], 20260818)
+
+    def test_owner_corrected_v2_regression_config_validates(self):
+        validated = validate_config(V2_CONFIG)
+        self.assertEqual(len(validated["task_ids"]), 18)
+        self.assertEqual(validated["num_trials"], 4)
+        self.assertEqual(
+            sum(
+                row["source"] == "train_candidates"
+                for row in validated["task_rows"]
+            ),
+            7,
+        )
+        self.assertEqual(
+            sum(row["source"] == "test_clean" for row in validated["task_rows"]),
+            11,
+        )
+        self.assertFalse(validated["config"]["claims"]["fresh_unseen_evaluation"])
 
     def test_select_smoke_task_filters_rows(self):
         validated = validate_config(DEFAULT_CONFIG)
@@ -180,6 +200,27 @@ class TeacherEvalConfigTests(unittest.TestCase):
 
 
 class TeacherEvalReportingTests(unittest.TestCase):
+    def test_checkpoint_binding_requires_expected_hash(self):
+        with self.assertRaisesRegex(ValueError, "path is not bound"):
+            validate_checkpoint_binding({"name": "unbound"})
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model_run = {
+                "name": "sft_v2",
+                "checkpoint": temp_dir,
+                "expected_sha256": None,
+            }
+            with self.assertRaisesRegex(ValueError, "hash is not bound"):
+                validate_checkpoint_binding(model_run)
+
+            model_run["expected_sha256"] = "A" * 64
+            with patch(
+                "src.training.run_teacher_eval.directory_sha256",
+                return_value="A" * 64,
+            ):
+                binding = validate_checkpoint_binding(model_run)
+            self.assertEqual(binding["sha256"], "A" * 64)
+
     def test_scored_simulation_is_not_infrastructure_failure(self):
         simulation = SimpleNamespace(
             id="sim-ok",
@@ -256,6 +297,51 @@ class TeacherEvalReportingTests(unittest.TestCase):
         self.assertEqual(summary["coverage"]["evaluated_tasks"], 1)
         self.assertEqual(summary["coverage"]["infrastructure_failure_tasks"], 1)
         self.assertEqual(summary["infrastructure_failures"], infrastructure_failures)
+
+    def test_summary_reports_four_trial_stability_without_hiding_variance(self):
+        validated = {
+            "task_ids": ["19", "24"],
+            "num_trials": 4,
+            "seed": 20260818,
+            "config": {
+                "evaluation": {"type": "ALL_WITH_NL_ASSERTIONS"},
+                "agent": {"temperature": 0.0},
+            },
+        }
+        summary = build_summary(
+            per_task=[
+                {
+                    "task_id": "19",
+                    "source": "train_candidates",
+                    "reward": [1.0, 1.0, 0.0, 1.0],
+                    "success": False,
+                },
+                {
+                    "task_id": "24",
+                    "source": "train_candidates",
+                    "reward": [1.0, 1.0, 1.0, 1.0],
+                    "success": True,
+                },
+            ],
+            failures=[],
+            infrastructure_failures=[],
+            validated=validated,
+            run_name="base",
+            model_run={"vllm_model": "model", "litellm_model": "openai/model"},
+        )
+        self.assertEqual(summary["success_rate"]["overall"], 0.5)
+        self.assertEqual(summary["success_rate"]["trial_level"]["total_trials"], 8)
+        self.assertEqual(
+            summary["success_rate"]["trial_level"]["successful_trials"], 7
+        )
+        self.assertEqual(summary["success_rate"]["trial_level"]["rate"], 0.875)
+        self.assertEqual(
+            summary["success_rate"]["task_level"]["any_trial_success"], 2
+        )
+        train_source = summary["success_rate"]["by_source"]["train_candidates"]
+        self.assertEqual(train_source["total_trials"], 8)
+        self.assertEqual(train_source["successful_trials"], 7)
+        self.assertEqual(train_source["trial_success_rate"], 0.875)
 
 if __name__ == "__main__":
     unittest.main()

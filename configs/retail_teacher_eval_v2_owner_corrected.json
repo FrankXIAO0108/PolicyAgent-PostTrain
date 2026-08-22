@@ -1,0 +1,118 @@
+{
+  "schema_version": "retail-teacher-sft-benchmark-eval-v2",
+  "status": "FROZEN",
+  "scope": "TEACHER_SFT_BENCHMARK_EVAL_V2_OWNER_CORRECTED",
+  "purpose": "Four-trial development regression comparison of Base, SFT v1, and owner-corrected SFT v2 on every Retail task that remains entity-disjoint from the 53-row teacher SFT pool.",
+  "claims": {
+    "official_metric": false,
+    "formal_retail_gate_unchanged": true,
+    "development_eval_not_final_gate": true,
+    "fresh_unseen_evaluation": false,
+    "business_improvement_claim_allowed": false,
+    "official_test_split_used_development_only": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "training_data_binding": {
+    "rows": 53,
+    "tasks": 43,
+    "dataset_sha256": "3CCB9842BA474E7C85EDCB5EA7F6A84CFE069136165CCB30B0A0B8D7AC926677",
+    "manifest_sha256": "DBB1B156EC5BF889741CEDC08696080B09D8DEF144A6B49F2D25B40F8FD19802"
+  },
+  "tasks": [
+    {"task_id": "19", "source": "train_candidates", "reason": "Return a water bottle and exchange two other delivered items under a combined multi-item request."},
+    {"task_id": "24", "source": "train_candidates", "reason": "Cancel intent is withdrawn at confirmation, followed by an order-information request."},
+    {"task_id": "43", "source": "train_candidates", "reason": "Locate delivery address and tracking information for an unreceived order."},
+    {"task_id": "50", "source": "train_candidates", "reason": "Request to reverse a completed cancellation, which is outside the supported action policy."},
+    {"task_id": "66", "source": "train_candidates", "reason": "Attempt an invalid cross-product modification, then follow the supported fallback path."},
+    {"task_id": "72", "source": "train_candidates", "reason": "Modify a pending order address to the authenticated user's default address."},
+    {"task_id": "89", "source": "train_candidates", "reason": "Find a cheapest available variant and conditionally exchange a delivered item."},
+    {"task_id": "18", "source": "test_clean", "reason": "Withdraw a return request at the explicit confirmation boundary."},
+    {"task_id": "39", "source": "test_clean", "reason": "Update a user address using evidence from the user's recent-order state."},
+    {"task_id": "40", "source": "test_clean", "reason": "Answer linked gift-card, payment-method, and order-information questions."},
+    {"task_id": "65", "source": "test_clean", "reason": "Reject or safely handle a requested exchange across different product types."},
+    {"task_id": "71", "source": "test_clean", "reason": "Modify a pending order address to the authenticated user's default address."},
+    {"task_id": "74", "source": "test_clean", "reason": "Select an exchange variant using ordered processor, storage, and color preferences."},
+    {"task_id": "77", "source": "test_clean", "reason": "Handle a request for the maximum available size of a delivered product."},
+    {"task_id": "79", "source": "test_clean", "reason": "Resolve an exact-variant preference and fallback behavior for a delivered-item exchange."},
+    {"task_id": "90", "source": "test_clean", "reason": "Conditionally modify an item option and preserve explicit cancellation parameters."},
+    {"task_id": "100", "source": "test_clean", "reason": "Complete a multi-item return and exchange request with exact option constraints."},
+    {"task_id": "108", "source": "test_clean", "reason": "Return all eligible items except one explicitly excluded item."}
+  ],
+  "exclusions": {
+    "direct_correction_or_data_decision": ["36", "38", "59", "76", "101", "105", "107"],
+    "new_training_entity_overlap": {
+      "37": ["order_id:#W9348897", "user_id:daiki_sanchez_3253"],
+      "67": ["order_id:#W6729841", "user_id:noah_ito_3850"],
+      "64": ["product_id:3377618313"],
+      "68": ["order_id:#W6729841", "user_id:noah_ito_3850"],
+      "102": ["order_id:#W3445693", "order_id:#W4219264"]
+    }
+  },
+  "entity_gate": {
+    "groups_path": "data/retail_teacher_eval_v2/teacher_sft_entity_groups.json",
+    "groups_sha256": "A86B908F1DB9E7E71B579E9740F03FA044F445F7ABA5F49600EC8813A3C3EC9C",
+    "must_be_disjoint": true
+  },
+  "agent": {
+    "implementation": "llm_agent",
+    "temperature": 0,
+    "api_base": "http://localhost:8000/v1"
+  },
+  "user": {
+    "implementation": "user_simulator",
+    "model": "deepseek/deepseek-chat",
+    "temperature": 0
+  },
+  "nl_judge": {
+    "model": "deepseek/deepseek-chat",
+    "temperature": 0
+  },
+  "model_runs": [
+    {
+      "name": "base",
+      "vllm_model": "Qwen3-4B-Instruct-2507",
+      "litellm_model": "openai/Qwen3-4B-Instruct-2507",
+      "checkpoint": "/root/autodl-tmp/models/Qwen3-4B-Instruct-2507",
+      "expected_sha256": "F34D14D691C94109D42451A4C9E63391FCEDEFFA43571AF6B63EF2F421EF1737"
+    },
+    {
+      "name": "sft_v1",
+      "vllm_model": "Qwen3-4B-Instruct-2507",
+      "litellm_model": "openai/Qwen3-4B-Instruct-2507",
+      "checkpoint": "/root/autodl-tmp/teacher_sft_v1/teacher_sft_merged",
+      "expected_sha256": "2A19D74C527AD01290D9E70C049F5604A8167C5BBC32BCD77D08E84B3740D289"
+    },
+    {
+      "name": "sft_v2",
+      "vllm_model": "Qwen3-4B-Instruct-2507",
+      "litellm_model": "openai/Qwen3-4B-Instruct-2507",
+      "checkpoint": "/root/autodl-tmp/teacher_sft_v2_owner_corrected/teacher_sft_merged",
+      "expected_sha256": null,
+      "checkpoint_binding_status": "PENDING_TRAINING_MANIFEST"
+    }
+  ],
+  "evaluation": {
+    "type": "ALL_WITH_NL_ASSERTIONS",
+    "num_trials": 4,
+    "seed": 20260818,
+    "max_steps": 120,
+    "max_errors": 5,
+    "max_concurrency": 1,
+    "max_retries": 0
+  },
+  "known_limitations": [
+    "All 18 tasks were used in the earlier v1 development evaluation; this is a frozen regression set, not fresh unseen evaluation.",
+    "The current Retail catalog has no additional task that is entity-disjoint from the 53-row training pool under the task-text entity gate.",
+    "The sft_v2 checkpoint hash is unknown before training; execution must remain blocked until expected_sha256 is bound from the completed training manifest in a separate pre-evaluation commit.",
+    "Agent is served by local vLLM; user simulator and NL judge use DeepSeek, whose external backend is not controlled by this repository.",
+    "The 11 test_clean tasks use the official test split for development regression only and do not support an official leaderboard or business-improvement claim.",
+    "Entity isolation covers task-definition text and the frozen training group IDs; it is not a proof of independence for every latent environment-state feature."
+  ]
+}

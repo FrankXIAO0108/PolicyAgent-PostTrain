@@ -172,6 +172,38 @@ def probe_vllm(api_base: str, model: str, timeout: float = 60.0) -> None:
         raise RuntimeError(f"vLLM probe returned no choices: {payload}")
 
 
+def validate_checkpoint_binding(model_run: dict[str, Any]) -> dict[str, str]:
+    """Fail closed when an evaluation checkpoint is absent or not hash-bound."""
+    checkpoint = model_run.get("checkpoint")
+    if not checkpoint:
+        raise ValueError(
+            f"model checkpoint path is not bound for {model_run.get('name')!r}"
+        )
+    checkpoint_path = Path(checkpoint).expanduser().resolve()
+    if not checkpoint_path.is_dir():
+        raise FileNotFoundError(f"model checkpoint missing: {checkpoint_path}")
+    expected_value = model_run.get("expected_sha256")
+    if not expected_value:
+        raise ValueError(
+            f"model checkpoint hash is not bound for {model_run.get('name')!r}"
+        )
+    expected = str(expected_value).upper()
+    actual = directory_sha256(checkpoint_path)
+    if actual != expected:
+        raise ValueError(
+            f"checkpoint hash mismatch for {model_run.get('name')}: "
+            f"{actual} != {expected}"
+        )
+    return {"path": str(checkpoint_path), "sha256": actual}
+
+
+def _row_rewards(row: dict[str, Any]) -> list[float]:
+    value = row["reward"]
+    if isinstance(value, list):
+        return [float(item) for item in value]
+    return [float(value)]
+
+
 def build_summary(
     *,
     per_task: list[dict[str, Any]],
@@ -186,12 +218,35 @@ def build_summary(
     for source in sources:
         rows = [row for row in per_task if row["source"] == source]
         succeeded = sum(1 for row in rows if row["success"])
+        source_reward_groups = [_row_rewards(row) for row in rows]
+        source_trials = sum(len(rewards) for rewards in source_reward_groups)
+        source_successes = sum(
+            reward == 1.0
+            for rewards in source_reward_groups
+            for reward in rewards
+        )
         by_source[source] = {
             "tasks": len(rows),
             "success": succeeded,
             "success_rate": round(succeeded / len(rows), 4) if rows else None,
+            "success_rate_semantics": "tasks successful in every trial",
+            "successful_trials": source_successes,
+            "total_trials": source_trials,
+            "trial_success_rate": (
+                round(source_successes / source_trials, 4)
+                if source_trials
+                else None
+            ),
         }
     succeeded = sum(1 for row in per_task if row["success"])
+    reward_groups = [_row_rewards(row) for row in per_task]
+    total_trials = sum(len(rewards) for rewards in reward_groups)
+    successful_trials = sum(
+        reward == 1.0 for rewards in reward_groups for reward in rewards
+    )
+    tasks_with_any_success = sum(
+        any(reward == 1.0 for reward in rewards) for rewards in reward_groups
+    )
     return {
         "schema_version": "retail-teacher-sft-benchmark-eval-summary-v2",
         "run_name": run_name,
@@ -210,6 +265,21 @@ def build_summary(
         "per_task": per_task,
         "success_rate": {
             "overall": round(succeeded / len(per_task), 4) if per_task else None,
+            "semantics": "fraction of tasks successful in every trial",
+            "trial_level": {
+                "successful_trials": successful_trials,
+                "total_trials": total_trials,
+                "rate": (
+                    round(successful_trials / total_trials, 4)
+                    if total_trials
+                    else None
+                ),
+            },
+            "task_level": {
+                "any_trial_success": tasks_with_any_success,
+                "all_trials_success": succeeded,
+                "total_tasks": len(per_task),
+            },
             "by_source": by_source,
         },
         "coverage": {
@@ -285,20 +355,7 @@ def run(
 
     config = validated["config"]
     model_run = validated["model_runs_by_name"][run_name]
-    checkpoint = model_run.get("checkpoint")
-    if checkpoint:
-        checkpoint_path = Path(checkpoint).expanduser().resolve()
-        if not checkpoint_path.is_dir():
-            raise FileNotFoundError(
-                f"model checkpoint missing: {checkpoint_path}"
-            )
-        if model_run.get("expected_sha256"):
-            actual = directory_sha256(checkpoint_path)
-            expected = str(model_run["expected_sha256"]).upper()
-            if actual != expected:
-                raise ValueError(
-                    f"checkpoint hash mismatch for {run_name}: {actual} != {expected}"
-                )
+    checkpoint_binding = validate_checkpoint_binding(model_run)
 
     output_dir.mkdir(parents=True, exist_ok=False)
     upstream = validate_upstream_checkout(
@@ -321,6 +378,7 @@ def run(
             "config_sha256": validated["config_sha256"],
             "entity_gate": config["entity_gate"],
             "upstream": upstream,
+            "checkpoint": checkpoint_binding,
         },
         "model_run": model_run,
         "task_ids": validated["task_ids"],
@@ -395,12 +453,18 @@ def run(
                 infrastructure_failures.extend(task_infrastructure_failures)
                 continue
             rewards = [float(sim.reward_info.reward) for sim in simulations]
+            successful_trials = sum(reward == 1.0 for reward in rewards)
             per_task.append(
                 {
                     "task_id": task_id,
                     "source": row["source"],
                     "reward": rewards[0] if len(rewards) == 1 else rewards,
                     "success": all(reward == 1.0 for reward in rewards),
+                    "any_success": any(reward == 1.0 for reward in rewards),
+                    "successful_trials": successful_trials,
+                    "trial_success_rate": round(
+                        successful_trials / len(rewards), 4
+                    ),
                     "num_trials": len(simulations),
                     "elapsed_seconds": round(time.perf_counter() - started, 2),
                 }
