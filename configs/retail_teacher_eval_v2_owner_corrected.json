@@ -94,8 +94,8 @@
       "vllm_model": "Qwen3-4B-Instruct-2507",
       "litellm_model": "openai/Qwen3-4B-Instruct-2507",
       "checkpoint": "/root/autodl-tmp/teacher_sft_v2_owner_corrected/teacher_sft_merged",
-      "expected_sha256": null,
-      "checkpoint_binding_status": "PENDING_TRAINING_MANIFEST"
+      "expected_sha256": "8E3ACD1B5757C6DEA317F27A258773A10D0E158CF96374C42B7298B64DB824AA",
+      "checkpoint_binding_status": "BOUND_FROM_COMPLETED_TRAINING_MANIFEST"
     }
   ],
   "evaluation": {
@@ -110,7 +110,7 @@
   "known_limitations": [
     "All 18 tasks were used in the earlier v1 development evaluation; this is a frozen regression set, not fresh unseen evaluation.",
     "The current Retail catalog has no additional task that is entity-disjoint from the 53-row training pool under the task-text entity gate.",
-    "The sft_v2 checkpoint hash is unknown before training; execution must remain blocked until expected_sha256 is bound from the completed training manifest in a separate pre-evaluation commit.",
+    "The sft_v2 checkpoint hash was bound from the completed training manifest before any benchmark evaluation was run.",
     "Agent is served by local vLLM; user simulator and NL judge use DeepSeek, whose external backend is not controlled by this repository.",
     "The 11 test_clean tasks use the official test split for development regression only and do not support an official leaderboard or business-improvement claim.",
     "Entity isolation covers task-definition text and the frozen training group IDs; it is not a proof of independence for every latent environment-state feature."
