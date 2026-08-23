@@ -1,0 +1,19 @@
+{
+  "schema_version": "sft-residual-preference-selections-v1.0.0",
+  "run_name": "candidate",
+  "source_evaluation_cards_sha256": "91438C5A667BCC4614157350C51B67A998AAEF5CC6152D57B702527C3F5DF58F",
+  "selections": [
+    {"task_id": "40", "trial_index": 0, "candidate_role": "NEGATIVE_FALSE_REFUSAL", "rationale": "The agent authenticated and inspected the order but falsely claimed that a permitted payment-method modification was forbidden."},
+    {"task_id": "40", "trial_index": 1, "candidate_role": "PREFERRED_POSITIVE_CANDIDATE", "rationale": "The required payment-method write completed with a short four-call trajectory; final financial claims still require owner review."},
+    {"task_id": "40", "trial_index": 2, "candidate_role": "POSITIVE_ALTERNATIVE", "rationale": "The same required write completed through the same compact tool sequence; compare final-claim precision with trial 1."},
+    {"task_id": "40", "trial_index": 3, "candidate_role": "NEGATIVE_UNAUTHORIZED_MUTATION", "rationale": "The agent cancelled the order although the user requested a payment-method change."},
+    {"task_id": "50", "trial_index": 0, "candidate_role": "NEGATIVE_DIALOGUE_LOOP", "rationale": "The run reached max_steps and repeatedly requested shipping information after claiming it could place a new order."},
+    {"task_id": "50", "trial_index": 1, "candidate_role": "BENCHMARK_POSITIVE_REVIEW", "rationale": "The benchmark reward is positive, but the trajectory ends without the reference transfer action; reward alone is insufficient for selection."},
+    {"task_id": "50", "trial_index": 2, "candidate_role": "PREFERRED_POSITIVE_CANDIDATE", "rationale": "The agent verifies the cancelled order and then performs the required human transfer without unrelated product exploration."},
+    {"task_id": "50", "trial_index": 3, "candidate_role": "POSITIVE_BUT_INEFFICIENT", "rationale": "The required transfer occurs, but only after unnecessary product and item reads."},
+    {"task_id": "77", "trial_index": 0, "candidate_role": "POSITIVE_CLAIM_REVIEW", "rationale": "The exchange succeeds, but the reported refund amount and unsupported future-email claim require review before positive release."},
+    {"task_id": "77", "trial_index": 1, "candidate_role": "POSITIVE_ALTERNATIVE", "rationale": "The exchange succeeds with a compact five-call sequence; final refund and email claims require verification."},
+    {"task_id": "77", "trial_index": 2, "candidate_role": "NEGATIVE_TOOL_LOOP", "rationale": "The agent repeats the same item lookup until max_steps and never performs the exchange."},
+    {"task_id": "77", "trial_index": 3, "candidate_role": "PREFERRED_POSITIVE_CANDIDATE", "rationale": "The exchange succeeds with the compact expected sequence; final claims still require owner review."}
+  ]
+}

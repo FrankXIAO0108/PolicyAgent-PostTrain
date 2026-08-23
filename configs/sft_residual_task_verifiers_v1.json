@@ -1,0 +1,82 @@
+{
+  "schema_version": "sft-residual-task-verifiers-v1.0.0",
+  "scope": "DEVELOPMENT_TASK_BOUND_DIAGNOSTIC",
+  "run_name": "candidate",
+  "source_evaluation_cards_sha256": "91438C5A667BCC4614157350C51B67A998AAEF5CC6152D57B702527C3F5DF58F",
+  "limitations": [
+    "These checks use post-run task specifications and cannot be model inputs.",
+    "They diagnose three known residual tasks and are not a general Retail reward.",
+    "Passing does not establish policy compliance or training-data release eligibility."
+  ],
+  "tasks": [
+    {
+      "task_id": "39",
+      "task_snapshot_sha256": "2C0676AB5971F940346925260A1B9E5D5AFF3E4E8259350B7B6229F678C70214",
+      "required_writes": [
+        {
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "fatima_taylor_3452",
+            "address1": "157 Oak Street",
+            "address2": "Suite 258",
+            "city": "Phoenix",
+            "state": "AZ",
+            "country": "USA",
+            "zip": "85033"
+          }
+        }
+      ],
+      "required_final_claims": [
+        {
+          "name": "cheapest_tshirt_price_grounded",
+          "value": "46.66",
+          "require_tool_evidence": true
+        }
+      ]
+    },
+    {
+      "task_id": "74",
+      "task_snapshot_sha256": "CD9BFA038B221BCD18FFA1D06BEF6C7085EF457DB36C9521C6AE13E671B05973",
+      "required_writes": [
+        {
+          "name": "cancel_pending_order",
+          "arguments": {"order_id": "#W3189752", "reason": "no longer needed"}
+        },
+        {
+          "name": "modify_pending_order_items",
+          "arguments": {
+            "order_id": "#W5166363",
+            "item_ids": ["3334537816"],
+            "new_item_ids": ["3265035808"],
+            "payment_method_id": "credit_card_4466831"
+          }
+        }
+      ],
+      "required_final_claims": []
+    },
+    {
+      "task_id": "100",
+      "task_snapshot_sha256": "3548297FE9049C8D2A485550D35D2B3E2D9A822CDE9C7FD6621BAF7161CDBF24",
+      "required_writes": [
+        {
+          "name": "modify_pending_order_items",
+          "arguments": {
+            "order_id": "#W3295833",
+            "item_ids": ["8926329222", "5312063289"],
+            "new_item_ids": ["7160999700", "6956751343"],
+            "payment_method_id": "credit_card_3261838"
+          }
+        },
+        {
+          "name": "return_delivered_order_items",
+          "arguments": {
+            "order_id": "#W8488728",
+            "item_ids": ["5676696062"],
+            "payment_method_id": "paypal_3650980"
+          }
+        }
+      ],
+      "required_final_claims": []
+    }
+  ]
+}
