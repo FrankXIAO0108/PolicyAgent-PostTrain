@@ -34,6 +34,17 @@ SPLITS = {"TRAIN", "VALIDATION"}
 TEACHER_LABELS = {"CORRECTION_REQUIRED", "HOLDOUT"}
 
 
+def _review_rationale(
+    row_a: dict[str, Any], row_b: dict[str, Any], *, fallback: str
+) -> str:
+    """Preserve reviewer evidence without inventing a holdout cause."""
+    rationales = [
+        str(row.get("rationale", "")).strip() for row in (row_a, row_b)
+    ]
+    unique = list(dict.fromkeys(value for value in rationales if value))
+    return " | ".join(unique) if unique else fallback
+
+
 def _unique_rows(path: Path, field: str) -> dict[str, dict[str, Any]]:
     rows: dict[str, dict[str, Any]] = {}
     for row in load_jsonl(path):
@@ -294,8 +305,14 @@ def build_teacher_candidate_decisions(
                     "correction_validation_path": None,
                     "correction_validation_sha256": None,
                     "group_ids": [],
-                    "rationale": "Teacher candidate held out (environment or "
-                    "simulator drift); never enters SFT/DPO/RL pools.",
+                    "rationale": _review_rationale(
+                        row_a,
+                        reviews_b[candidate_id],
+                        fallback=(
+                            "Two-reviewer agreement on HOLDOUT; candidate "
+                            "does not enter the positive SFT pool."
+                        ),
+                    ),
                 }
             )
             continue

@@ -72,6 +72,7 @@ class TeacherCandidateDecisionBuilderTests(unittest.TestCase):
                 "task_id": "1",
                 "quality_label": "HOLDOUT",
                 "reviewer_id": "user_reviewer_a",
+                "rationale": "Redundant lower-quality trajectory.",
             },
         ]
         label_b = conflict_label or label
@@ -87,6 +88,7 @@ class TeacherCandidateDecisionBuilderTests(unittest.TestCase):
                 "task_id": "1",
                 "quality_label": "HOLDOUT",
                 "reviewer_id": "assistant_reviewer_b",
+                "rationale": "Incomplete user goal; keep as a negative candidate.",
             },
         ]
         jsonl(path_a, rows_a)
@@ -140,6 +142,11 @@ class TeacherCandidateDecisionBuilderTests(unittest.TestCase):
         self.assertEqual(by_id["c1"]["group_ids"], ["order_id:#W1", "product_id:p1", "user_id:u1"])
         self.assertEqual(by_id["c2"]["disposition"], "HOLDOUT")
         self.assertIsNone(by_id["c2"]["split"])
+        self.assertEqual(
+            by_id["c2"]["rationale"],
+            "Redundant lower-quality trajectory. | "
+            "Incomplete user goal; keep as a negative candidate.",
+        )
         self.assertEqual(result["counts"]["corrected_positive"], 1)
         self.assertEqual(result["counts"]["holdout"], 1)
 
