@@ -45,6 +45,9 @@ _verifier_v1/
 # Private local copies of cloud experiment artifacts
 /_local_private_runs/
 
+# Short private run paths used to avoid Windows MAX_PATH failures
+/_r/
+
 # One-off repository inspection snapshots
 /evidence_file_search*.txt
 /project_state_check.txt
