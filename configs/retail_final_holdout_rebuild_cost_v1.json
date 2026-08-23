@@ -1,0 +1,24 @@
+{
+  "schema_version": "retail-final-holdout-rebuild-cost-config-v1.0.0",
+  "status": "FROZEN",
+  "purpose": "Measure how many current SFT rows must be excluded to make each development-unseen official Retail test task entity-disjoint from future training and tuning data.",
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "tasks_path": "data/tau2/domains/retail/tasks.json",
+    "tasks_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2"
+  },
+  "contamination_audit": {
+    "path": "_local_private_runs/final_holdout_contamination_20260823/v1/audit.json",
+    "sha256": "5A439983132276C2854892DE543C93576D20343DB581A9A63FB7E34E4D9A42DF"
+  },
+  "sft_dataset": {
+    "path": "_local_private_runs/merged_sft_v2_owner_corrected/release_v2/sft_dataset.jsonl",
+    "sha256": "3CCB9842BA474E7C85EDCB5EA7F6A84CFE069136165CCB30B0A0B8D7AC926677"
+  },
+  "claims": {
+    "individual_costs_are_not_additive": true,
+    "no_holdout_is_selected_by_this_analysis": true,
+    "model_outputs_and_rewards_are_not_inputs": true
+  }
+}
