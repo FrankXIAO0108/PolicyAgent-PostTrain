@@ -1,0 +1,27 @@
+{
+  "schema_version": "retail-final-holdout-contamination-config-v1.0.0",
+  "status": "FROZEN",
+  "purpose": "Audit whether the current owner-corrected SFT checkpoint has any official Retail test task that is both development-unseen and entity-disjoint from training.",
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "tasks_path": "data/tau2/domains/retail/tasks.json",
+    "tasks_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+    "split_path": "data/tau2/domains/retail/split_tasks.json",
+    "split_sha256": "5F9949B833E6B99584B87E84EF22F9D81789EA67A52E534C6F7AA91EFF08ADC7"
+  },
+  "training_entities": {
+    "path": "data/retail_teacher_eval_v2/teacher_sft_entity_groups.json",
+    "sha256": "A86B908F1DB9E7E71B579E9740F03FA044F445F7ABA5F49600EC8813A3C3EC9C"
+  },
+  "development_evaluation": {
+    "path": "configs/retail_teacher_eval_v1.json",
+    "sha256": "83DC56A118A4BD6FEA35E38A2820E30F1D6922761821439EB3AD404BF7D2D947",
+    "included_sources": ["test_clean"]
+  },
+  "claims": {
+    "task_unseen_is_not_entity_unseen": true,
+    "candidate_rows_are_not_a_frozen_final_holdout": true,
+    "final_holdout_requires_explicit_selection_before_future_training": true
+  }
+}
