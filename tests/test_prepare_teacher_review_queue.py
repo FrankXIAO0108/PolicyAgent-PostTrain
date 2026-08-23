@@ -43,6 +43,8 @@ class ReviewQueueTest(unittest.TestCase):
             run_dir = Path(temporary) / "run"
             task_dir = run_dir / "public_candidates" / "task_1"
             task_dir.mkdir(parents=True)
+            private_task_dir = run_dir / "private_evaluation" / "task_1"
+            private_task_dir.mkdir(parents=True)
             simulations = [
                 simulation("a", "1", "get_order"),
                 simulation("b", "1", "get_order"),
@@ -50,6 +52,16 @@ class ReviewQueueTest(unittest.TestCase):
             ]
             (task_dir / "candidate_trajectories.jsonl").write_text(
                 "".join(json.dumps(row) + "\n" for row in simulations), encoding="utf-8"
+            )
+            (private_task_dir / "temperature_map.json").write_text(
+                json.dumps(
+                    {
+                        "0": {"simulation_id": "a", "temperature": 0.2},
+                        "1": {"simulation_id": "b", "temperature": 0.6},
+                        "2": {"simulation_id": "c", "temperature": 0.8},
+                    }
+                ),
+                encoding="utf-8",
             )
             audits = [
                 audit("a", "1", 0, "REVIEW_REQUIRED", 1.0, True),
@@ -67,7 +79,23 @@ class ReviewQueueTest(unittest.TestCase):
             self.assertEqual(payload["counts"]["duplicate_holdup"], 1)
             self.assertEqual(payload["duplicate_holdup"][0]["candidate_id"], "b")
             self.assertEqual(payload["duplicate_holdup"][0]["representative_candidate_id"], "a")
+            self.assertEqual(payload["queue"][0]["teacher_temperature"], 0.2)
             self.assertTrue(all(row["priority"] == "P0" for row in payload["queue"]))
+
+    def test_requires_temperature_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            run_dir = Path(temporary) / "run"
+            task_dir = run_dir / "public_candidates" / "task_1"
+            task_dir.mkdir(parents=True)
+            (task_dir / "candidate_trajectories.jsonl").write_text(
+                json.dumps(simulation("a", "1", "get_order")) + "\n", encoding="utf-8"
+            )
+            (run_dir / "candidate_audit.jsonl").write_text(
+                json.dumps(audit("a", "1", 0, "REVIEW_REQUIRED", 1.0, True)) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "temperature"):
+                build_review_queue(run_dir)
 
     def test_refuses_to_overwrite_output(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

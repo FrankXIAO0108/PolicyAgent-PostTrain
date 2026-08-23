@@ -43,6 +43,17 @@ def _load_audits(run_dir: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def _load_temperatures(run_dir: Path) -> tuple[dict[str, float], list[dict[str, str]]]:
+    temperatures: dict[str, float] = {}
+    sources: list[dict[str, str]] = []
+    for path in sorted((run_dir / "private_evaluation").glob("task_*/temperature_map.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for binding in payload.values():
+            temperatures[str(binding["simulation_id"])] = float(binding["temperature"])
+        sources.append({"path": str(path), "sha256": sha256(path)})
+    return temperatures, sources
+
+
 def _representative_rank(row: dict[str, Any]) -> tuple[Any, ...]:
     metrics = row.get("metrics") or {}
     return (
@@ -51,7 +62,7 @@ def _representative_rank(row: dict[str, Any]) -> tuple[Any, ...]:
         int(metrics.get("tool_error_count") or 0),
         int(metrics.get("unexpected_write_count") or 0),
         len(row.get("review_reasons") or []),
-        int(row.get("trial") or 0),
+        float(row["teacher_temperature"]),
         str(row["candidate_id"]),
     )
 
@@ -64,6 +75,7 @@ def build_review_queue(
     benchmark_anomaly_tasks = benchmark_anomaly_tasks or set()
     audits = _load_audits(run_dir)
     simulations = _load_simulations(run_dir)
+    temperatures, temperature_sources = _load_temperatures(run_dir)
     if len(audits) != len(simulations):
         raise ValueError(
             f"audit/simulation count mismatch: {len(audits)} != {len(simulations)}"
@@ -75,7 +87,10 @@ def build_review_queue(
         simulation = simulations.get(candidate_id)
         if simulation is None:
             raise ValueError(f"missing public candidate: {candidate_id}")
+        if candidate_id not in temperatures:
+            raise ValueError(f"missing teacher temperature binding: {candidate_id}")
         enriched = dict(row)
+        enriched["teacher_temperature"] = temperatures[candidate_id]
         enriched["tool_trace_fingerprint"] = hashlib.sha256(
             _canonical_tool_trace(simulation).encode("utf-8")
         ).hexdigest().upper()
@@ -135,7 +150,8 @@ def build_review_queue(
             "candidate_audit": {
                 "path": str(run_dir / "candidate_audit.jsonl"),
                 "sha256": sha256(run_dir / "candidate_audit.jsonl"),
-            }
+            },
+            "temperature_maps": temperature_sources,
         },
         "interpretation_boundary": [
             "Queue priority is routing, not a quality label.",
@@ -190,6 +206,7 @@ def _queue_row(
         "task_id": task_id,
         "candidate_id": row["candidate_id"],
         "trial": int(row.get("trial") or 0),
+        "teacher_temperature": float(row["teacher_temperature"]),
         "automatic_label": row["automatic_label"],
         "tau2_reward": float(metrics.get("tau2_reward") or 0.0),
         "db_match": metrics.get("db_match"),
