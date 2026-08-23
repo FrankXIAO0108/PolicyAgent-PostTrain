@@ -14,7 +14,7 @@ from src.verifiers.policy_grounding_v2 import verify_trajectory
 from src.verifiers.schemas import MessageEvent, ToolCall, Verdict
 
 
-SCHEMA_VERSION = "teacher-eval-cards-1.1.0"
+SCHEMA_VERSION = "teacher-eval-cards-1.2.0"
 
 
 def _sha256(path: Path) -> str:
@@ -38,6 +38,28 @@ def _max_consecutive_same_name(names: list[str]) -> int:
         maximum = max(maximum, current)
         previous = name
     return maximum
+
+
+def _normalize_message_text(content: Any) -> str:
+    return " ".join(str(content or "").split())
+
+
+def _text_repeat_stats(messages: list[dict[str, Any]], role: str) -> dict[str, int]:
+    texts = [
+        normalized
+        for message in messages
+        if message.get("role") == role
+        and (normalized := _normalize_message_text(message.get("content")))
+    ]
+    counts = Counter(texts)
+    return {
+        "message_count": len(texts),
+        "repeated_exact_messages": sum(count - 1 for count in counts.values()),
+        "consecutive_exact_repeats": sum(
+            left == right for left, right in zip(texts, texts[1:])
+        ),
+        "max_consecutive_same_text": _max_consecutive_same_name(texts),
+    }
 
 
 def _message_events(messages: list[dict[str, Any]], source: Path) -> list[MessageEvent]:
@@ -141,6 +163,18 @@ def _analyze_simulation(
     read_calls = sum(not is_write_tool(call.name) for call in calls)
     write_calls = len(calls) - read_calls
     tool_errors = sum(event.role == "tool" and event.tool_error for event in events)
+    assistant_text = _text_repeat_stats(messages, "assistant")
+    user_text = _text_repeat_stats(messages, "user")
+    termination_reason = simulation.get("termination_reason")
+    max_steps_reached = termination_reason == "max_steps"
+    dialogue_repeat_candidate = (
+        max_steps_reached
+        and max(
+            assistant_text["max_consecutive_same_text"],
+            user_text["max_consecutive_same_text"],
+        )
+        >= 3
+    )
 
     infrastructure_valid = reward_info is not None
     reward = reward_info.get("reward") if infrastructure_valid else None
@@ -191,7 +225,7 @@ def _analyze_simulation(
         },
         "infrastructure": {
             "valid": infrastructure_valid,
-            "termination_reason": simulation.get("termination_reason"),
+            "termination_reason": termination_reason,
             "duration_seconds": simulation.get("duration"),
         },
         "observed_token_usage": {
@@ -243,6 +277,24 @@ def _analyze_simulation(
                 matched_actions / len(calls) if calls else None
             ),
             "excess_call_proxy": max(len(calls) - reference_actions, 0),
+        },
+        "dialogue_use": {
+            "assistant_text_messages": assistant_text["message_count"],
+            "user_text_messages": user_text["message_count"],
+            "repeated_exact_assistant_messages": assistant_text[
+                "repeated_exact_messages"
+            ],
+            "repeated_exact_user_messages": user_text["repeated_exact_messages"],
+            "consecutive_exact_assistant_repeats": assistant_text[
+                "consecutive_exact_repeats"
+            ],
+            "consecutive_exact_user_repeats": user_text["consecutive_exact_repeats"],
+            "max_consecutive_same_assistant_text": assistant_text[
+                "max_consecutive_same_text"
+            ],
+            "max_consecutive_same_user_text": user_text["max_consecutive_same_text"],
+            "max_steps_reached": max_steps_reached,
+            "dialogue_repeat_candidate": dialogue_repeat_candidate,
         },
         "policy_diagnostic": {
             "status": "PROVISIONAL_DIAGNOSTIC",
@@ -314,6 +366,7 @@ def _analyze_simulation(
             "reference_action_recall measures coverage of Tau2 reference actions; it is not tool-call precision.",
             "reference_action_density and excess_call_proxy are diagnostics because reference actions may omit legitimate reads and may not be minimal.",
             "exact repeated calls are loop/redundancy candidates, not automatically errors when state changed between calls.",
+            "exact repeated dialogue is whitespace-normalized and remains diagnostic; repeated wording can be legitimate unless supported by termination and state evidence.",
             "policy_diagnostic uses unadjudicated verifier V2.2 and is not a human-gold policy score.",
             "intent_grounding is a verifier proxy rather than an independently labeled intent-accuracy metric.",
             "message token usage covers agent and user-simulator messages only; NL-judge usage is not recorded in returned_results.",
@@ -487,6 +540,18 @@ def _summary(cards: list[dict[str, Any]]) -> dict[str, Any]:
         ),
         "mean_max_consecutive_same_tool_name": _mean(
             valid, "tool_use", "max_consecutive_same_tool_name"
+        ),
+        "mean_repeated_exact_assistant_messages": _mean(
+            valid, "dialogue_use", "repeated_exact_assistant_messages"
+        ),
+        "mean_repeated_exact_user_messages": _mean(
+            valid, "dialogue_use", "repeated_exact_user_messages"
+        ),
+        "max_steps_trial_count": sum(
+            card["dialogue_use"]["max_steps_reached"] for card in valid
+        ),
+        "dialogue_repeat_candidate_count": sum(
+            card["dialogue_use"]["dialogue_repeat_candidate"] for card in valid
         ),
         "tool_error_results": sum(
             card["tool_use"]["tool_error_results"] for card in valid
@@ -665,6 +730,10 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"| 平均写入调用数 | {_fmt(base['mean_write_calls'])} | {_fmt(candidate['mean_write_calls'])} |",
         f"| 平均完全重复调用数 | {_fmt(base['mean_repeated_exact_calls'])} | {_fmt(candidate['mean_repeated_exact_calls'])} |",
         f"| 平均同工具最长连续调用 | {_fmt(base['mean_max_consecutive_same_tool_name'])} | {_fmt(candidate['mean_max_consecutive_same_tool_name'])} |",
+        f"| 平均完全重复 Assistant 文本 | {_fmt(base['mean_repeated_exact_assistant_messages'])} | {_fmt(candidate['mean_repeated_exact_assistant_messages'])} |",
+        f"| 平均完全重复 User 文本 | {_fmt(base['mean_repeated_exact_user_messages'])} | {_fmt(candidate['mean_repeated_exact_user_messages'])} |",
+        f"| 到达 max_steps 的 trial | {base['max_steps_trial_count']} | {candidate['max_steps_trial_count']} |",
+        f"| 对话重复候选 trial | {base['dialogue_repeat_candidate_count']} | {candidate['dialogue_repeat_candidate_count']} |",
         f"| 平均 trial 耗时（秒） | {_fmt(base['mean_duration_seconds'])} | {_fmt(candidate['mean_duration_seconds'])} |",
         f"| Agent 观测 token / trial | {_fmt(base['observed_tokens']['agent_mean_per_trial'])} | {_fmt(candidate['observed_tokens']['agent_mean_per_trial'])} |",
         f"| 用户模拟器观测 token / trial | {_fmt(base['observed_tokens']['user_simulator_mean_per_trial'])} | {_fmt(candidate['observed_tokens']['user_simulator_mean_per_trial'])} |",
@@ -714,6 +783,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             "- `reference_action_recall` 是 Tau2 参考动作覆盖率，不是 Tool Precision；额外调用不会被原始 action checker 惩罚。",
             "- 工具调用更少不等于更好，提前失败也会减少调用；`both_success` 是更可信的效率比较切片。",
             "- 完全重复调用只是循环/冗余候选；若中间状态发生变化，重复调用可能合理。",
+            "- 对话重复按规范化后的同角色文本计算；只有结合 `max_steps`、状态和任务目标，才能判定为死循环。",
             "- Policy V2.2 尚未基于独立人工金标完成验证，因此这里只作为 provisional diagnostic，不进入正式成功率。",
             "- 用户意图识别目前只能通过最终断言、参考动作覆盖和 verifier finding 间接观察，不能伪造为独立准确率。",
             "- Token 仅汇总 `returned_results.json` 中消息级 usage：assistant 为本地 Agent，user 为外部用户模拟器；NL Judge token 未记录，不能由此推算完整 API 账单。",

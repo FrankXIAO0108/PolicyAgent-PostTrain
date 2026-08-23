@@ -147,6 +147,30 @@ class TeacherEvalCardTests(unittest.TestCase):
             "unavailable",
         )
 
+    def test_dialogue_repeat_candidate_requires_repetition_and_max_steps(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_result(Path(tmp), "4", reward=0, calls=[])
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["simulations"][0]["termination_reason"] = "max_steps"
+            payload["simulations"][0]["messages"] = [
+                {"role": "user", "content": "choose the fastest"},
+                {"role": "assistant", "content": "I need a shipping method"},
+                {"role": "user", "content": "choose   the fastest"},
+                {"role": "assistant", "content": "I need a shipping method"},
+                {"role": "user", "content": "choose the fastest"},
+                {"role": "assistant", "content": "I need a shipping method"},
+            ]
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            card = analyze_task(path, run_name="sft")
+
+        dialogue = card["dialogue_use"]
+        self.assertEqual(dialogue["repeated_exact_assistant_messages"], 2)
+        self.assertEqual(dialogue["repeated_exact_user_messages"], 2)
+        self.assertEqual(dialogue["max_consecutive_same_assistant_text"], 3)
+        self.assertEqual(dialogue["max_consecutive_same_user_text"], 3)
+        self.assertTrue(dialogue["max_steps_reached"])
+        self.assertTrue(dialogue["dialogue_repeat_candidate"])
+
     def test_replacement_overrides_original_task_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -232,6 +256,12 @@ class TeacherEvalCardTests(unittest.TestCase):
                     "reference_action_evaluation_status": "no_reference_actions",
                     "matched_reference_actions": 0,
                     "reference_action_count": 0,
+                },
+                "dialogue_use": {
+                    "repeated_exact_assistant_messages": 0,
+                    "repeated_exact_user_messages": 0,
+                    "max_steps_reached": False,
+                    "dialogue_repeat_candidate": False,
                 },
                 "policy_diagnostic": {"verdict": "PASS"},
                 "artifact": {"is_replacement": False},
