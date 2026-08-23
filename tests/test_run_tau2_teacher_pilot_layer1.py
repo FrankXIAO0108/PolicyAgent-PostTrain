@@ -38,7 +38,10 @@ class Layer1ConfigTests(unittest.TestCase):
 
     def test_layer2_config_validates_single_temp(self):
         from src.training.run_tau2_teacher_pilot_layer1 import validate_config
-        path = Path(r"D:\PolicyAgent-PostTrain\configs\retail_tau2_teacher_pilot_layer2_v1.json")
+
+        path = Path(
+            r"D:\PolicyAgent-PostTrain\configs\retail_tau2_teacher_pilot_layer2_v1.json"
+        )
         validated = validate_config(path)
         self.assertEqual(len(validated["task_ids"]), 33)
         self.assertEqual(validated["candidates_per_task"], 1)
@@ -112,7 +115,9 @@ class TrialSpecsTests(unittest.TestCase):
         specs = trial_specs(validated)
         self.assertEqual(len(specs), 4)
         self.assertEqual([s["temperature"] for s in specs], [0.2, 0.4, 0.6, 0.8])
-        self.assertEqual([s["seed"] for s in specs], [20260815, 20260816, 20260817, 20260818])
+        self.assertEqual(
+            [s["seed"] for s in specs], [20260815, 20260816, 20260817, 20260818]
+        )
         self.assertEqual(len({s["seed"] for s in specs}), 4)
 
 
@@ -140,7 +145,9 @@ class ResultsRepairTests(unittest.TestCase):
         self.assertEqual(built["info"]["num_trials"], 4)
         self.assertEqual(built["info"]["environment_info"]["domain_name"], "retail")
         self.assertEqual(built["info"]["environment_info"]["policy"], "policy text")
-        self.assertEqual(built["info"]["agent_info"]["implementation"], "audited_teacher_llm_agent")
+        self.assertEqual(
+            built["info"]["agent_info"]["implementation"], "audited_teacher_llm_agent"
+        )
         self.assertEqual(built["tasks"], tasks)
         self.assertEqual(built["simulations"], simulations)
         self.assertNotIn("simulation_index", built)
@@ -150,6 +157,46 @@ class ResultsRepairTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             build_results_dict([], [], self.generation, self.commit)
+
+    def test_collects_infrastructure_errors_returned_as_simulations(self):
+        from src.training.run_tau2_teacher_pilot_layer1 import (
+            collect_embedded_system_failures,
+        )
+
+        results_path = (
+            self.root / "run/private_evaluation/task_10/returned_results.json"
+        )
+        results_path.parent.mkdir(parents=True)
+        results_path.write_text(
+            json.dumps(
+                {
+                    "simulations": [
+                        {
+                            "id": "sim-failed",
+                            "task_id": "10",
+                            "termination_reason": "infrastructure_error",
+                            "reward_info": None,
+                            "info": {"error": "debug path missing"},
+                        },
+                        {
+                            "id": "sim-ok",
+                            "task_id": "10",
+                            "termination_reason": "agent_stop",
+                            "reward_info": {"reward": 1},
+                        },
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        failures = collect_embedded_system_failures(self.root / "run")
+
+        self.assertEqual(len(failures), 1)
+        self.assertEqual(failures[0]["task_id"], "10")
+        self.assertEqual(failures[0]["simulation_id"], "sim-failed")
+        self.assertEqual(failures[0]["exception_type"], "EmbeddedInfrastructureError")
+        self.assertEqual(failures[0]["message"], "debug path missing")
 
     def test_repair_results_rebuilds_incomplete_files(self):
         from src.training.run_tau2_teacher_pilot_layer1 import repair_results
@@ -166,7 +213,9 @@ class ResultsRepairTests(unittest.TestCase):
         )
         rebuilt = repair_results(run_dir, self.config, self.commit)
         self.assertEqual(rebuilt, 1)
-        payload = json.loads((task_dir / "returned_results.json").read_text(encoding="utf-8"))
+        payload = json.loads(
+            (task_dir / "returned_results.json").read_text(encoding="utf-8")
+        )
         self.assertIn("info", payload)
         self.assertIn("tasks", payload)
         self.assertEqual(payload["tasks"], [{"id": "7", "description": "task"}])

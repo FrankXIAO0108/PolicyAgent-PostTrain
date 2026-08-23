@@ -69,7 +69,10 @@ def validate_config(path: Path) -> dict[str, Any]:
             "temperature_ladder length must equal candidates_per_task "
             f"({len(ladder)} != {candidates_per_task})"
         )
-    if not all(isinstance(value, (int, float)) and 0.0 <= float(value) <= 1.0 for value in ladder):
+    if not all(
+        isinstance(value, (int, float)) and 0.0 <= float(value) <= 1.0
+        for value in ladder
+    ):
         raise ValueError("temperature_ladder entries must be within [0, 1]")
     if float(generation["user"]["temperature"]) != 0.0:
         raise ValueError("Layer-1 user simulator temperature must be 0.0")
@@ -162,7 +165,36 @@ def build_results_dict(
     }
 
 
-def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> dict[str, Any]:
+def collect_embedded_system_failures(run_dir: Path) -> list[dict[str, Any]]:
+    """Collect failures that tau2 returned as SimulationRun rows.
+
+    ``run_tasks`` may return a simulation whose termination reason is
+    ``infrastructure_error`` instead of raising. Such rows are persisted for
+    diagnosis, but they are not successfully generated candidates.
+    """
+    failures: list[dict[str, Any]] = []
+    for results_path in sorted(
+        (run_dir / "private_evaluation").glob("task_*/returned_results.json")
+    ):
+        payload = json.loads(results_path.read_text(encoding="utf-8"))
+        for simulation in payload.get("simulations") or []:
+            if simulation.get("termination_reason") != "infrastructure_error":
+                continue
+            failures.append(
+                {
+                    "task_id": str(simulation.get("task_id") or ""),
+                    "simulation_id": str(simulation.get("id") or ""),
+                    "exception_type": "EmbeddedInfrastructureError",
+                    "message": str((simulation.get("info") or {}).get("error") or ""),
+                    "termination_reason": "infrastructure_error",
+                }
+            )
+    return failures
+
+
+def run(
+    validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool
+) -> dict[str, Any]:
     if output_dir.exists():
         raise FileExistsError(f"Refusing to overwrite existing output: {output_dir}")
     dirty = bool(git_value(REPO_ROOT, "status", "--porcelain"))
@@ -184,9 +216,7 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
     register_audited_teacher_agent()
     private_dir = output_dir / "private_evaluation"
     private_dir.mkdir(parents=True, exist_ok=True)
-    os.environ[PROMPT_AUDIT_LOG_ENV] = str(
-        private_dir / "teacher_prompt_audit.jsonl"
-    )
+    os.environ[PROMPT_AUDIT_LOG_ENV] = str(private_dir / "teacher_prompt_audit.jsonl")
 
     generation = config["generation"]
     manifest = {
@@ -265,15 +295,15 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
                     )
                 simulation = results.simulations[0]
                 if task_dumps is None:
-                    task_dumps = [task.model_dump(mode="json") for task in results.tasks]
+                    task_dumps = [
+                        task.model_dump(mode="json") for task in results.tasks
+                    ]
                 simulation_dict = simulation.model_dump(mode="json")
                 simulations.append(simulation_dict)
                 temperature_map[str(trial_index)] = {
                     "temperature": temperature,
                     "seed": trial_seed,
-                    "simulation_id": str(
-                        simulation_dict.get("id") or simulation.id
-                    ),
+                    "simulation_id": str(simulation_dict.get("id") or simulation.id),
                 }
             write_json(task_dir / "temperature_map.json", temperature_map)
             write_json(
@@ -308,14 +338,19 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
     from src.training.audit_tau2_teacher_trajectories import audit_run
 
     audit = audit_run(output_dir) if completed else None
+    embedded_failures = collect_embedded_system_failures(output_dir)
+    all_failures = failures + embedded_failures
+    successful_candidates = completed - len(embedded_failures)
     manifest.update(
         {
-            "status": "COMPLETED_WITH_FAILURES" if failures else "COMPLETED",
+            "status": "COMPLETED_WITH_FAILURES" if all_failures else "COMPLETED",
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "candidate_count": completed,
+            "successful_candidate_count": successful_candidates,
+            "embedded_system_failure_count": len(embedded_failures),
             "expected_candidate_count": len(validated["task_ids"])
             * validated["candidates_per_task"],
-            "system_failures": failures,
+            "system_failures": all_failures,
             "audit_summary_sha256": (
                 sha256(output_dir / "audit_summary.json") if audit else None
             ),
@@ -333,9 +368,7 @@ def run(validated: dict[str, Any], output_dir: Path, *, allow_dirty: bool) -> di
     return manifest
 
 
-def repair_results(
-    run_dir: Path, config: dict[str, Any], project_commit: str
-) -> int:
+def repair_results(run_dir: Path, config: dict[str, Any], project_commit: str) -> int:
     """Rebuild incomplete ``returned_results.json`` files into full Results.
 
     The Layer-1 v1 aggregation wrote only ``{"simulations": [...]}``, which
@@ -413,13 +446,17 @@ def finalize(run_dir: Path) -> dict[str, Any]:
         (run_dir / "private_evaluation").glob("task_*/system_failure.json")
     ):
         failures.append(json.loads(failure_path.read_text(encoding="utf-8")))
+    embedded_failures = collect_embedded_system_failures(run_dir)
+    all_failures = failures + embedded_failures
     manifest.update(
         {
-            "status": "COMPLETED_WITH_FAILURES" if failures else "COMPLETED",
+            "status": "COMPLETED_WITH_FAILURES" if all_failures else "COMPLETED",
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "candidate_count": completed,
+            "successful_candidate_count": completed - len(embedded_failures),
+            "embedded_system_failure_count": len(embedded_failures),
             "expected_candidate_count": expected,
-            "system_failures": failures,
+            "system_failures": all_failures,
             "audit_summary_sha256": sha256(run_dir / "audit_summary.json"),
             "training_data_released": False,
             "teacher_qualified": False,
