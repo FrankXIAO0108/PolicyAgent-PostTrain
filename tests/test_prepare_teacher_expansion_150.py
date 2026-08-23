@@ -13,6 +13,7 @@ def protocol() -> dict:
         "schema_version": SCHEMA_VERSION,
         "retention_evidence": {"observed_retained_rate": 0.5},
         "wave_a": {
+            "smoke_task_ids": [1],
             "candidates_per_task": 2,
             "temperature_ladder": [0.2, 0.6],
             "seed": 20260824,
@@ -129,6 +130,10 @@ class TeacherExpansionPlanTests(unittest.TestCase):
             ],
             [0.2, 0.6],
         )
+        self.assertEqual(
+            [row["task_id"] for row in result["wave_a_smoke_config"]["tasks"]],
+            ["1"],
+        )
         self.assertFalse(result["gates"]["external_api_called"])
 
     def test_rejects_current_sft_overlap_with_final_holdout(self) -> None:
@@ -161,6 +166,21 @@ class TeacherExpansionPlanTests(unittest.TestCase):
         changed = copy.deepcopy(protocol())
         changed["schema_version"] = "unexpected"
         with self.assertRaisesRegex(ValueError, "schema version mismatch"):
+            build_plan(
+                protocol=changed,
+                tasks=[{"id": 1}],
+                split={"train": [1]},
+                current_sft=[],
+                development={"tasks": []},
+                final_holdout={"task_ids": []},
+                template=template(),
+                task_split_path="task_split.json",
+            )
+
+    def test_rejects_smoke_task_outside_generation_pool(self) -> None:
+        changed = copy.deepcopy(protocol())
+        changed["wave_a"]["smoke_task_ids"] = [99]
+        with self.assertRaisesRegex(ValueError, "smoke tasks must be"):
             build_plan(
                 protocol=changed,
                 tasks=[{"id": 1}],

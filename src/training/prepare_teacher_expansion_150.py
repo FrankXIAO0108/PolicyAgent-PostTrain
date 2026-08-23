@@ -120,6 +120,33 @@ def build_plan(
         "Actual trajectory entity groups determine the later TRAIN/VALIDATION split; no split is assigned before generation.",
         "The teacher and user simulator share a model family, so same-source bias remains disclosed.",
     ]
+    smoke_task_ids = [str(task_id) for task_id in wave_a["smoke_task_ids"]]
+    smoke_task_set = set(smoke_task_ids)
+    eligible_task_set = {row["task_id"] for row in task_rows}
+    if len(smoke_task_ids) != len(smoke_task_set):
+        raise ValueError("Wave-A smoke task IDs must be unique")
+    if not smoke_task_set or not smoke_task_set <= eligible_task_set:
+        raise ValueError("Wave-A smoke tasks must be a non-empty eligible subset")
+    smoke_config = copy.deepcopy(generated_config)
+    smoke_config.update(
+        {
+            "schema_version": "retail-tau2-teacher-expansion-150-wave-a-smoke-v1",
+            "scope": (
+                "TAU2_GROUNDED_TEACHER_DATA_ENGINEERING_PILOT_"
+                "EXPANSION_150_WAVE_A_SMOKE"
+            ),
+            "purpose": (
+                "Validate the Wave-A environment and persistence path on a small "
+                "bound task subset before the 61-task run."
+            ),
+            "tasks": [
+                row
+                for row in generated_config["tasks"]
+                if row["task_id"] in smoke_task_set
+            ],
+        }
+    )
+    smoke_config["tasks"].sort(key=lambda row: smoke_task_ids.index(row["task_id"]))
 
     task_split = {
         "schema_version": "retail-teacher-expansion-150-task-split-v1",
@@ -154,6 +181,7 @@ def build_plan(
             + expected_wave_b,
         },
         "tasks": task_rows,
+        "wave_a_smoke_config": smoke_config,
         "wave_a_generation_config": generated_config,
         "task_split": task_split,
         "gates": {
@@ -230,8 +258,14 @@ def prepare(
         "expansion_plan.json": {
             key: value
             for key, value in plan.items()
-            if key not in {"wave_a_generation_config", "task_split"}
+            if key
+            not in {
+                "wave_a_smoke_config",
+                "wave_a_generation_config",
+                "task_split",
+            }
         },
+        "wave_a_smoke_config.json": plan["wave_a_smoke_config"],
         "wave_a_generation_config.json": plan["wave_a_generation_config"],
         "task_split.json": plan["task_split"],
     }

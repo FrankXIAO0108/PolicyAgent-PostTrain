@@ -37,6 +37,7 @@
   },
   "wave_a": {
     "selection": "ALL_UPSTREAM_TRAIN_EXCEPT_DEVELOPMENT_TASKS",
+    "smoke_task_ids": ["10", "16"],
     "candidates_per_task": 2,
     "temperature_ladder": [0.2, 0.6],
     "seed": 20260824
