@@ -1,0 +1,59 @@
+{
+  "schema_version": "retail-teacher-expansion-150-plan-v1.0.0",
+  "status": "FROZEN",
+  "purpose": "Expand the owner-reviewed Retail SFT pool from 53 rows toward approximately 150 rows without using development or sealed final-test tasks.",
+  "upstream": {
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "tasks_path": "data/tau2/domains/retail/tasks.json",
+    "tasks_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+    "split_path": "data/tau2/domains/retail/split_tasks.json",
+    "split_sha256": "5F9949B833E6B99584B87E84EF22F9D81789EA67A52E534C6F7AA91EFF08ADC7"
+  },
+  "current_sft": {
+    "path": "_local_private_runs/merged_sft_v2_owner_corrected/release_v2/sft_dataset.jsonl",
+    "sha256": "3CCB9842BA474E7C85EDCB5EA7F6A84CFE069136165CCB30B0A0B8D7AC926677",
+    "rows": 53
+  },
+  "development_evaluation": {
+    "path": "configs/retail_teacher_eval_v1.json",
+    "sha256": "83DC56A118A4BD6FEA35E38A2820E30F1D6922761821439EB3AD404BF7D2D947"
+  },
+  "final_holdout": {
+    "path": "configs/retail_final_task_holdout_v1.json",
+    "sha256": "0B5CEEE62F372A54402D574425DB67BA5855FCFDA4EAB11D7013B0D17329C522"
+  },
+  "generation_template": {
+    "path": "configs/retail_tau2_teacher_pilot_layer2_v1.json",
+    "sha256": "47B37112F4AF9DEC4D6BD8F7A0C1583D455920B20F277FA8AF0F10DD1BCAF046"
+  },
+  "retention_evidence": {
+    "path": "docs/04_数据治理与后训练/2026-08-17_教师轨迹Layer1试点运行结果与门禁差距.md",
+    "sha256": "095B4B32E1E3B93EC3C537599A132458DE838C6FF0E0020A5F090D18EC160B67",
+    "observed_retained_rate": 0.53
+  },
+  "target": {
+    "desired_total_rows": 150,
+    "acceptable_total_range": [130, 170]
+  },
+  "wave_a": {
+    "selection": "ALL_UPSTREAM_TRAIN_EXCEPT_DEVELOPMENT_TASKS",
+    "candidates_per_task": 2,
+    "temperature_ladder": [0.2, 0.6],
+    "seed": 20260824
+  },
+  "wave_b": {
+    "status": "CONDITIONAL_NOT_FROZEN",
+    "maximum_additional_candidates_per_task": 1,
+    "priority": [
+      "ZERO_RETAINED_WAVE_A",
+      "UNDERREPRESENTED_STRATUM",
+      "TASK_NOT_PRESENT_IN_CURRENT_SFT"
+    ]
+  },
+  "release_policy": {
+    "automatic_gold_forbidden": true,
+    "owner_review_required": true,
+    "actual_entity_groups_determine_train_validation_split": true,
+    "cross_split_entity_leakage_forbidden": true
+  }
+}
