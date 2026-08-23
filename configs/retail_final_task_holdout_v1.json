@@ -1,0 +1,45 @@
+{
+  "schema_version": "retail-final-task-holdout-config-v1.0.0",
+  "status": "SEALED_NOT_RUN",
+  "purpose": "Reserve every official Retail test task that is task-unseen to the current development and SFT process as the project-internal final task-heldout evaluation.",
+  "evaluation_scope": "TASK_UNSEEN_ENTITY_OVERLAP",
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "tasks_path": "data/tau2/domains/retail/tasks.json",
+    "tasks_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+    "split_path": "data/tau2/domains/retail/split_tasks.json",
+    "split_sha256": "5F9949B833E6B99584B87E84EF22F9D81789EA67A52E534C6F7AA91EFF08ADC7"
+  },
+  "contamination_audit": {
+    "path": "_local_private_runs/final_holdout_contamination_20260823/v1/audit.json",
+    "sha256": "5A439983132276C2854892DE543C93576D20343DB581A9A63FB7E34E4D9A42DF"
+  },
+  "task_ids": [5, 9, 12, 17, 26, 27, 32, 33, 42, 45, 49, 51, 53, 55, 56, 60, 61, 62, 70, 86, 94, 97, 111],
+  "selection_rule": {
+    "uses_all_remaining_task_unseen_official_test_tasks": true,
+    "model_outputs_or_rewards_used_for_selection": false,
+    "entity_disjointness_required": false
+  },
+  "prohibited_uses_before_unsealing": [
+    "SFT_DPO_GRPO_TRAINING_DATA",
+    "CHECKPOINT_SELECTION",
+    "PROMPT_OR_POLICY_TUNING",
+    "VERIFIER_OR_REWARD_DEVELOPMENT",
+    "THRESHOLD_SELECTION",
+    "DEVELOPMENT_EVALUATION"
+  ],
+  "unseal_gate": {
+    "training_data_frozen": true,
+    "training_recipe_frozen": true,
+    "checkpoint_selection_frozen": true,
+    "verifier_reward_and_thresholds_frozen": true,
+    "evaluation_protocol_frozen": true
+  },
+  "claims": {
+    "project_internal_task_heldout_claim_allowed_after_unsealing": true,
+    "entity_unseen_claim_allowed": false,
+    "official_tau2_leaderboard_claim_allowed": false,
+    "production_business_claim_allowed": false
+  }
+}
