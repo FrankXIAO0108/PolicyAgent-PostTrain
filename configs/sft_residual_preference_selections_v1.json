@@ -4,8 +4,8 @@
   "source_evaluation_cards_sha256": "91438C5A667BCC4614157350C51B67A998AAEF5CC6152D57B702527C3F5DF58F",
   "selections": [
     {"task_id": "40", "trial_index": 0, "candidate_role": "NEGATIVE_FALSE_REFUSAL", "rationale": "The agent authenticated and inspected the order but falsely claimed that a permitted payment-method modification was forbidden."},
-    {"task_id": "40", "trial_index": 1, "candidate_role": "PREFERRED_POSITIVE_CANDIDATE", "rationale": "The required payment-method write completed with a short four-call trajectory; final financial claims still require owner review."},
-    {"task_id": "40", "trial_index": 2, "candidate_role": "POSITIVE_ALTERNATIVE", "rationale": "The same required write completed through the same compact tool sequence; compare final-claim precision with trial 1."},
+    {"task_id": "40", "trial_index": 1, "candidate_role": "POSITIVE_ALTERNATIVE", "rationale": "The required payment-method write completed with a short four-call trajectory, but the final refund wording is less precise than trial 2."},
+    {"task_id": "40", "trial_index": 2, "candidate_role": "PREFERRED_POSITIVE_CANDIDATE", "rationale": "The required payment-method write completed through the compact four-call sequence and the final payment/refund explanation is clearer than trial 1."},
     {"task_id": "40", "trial_index": 3, "candidate_role": "NEGATIVE_UNAUTHORIZED_MUTATION", "rationale": "The agent cancelled the order although the user requested a payment-method change."},
     {"task_id": "50", "trial_index": 0, "candidate_role": "NEGATIVE_DIALOGUE_LOOP", "rationale": "The run reached max_steps and repeatedly requested shipping information after claiming it could place a new order."},
     {"task_id": "50", "trial_index": 1, "candidate_role": "BENCHMARK_POSITIVE_REVIEW", "rationale": "The benchmark reward is positive, but the trajectory ends without the reference transfer action; reward alone is insufficient for selection."},
