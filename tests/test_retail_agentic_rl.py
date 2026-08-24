@@ -1085,6 +1085,54 @@ class RetailAgenticSplitTests(unittest.TestCase):
             self.assertTrue(report["gates"]["stage_completion_observed"])
             self.assertTrue(report["gates"]["ready_to_consider_optimization"])
 
+    def test_staged_rollout_does_not_require_action_recall_variance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rollouts.jsonl"
+            rows = []
+            for task_id in range(2):
+                for sample in range(4):
+                    stage_complete = sample == 3
+                    rows.append(
+                        {
+                            "task_id": str(task_id),
+                            "rollout_stage": IDENTITY_AUTHENTICATION_STAGE,
+                            "tool_calls": 1 if stage_complete else 2,
+                            "customer_turns": 1,
+                            "reward": {
+                                "reward": 1.0 if stage_complete else 0.0,
+                                "rollout_stage": IDENTITY_AUTHENTICATION_STAGE,
+                                "stage_complete": stage_complete,
+                                "tool_error_count": 0,
+                                "unfinished_interaction_penalty": (
+                                    0.0 if stage_complete else 0.1
+                                ),
+                                "action_progress": {"recall": 1.0},
+                            },
+                        }
+                    )
+            path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            report = analyze(path, expected_rollouts=8, expected_tasks=2)
+            self.assertEqual(
+                report["group_variance"]["variance_gate_mode"],
+                "REWARD_AND_STAGE_COMPLETION",
+            )
+            self.assertEqual(
+                report["group_variance"]["joint_variance_task_count"], 0
+            )
+            self.assertEqual(
+                report["group_variance"]["stage_target_variance_task_count"], 2
+            )
+            self.assertTrue(
+                report["gates"][
+                    "sufficient_task_groups_have_stage_target_variance"
+                ]
+            )
+            self.assertNotIn("action_progress_has_variance", report["gates"])
+            self.assertTrue(report["gates"]["ready_to_consider_optimization"])
+
     def test_rollout_diagnostic_rejects_system_failures(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

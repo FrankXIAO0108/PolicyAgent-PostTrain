@@ -167,9 +167,9 @@ task 0 不在桥接 SFT 数据中，因此没有对应教师轨迹长度，不�
 至少比现有完整教师 completion 小约 6 倍，复杂任务小约 18 倍。单卡 RTX 4090 不应直接
 把 GRPO completion 提到 7k 后硬跑；下一阶段应先定义可审计的阶段化 rollout 单元，或在
 保持环境语义的前提下减少工具返回冗余，再做无更新诊断。任何方案都需先证明正常终止、
-无 system failure 且至少两个 task 具有联合组内方差，才允许冻结优化配置。
+无 system failure 且至少两个 task 具有与当前 rollout 阶段一致的组内方差，才允许冻结优化配置。完整任务要求 reward 与 Action Recall 同时存在组内方差；阶段任务要求 reward 与 `stage_complete` 同时存在组内方差。
 
-## 9. 身份认证阶段化 rollout（已实现，待运行）
+## 9. 身份认证阶段化 rollout（已实现并完成两轮诊断）
 
 为避免在单卡 RTX 4090 上把完整任务 completion 盲目扩到 2k–7k tokens，新增
 `IDENTITY_AUTHENTICATION` 阶段诊断。它保留真实 tau2 Retail 任务、冻结 opening、动态
@@ -180,16 +180,16 @@ task 0 不在桥接 SFT 数据中，因此没有对应教师轨迹长度，不�
 3. 参数与任务隐藏 expected action 精确匹配；
 4. 成功返回用户 ID 后停止，不继续读取订单或执行写操作。
 
-任务 0、7、10、15 的上游 evaluator 各含且仅含一个身份认证 expected action，因此当前
-四任务满足阶段奖励的结构前提。expected action 名称和参数只在环境内用于打分，不进入
-policy prompt。
+任务 0、7、10、11、13、15、20、22 的上游 evaluator 各含且仅含一个身份认证 expected
+action，因此满足阶段奖励的结构前提。expected action 名称和参数只在环境内用于打分，
+不进入 policy prompt。
 
 阶段奖励是严格二元过程奖励：只有“正确认证动作 + 正确参数 + 恰好一次业务工具调用 +
 无工具错误”同时成立才得到 1；错参数、先错后对、认证后继续调用其他业务工具均为 0。
 既有工具错误、重复调用和意外写操作诊断仍保留。该分数不调用 LLM Judge，也不计算完整
 任务的 DB final state 或 communication reward。
 
-冻结诊断配置：
+首轮冻结诊断配置：
 
 `configs/retail_agentic_qwen3_4b_identity_auth_rollout_diagnostic_v1.json`
 
@@ -197,13 +197,51 @@ policy prompt。
 `max_completion_length=384`。分析器把 `stage_complete` 与完整任务的 `user_stopped` 分开
 统计，禁止将阶段完成描述为业务任务完成。
 
-运行前状态：`PREPARED_NOT_RUN`。只有满足以下条件才进入最小 GRPO 权重更新：
+扩展诊断配置：
 
-- 16 条原始 rollout 与 sidecar system failure 完整归档；
-- 至少 2 个 task 同时存在组内 reward 方差和身份认证 Action Recall 方差；
+`configs/retail_agentic_qwen3_4b_identity_auth_rollout_diagnostic_v2.json`
+
+扩展规模为 8 tasks × 4 rollouts，共 32 条，仍保持 `learning_rate=0`、`beta=0`，不更新
+模型权重。只有满足以下条件才进入最小 GRPO 权重更新：
+
+- 预期原始 rollout 与 sidecar system failure 完整归档；
+- 完整任务至少 2 个 task 同时存在组内 reward 与 Action Recall 方差；身份认证阶段至少
+  2 个 task 同时存在组内 reward 与 `stage_complete` 方差；
 - 至少出现一次 `stage_complete=true`；
 - 无 system failure、无“无业务工具却获得正奖励”等 reward 泄漏；
 - 人工抽查正负轨迹确认奖励方向与真实行为一致。
 
 该阶段通过后只能说明身份认证前缀具备可优化信号，不能声明完整电商任务或 Retail
 benchmark 得分提高。
+
+## 10. 2026-08-24 实测结果与当前决策
+
+扩展诊断在提交 `fb05d3565b7345013987d83e89f76947475c03cd` 上完成，原始 32 条
+rollout 的 SHA-256 为
+`36032C1A5C18C8F5C7D26907DD42FA851FF282B831D71DC810AE1852C84A3C09`。
+模型权重未更新，运行清单明确记录 `execution_mode=ROLLOUT_DIAGNOSTIC` 与
+`optimization_enabled=false`。
+
+实测结果：
+
+- 8 个任务均为 4 条 rollout，共 32 条；
+- Action Recall 均值为 0.9375，30/32 条调用过业务工具；
+- 严格阶段奖励为 1 的轨迹共 3 条，平均 reward 为 0.09375；
+- 任务 7、10、15 均出现 `[0, 0, 0, 1]` 排列的组内 reward 方差；这些任务的
+  Action Recall 全为 1，差异来自正确认证后是否立即停止；
+- 29/32 条没有完成阶段目标，主要模式是认证成功后继续调用 `get_user_details` 或
+  `get_order_details`；
+- 无正奖励泄漏：不存在无工具调用或无认证动作进展却获得正奖励的轨迹；
+- `system_failures.jsonl` 共 4 条，全部绑定任务 0、seed 20260810，其中 1 条
+  `INVALID_RESPONSE`、3 条 `UPSTREAM_REQUEST_FAILED`。因此扩展诊断整体仍为
+  `ready_to_consider_optimization=false`。
+
+现有通用分析器原先要求 reward 与 Action Recall 同时变化。这会错误拒绝阶段目标的理想
+信号：认证动作保持正确，而停止决策产生优劣差异。分析口径已改为按阶段选择门禁，完整
+任务继续使用 `REWARD_AND_ACTION_PROGRESS`，身份认证阶段使用
+`REWARD_AND_STAGE_COMPLETION`。该修正不改变奖励或原始结果。修正后 3 个任务达到阶段
+信号阈值 2，但任务 0 的系统失败门禁仍关闭。
+
+当前决定是隔离任务 0，不将受用户模拟器失败污染的轨迹用于优化；下一轮预注册其余 7 个
+任务的清洁诊断。只有新诊断无 system failure 且阶段信号门槛继续成立，才运行最小 GRPO
+权重更新。

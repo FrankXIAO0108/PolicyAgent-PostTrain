@@ -79,19 +79,24 @@ def analyze(
     distinct_rewards = sorted(set(rewards))
     grouped_rewards: dict[str, list[float]] = defaultdict(list)
     grouped_action_recalls: dict[str, list[float]] = defaultdict(list)
-    for row, reward, action_recall in zip(
-        rows, rewards, action_recalls, strict=True
+    grouped_stage_completions: dict[str, list[bool]] = defaultdict(list)
+    for row, reward, action_recall, stage_completed in zip(
+        rows, rewards, action_recalls, staged_completed, strict=True
     ):
         task_id = str(row["task_id"])
         grouped_rewards[task_id].append(reward)
         grouped_action_recalls[task_id].append(action_recall)
+        grouped_stage_completions[task_id].append(stage_completed)
     task_group_diagnostics = {}
     reward_variance_task_count = 0
     action_variance_task_count = 0
     joint_variance_task_count = 0
+    stage_completion_variance_task_count = 0
+    stage_target_variance_task_count = 0
     for task_id in sorted(grouped_rewards, key=int):
         task_rewards = grouped_rewards[task_id]
         task_action_recalls = grouped_action_recalls[task_id]
+        task_stage_completions = grouped_stage_completions[task_id]
         task_reward_variance = (
             statistics.pvariance(task_rewards) if len(task_rewards) > 1 else 0.0
         )
@@ -100,12 +105,22 @@ def analyze(
             if len(task_action_recalls) > 1
             else 0.0
         )
+        task_stage_completion_variance = (
+            statistics.pvariance(int(value) for value in task_stage_completions)
+            if len(task_stage_completions) > 1
+            else 0.0
+        )
         reward_has_variance = task_reward_variance > 0.0
         action_has_variance = task_action_variance > 0.0
+        stage_completion_has_variance = task_stage_completion_variance > 0.0
         reward_variance_task_count += int(reward_has_variance)
         action_variance_task_count += int(action_has_variance)
         joint_variance_task_count += int(
             reward_has_variance and action_has_variance
+        )
+        stage_completion_variance_task_count += int(stage_completion_has_variance)
+        stage_target_variance_task_count += int(
+            reward_has_variance and stage_completion_has_variance
         )
         task_group_diagnostics[task_id] = {
             "rollouts": len(task_rewards),
@@ -113,16 +128,30 @@ def analyze(
             "reward_population_variance": task_reward_variance,
             "action_recall_values": task_action_recalls,
             "action_recall_population_variance": task_action_variance,
+            "stage_complete_values": task_stage_completions,
+            "stage_complete_population_variance": task_stage_completion_variance,
             "reward_has_variance": reward_has_variance,
             "action_progress_has_variance": action_has_variance,
+            "stage_completion_has_variance": stage_completion_has_variance,
         }
     observed_task_groups = len(grouped_rewards)
     minimum_signal_task_count = min(
         expected_tasks, max(2, (expected_tasks + 3) // 4)
     )
-    group_variance_gate = (
-        joint_variance_task_count >= minimum_signal_task_count
+    staged_run = bool(rollout_stages) and all(
+        stage != "FULL_TASK" for stage in rollout_stages
     )
+    variance_gate_mode = (
+        "REWARD_AND_STAGE_COMPLETION"
+        if staged_run
+        else "REWARD_AND_ACTION_PROGRESS"
+    )
+    selected_variance_task_count = (
+        stage_target_variance_task_count
+        if staged_run
+        else joint_variance_task_count
+    )
+    group_variance_gate = selected_variance_task_count >= minimum_signal_task_count
     gates = {
         "expected_rollout_count_met": len(rows) == expected_rollouts,
         "all_expected_tasks_observed": len(task_counts) == expected_tasks,
@@ -140,14 +169,28 @@ def analyze(
         ),
         "single_rollout_stage_observed": len(set(rollout_stages)) <= 1,
         "reward_has_variance": reward_variance > 0.0,
-        "action_progress_has_variance": len(set(action_recalls)) > 1,
-        "sufficient_task_groups_have_joint_variance": group_variance_gate,
         "no_positive_reward_without_tool": positive_without_tool == 0,
         "no_positive_reward_without_action_progress": (
             positive_without_action_progress == 0
         ),
         "no_system_failures": len(system_failures) == 0,
     }
+    if staged_run:
+        gates.update(
+            {
+                "stage_completion_has_variance": len(set(staged_completed)) > 1,
+                "sufficient_task_groups_have_stage_target_variance": (
+                    group_variance_gate
+                ),
+            }
+        )
+    else:
+        gates.update(
+            {
+                "action_progress_has_variance": len(set(action_recalls)) > 1,
+                "sufficient_task_groups_have_joint_variance": group_variance_gate,
+            }
+        )
     regression = None
     if baseline_path is not None:
         baseline_rows = load_jsonl(baseline_path)
@@ -201,7 +244,7 @@ def analyze(
         )
     gates["ready_to_consider_optimization"] = all(gates.values())
     return {
-        "schema_version": "retail-agentic-rollout-diagnostic-v3",
+        "schema_version": "retail-agentic-rollout-diagnostic-v4",
         "source": {"path": str(path), "sha256": sha256(path)},
         "expected_rollouts": expected_rollouts,
         "expected_tasks": expected_tasks,
@@ -262,6 +305,12 @@ def analyze(
                 if observed_task_groups
                 else 0.0
             ),
+            "stage_completion_variance_task_count": (
+                stage_completion_variance_task_count
+            ),
+            "stage_target_variance_task_count": stage_target_variance_task_count,
+            "variance_gate_mode": variance_gate_mode,
+            "selected_variance_task_count": selected_variance_task_count,
             "threshold_is_diagnostic_heuristic": True,
             "tasks": task_group_diagnostics,
         },
