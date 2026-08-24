@@ -21,6 +21,17 @@ from src.rl.user_simulator_fail_fast import generate_with_fail_fast
 
 REWARD_CONFIG_ENV = "POLICYAGENT_REWARD_CONFIG_JSON"
 ROLLOUT_LOG_ENV = "POLICYAGENT_ROLLOUT_LOG"
+ROLLOUT_STAGE_ENV = "POLICYAGENT_ROLLOUT_STAGE"
+FULL_TASK_STAGE = "FULL_TASK"
+IDENTITY_AUTHENTICATION_STAGE = "IDENTITY_AUTHENTICATION"
+SUPPORTED_ROLLOUT_STAGES = {
+    FULL_TASK_STAGE,
+    IDENTITY_AUTHENTICATION_STAGE,
+}
+IDENTITY_AUTHENTICATION_ACTIONS = {
+    "find_user_id_by_email",
+    "find_user_id_by_name_zip",
+}
 DEFAULT_REWARD_CONFIG: dict[str, Any] = {
     "process_reward_mode": "one_to_one_required_action_progress",
     "environment_state_action_progress_gate": "multiply",
@@ -139,7 +150,12 @@ def gate_environment_state_reward(
     return environment_reward * gate, gate
 
 
-def one_to_one_action_progress(task: Any, messages: list[Any]) -> dict[str, Any]:
+def one_to_one_action_progress(
+    task: Any,
+    messages: list[Any],
+    *,
+    expected_action_names: set[str] | None = None,
+) -> dict[str, Any]:
     """Measure required-action progress without reusing one call twice.
 
     Tau2's benchmark evaluator intentionally checks whether each golden action is
@@ -153,6 +169,10 @@ def one_to_one_action_progress(task: Any, messages: list[Any]) -> dict[str, Any]
             action
             for action in (criteria.actions or [])
             if action.requestor == "assistant"
+            and (
+                expected_action_names is None
+                or action.name in expected_action_names
+            )
         ]
         if criteria is not None
         else []
@@ -566,6 +586,89 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
     }
 
 
+def identity_authentication_stage_reward(
+    task: Any,
+    messages: list[Any],
+    reward_config: dict[str, Any],
+) -> dict[str, Any]:
+    """Score only the hidden gold identity-authentication action.
+
+    This is a staged process reward, not a full Retail task reward.  The policy
+    sees the stage contract but never the expected action name or arguments.
+    """
+
+    action_progress = one_to_one_action_progress(
+        task,
+        messages,
+        expected_action_names=IDENTITY_AUTHENTICATION_ACTIONS,
+    )
+    if action_progress["expected_count"] != 1:
+        raise RuntimeError(
+            "IDENTITY_AUTHENTICATION requires exactly one hidden expected "
+            "authentication action"
+        )
+    tool_errors = sum(bool(getattr(message, "error", False)) for message in messages)
+    action_recall = float(action_progress["recall"] or 0.0)
+    stage_complete = (
+        action_recall == 1.0
+        and action_progress["predicted_count"] == 1
+        and tool_errors == 0
+    )
+    stage_value = 1.0 if stage_complete else 0.0
+    error_penalty = min(
+        reward_config["tool_error_penalty_cap"],
+        reward_config["tool_error_penalty_each"] * tool_errors,
+    )
+    repeat_penalty = min(
+        reward_config["repeated_call_penalty_cap"],
+        reward_config["repeated_call_penalty_each"]
+        * action_progress["duplicate_excess_count"],
+    )
+    unexpected_write_penalty = min(
+        reward_config["unexpected_write_penalty_cap"],
+        reward_config["unexpected_write_penalty_each"]
+        * action_progress["unexpected_write_count"],
+    )
+    unfinished_penalty = (
+        0.0
+        if stage_complete
+        else reward_config["unfinished_interaction_penalty"]
+    )
+    reward = max(
+        0.0,
+        stage_value
+        - error_penalty
+        - repeat_penalty
+        - unexpected_write_penalty
+        - unfinished_penalty,
+    )
+    return {
+        "reward": reward,
+        "components": {
+            "identity_authentication_action": {
+                "weight": 1.0,
+                "value": stage_value,
+            }
+        },
+        "rollout_stage": IDENTITY_AUTHENTICATION_STAGE,
+        "stage_complete": stage_complete,
+        "termination_basis": "stage_target_complete",
+        "tool_error_count": tool_errors,
+        "tool_error_penalty": error_penalty,
+        "repeated_call_penalty": repeat_penalty,
+        "unexpected_write_penalty": unexpected_write_penalty,
+        "unfinished_interaction_penalty": unfinished_penalty,
+        "user_stopped": None,
+        "action_progress": action_progress,
+        "environment_state_diagnostics": None,
+        "confirmation_diagnostics": confirmation_diagnostics(messages),
+        "reward_config": deepcopy(reward_config),
+        "nl_assertions_used": False,
+        "policy_guard_used_as_reward": False,
+        "tau2": {"environment": None, "communication": None},
+    }
+
+
 def _ensure_tau2_importable() -> None:
     """Add the pinned upstream checkout to sys.path when it is not installed."""
 
@@ -634,6 +737,13 @@ class RetailAgenticEnvironment:
         self._policy_findings: list[dict[str, Any]] = []
         self._last_reward_info: dict[str, Any] | None = None
         self._reward_config = load_reward_config()
+        self._rollout_stage = os.environ.get(
+            ROLLOUT_STAGE_ENV, FULL_TASK_STAGE
+        ).strip()
+        if self._rollout_stage not in SUPPORTED_ROLLOUT_STAGES:
+            raise RuntimeError(
+                f"Unsupported Agentic RL rollout stage: {self._rollout_stage}"
+            )
         self._customer_turns = 0
         self._max_customer_turns = int(
             os.environ.get("POLICYAGENT_MAX_CUSTOMER_TURNS", "8")
@@ -758,6 +868,7 @@ class RetailAgenticEnvironment:
         record = {
             "schema_version": "retail-agentic-rollout-v1",
             "task_id": str(self._task.id),
+            "rollout_stage": self._rollout_stage,
             "user_seed": self._seed,
             "elapsed_seconds": time.perf_counter() - self._started_at,
             "customer_turns": self._customer_turns,
@@ -773,10 +884,17 @@ class RetailAgenticEnvironment:
     def _calculate_programmatic_reward(self) -> dict[str, Any]:
         """Compose reproducible RL reward without an LLM judge."""
 
+        trajectory = deepcopy(self._messages)
+        if self._rollout_stage == IDENTITY_AUTHENTICATION_STAGE:
+            return identity_authentication_stage_reward(
+                self._task,
+                trajectory,
+                self._reward_config,
+            )
+
         from tau2.evaluator.evaluator_communicate import CommunicateEvaluator
         from tau2.evaluator.evaluator_env import EnvironmentEvaluator
 
-        trajectory = deepcopy(self._messages)
         env_info = EnvironmentEvaluator.calculate_reward(
             environment_constructor=self._environment_factory,
             task=self._task,
@@ -876,6 +994,9 @@ class RetailAgenticEnvironment:
             "unexpected_write_penalty": unexpected_write_penalty,
             "unfinished_interaction_penalty": unfinished_penalty,
             "user_stopped": self._user_stopped,
+            "rollout_stage": FULL_TASK_STAGE,
+            "stage_complete": None,
+            "termination_basis": "user_stopped",
             "action_progress": action_progress,
             "environment_state_diagnostics": {
                 "raw_value": environment_state_raw,

@@ -168,3 +168,42 @@ task 0 不在桥接 SFT 数据中，因此没有对应教师轨迹长度，不�
 把 GRPO completion 提到 7k 后硬跑；下一阶段应先定义可审计的阶段化 rollout 单元，或在
 保持环境语义的前提下减少工具返回冗余，再做无更新诊断。任何方案都需先证明正常终止、
 无 system failure 且至少两个 task 具有联合组内方差，才允许冻结优化配置。
+
+## 9. 身份认证阶段化 rollout（已实现，待运行）
+
+为避免在单卡 RTX 4090 上把完整任务 completion 盲目扩到 2k–7k tokens，新增
+`IDENTITY_AUTHENTICATION` 阶段诊断。它保留真实 tau2 Retail 任务、冻结 opening、动态
+用户模拟器和真实工具执行，仅把本轮训练目标收窄为完整业务轨迹的身份认证前缀：
+
+1. 信息不足时通过 `respond_to_user` 询问客户；
+2. 在 `find_user_id_by_email` 与 `find_user_id_by_name_zip` 中选择正确工具；
+3. 参数与任务隐藏 expected action 精确匹配；
+4. 成功返回用户 ID 后停止，不继续读取订单或执行写操作。
+
+任务 0、7、10、15 的上游 evaluator 各含且仅含一个身份认证 expected action，因此当前
+四任务满足阶段奖励的结构前提。expected action 名称和参数只在环境内用于打分，不进入
+policy prompt。
+
+阶段奖励是严格二元过程奖励：只有“正确认证动作 + 正确参数 + 恰好一次业务工具调用 +
+无工具错误”同时成立才得到 1；错参数、先错后对、认证后继续调用其他业务工具均为 0。
+既有工具错误、重复调用和意外写操作诊断仍保留。该分数不调用 LLM Judge，也不计算完整
+任务的 DB final state 或 communication reward。
+
+冻结诊断配置：
+
+`configs/retail_agentic_qwen3_4b_identity_auth_rollout_diagnostic_v1.json`
+
+规模仍为 4 tasks × 4 rollouts，共 16 条，`learning_rate=0`、`beta=0`、
+`max_completion_length=384`。分析器把 `stage_complete` 与完整任务的 `user_stopped` 分开
+统计，禁止将阶段完成描述为业务任务完成。
+
+运行前状态：`PREPARED_NOT_RUN`。只有满足以下条件才进入最小 GRPO 权重更新：
+
+- 16 条原始 rollout 与 sidecar system failure 完整归档；
+- 至少 2 个 task 同时存在组内 reward 方差和身份认证 Action Recall 方差；
+- 至少出现一次 `stage_complete=true`；
+- 无 system failure、无“无业务工具却获得正奖励”等 reward 泄漏；
+- 人工抽查正负轨迹确认奖励方向与真实行为一致。
+
+该阶段通过后只能说明身份认证前缀具备可优化信号，不能声明完整电商任务或 Retail
+benchmark 得分提高。

@@ -11,14 +11,18 @@ from unittest.mock import patch
 
 from src.rl.retail_agentic_env import (
     DEFAULT_REWARD_CONFIG,
+    IDENTITY_AUTHENTICATION_ACTIONS,
+    IDENTITY_AUTHENTICATION_STAGE,
     RetailAgenticEnvironment,
     confirmation_diagnostics,
     gate_environment_state_reward,
+    identity_authentication_stage_reward,
     one_to_one_action_progress,
 )
 from src.training.run_retail_agentic_grpo import (
     selected_task_ids,
     validate_upstream_checkout,
+    wrap_retail_policy_for_agentic_protocol,
 )
 from src.rl.task_split import protect_validation_from_sft_tasks
 from src.analysis.analyze_agentic_rollout_diagnostic import analyze
@@ -193,6 +197,155 @@ class ProcessRewardSignalTests(unittest.TestCase):
         progress = one_to_one_action_progress(task, messages)
         self.assertEqual(progress["matched_count"], 1)
         self.assertEqual(progress["recall"], 0.5)
+
+    def test_action_progress_can_be_scoped_to_identity_authentication(self) -> None:
+        task = _task_with_actions(
+            [
+                _ExpectedAction(
+                    "auth",
+                    "find_user_id_by_email",
+                    {"email": "user@example.com"},
+                ),
+                _ExpectedAction(
+                    "order",
+                    "get_order_details",
+                    {"order_id": "#1"},
+                ),
+            ]
+        )
+        progress = one_to_one_action_progress(
+            task,
+            [
+                _assistant(
+                    calls=[
+                        _call(
+                            "c1",
+                            "find_user_id_by_email",
+                            {"email": "user@example.com"},
+                        )
+                    ]
+                )
+            ],
+            expected_action_names=IDENTITY_AUTHENTICATION_ACTIONS,
+        )
+        self.assertEqual(progress["expected_count"], 1)
+        self.assertEqual(progress["matched_count"], 1)
+        self.assertEqual(progress["recall"], 1.0)
+
+    def test_identity_stage_rewards_correct_hidden_authentication_action(self) -> None:
+        task = _task_with_actions(
+            [
+                _ExpectedAction(
+                    "auth",
+                    "find_user_id_by_email",
+                    {"email": "user@example.com"},
+                ),
+                _ExpectedAction(
+                    "order",
+                    "get_order_details",
+                    {"order_id": "#1"},
+                ),
+            ]
+        )
+        correct = identity_authentication_stage_reward(
+            task,
+            [
+                _assistant(
+                    calls=[
+                        _call(
+                            "c1",
+                            "find_user_id_by_email",
+                            {"email": "user@example.com"},
+                        )
+                    ]
+                )
+            ],
+            DEFAULT_REWARD_CONFIG,
+        )
+        wrong = identity_authentication_stage_reward(
+            task,
+            [
+                _assistant(
+                    calls=[
+                        _call(
+                            "c2",
+                            "find_user_id_by_email",
+                            {"email": "wrong@example.com"},
+                        )
+                    ]
+                )
+            ],
+            DEFAULT_REWARD_CONFIG,
+        )
+        self.assertEqual(correct["reward"], 1.0)
+        self.assertTrue(correct["stage_complete"])
+        self.assertEqual(correct["unfinished_interaction_penalty"], 0.0)
+        self.assertEqual(wrong["reward"], 0.0)
+        self.assertFalse(wrong["stage_complete"])
+        self.assertEqual(
+            wrong["unfinished_interaction_penalty"],
+            DEFAULT_REWARD_CONFIG["unfinished_interaction_penalty"],
+        )
+
+    def test_identity_stage_requires_exactly_one_hidden_auth_action(self) -> None:
+        task = _task_with_actions(
+            [
+                _ExpectedAction(
+                    "order",
+                    "get_order_details",
+                    {"order_id": "#1"},
+                )
+            ]
+        )
+        with self.assertRaisesRegex(RuntimeError, "exactly one"):
+            identity_authentication_stage_reward(
+                task, [], DEFAULT_REWARD_CONFIG
+            )
+
+    def test_identity_stage_rejects_correct_auth_followed_by_extra_tool(self) -> None:
+        task = _task_with_actions(
+            [
+                _ExpectedAction(
+                    "auth",
+                    "find_user_id_by_email",
+                    {"email": "user@example.com"},
+                )
+            ]
+        )
+        result = identity_authentication_stage_reward(
+            task,
+            [
+                _assistant(
+                    calls=[
+                        _call(
+                            "c1",
+                            "find_user_id_by_email",
+                            {"email": "user@example.com"},
+                        ),
+                        _call(
+                            "c2",
+                            "get_user_details",
+                            {"user_id": "user_1"},
+                        ),
+                    ]
+                )
+            ],
+            DEFAULT_REWARD_CONFIG,
+        )
+        self.assertEqual(result["action_progress"]["recall"], 1.0)
+        self.assertFalse(result["stage_complete"])
+        self.assertEqual(result["reward"], 0.0)
+
+    def test_identity_stage_prompt_is_explicit_but_does_not_expose_gold(self) -> None:
+        policy = "Authenticate users before accessing account data."
+        full_task = wrap_retail_policy_for_agentic_protocol(policy)
+        staged = wrap_retail_policy_for_agentic_protocol(
+            policy, IDENTITY_AUTHENTICATION_STAGE
+        )
+        self.assertNotIn("<stage_contract>", full_task)
+        self.assertIn("<stage_contract>", staged)
+        self.assertIn("stop immediately", staged)
+        self.assertNotIn("user@example.com", staged)
 
     def test_two_calls_can_satisfy_two_duplicate_expected_actions(self) -> None:
         arguments = {"order_id": "#1"}
@@ -708,6 +861,24 @@ class RetailAgenticSplitTests(unittest.TestCase):
             "Frozen RL v2 data must remain LF-stable across Windows and Linux",
         )
 
+    def test_identity_authentication_diagnostic_is_stage_bound(self) -> None:
+        config = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_rollout_diagnostic_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(config["execution_mode"], "ROLLOUT_DIAGNOSTIC")
+        self.assertEqual(
+            config["rollout"]["stage"], IDENTITY_AUTHENTICATION_STAGE
+        )
+        self.assertEqual(config["reward"], DEFAULT_REWARD_CONFIG)
+        self.assertEqual(config["grpo"]["learning_rate"], 0.0)
+        self.assertEqual(config["grpo"]["beta"], 0.0)
+        self.assertEqual(config["grpo"]["max_completion_length"], 384)
+        self.assertEqual(config["data"]["task_ids"], ["0", "7", "10", "15"])
+
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "rollouts.jsonl"
@@ -840,6 +1011,42 @@ class RetailAgenticSplitTests(unittest.TestCase):
             )
             self.assertFalse(report["gates"]["normal_termination_observed"])
             self.assertFalse(report["gates"]["ready_to_consider_optimization"])
+
+    def test_staged_rollout_uses_stage_completion_instead_of_user_stop(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rollouts.jsonl"
+            rows = [
+                {
+                    "task_id": "0",
+                    "rollout_stage": IDENTITY_AUTHENTICATION_STAGE,
+                    "tool_calls": 1,
+                    "customer_turns": 1,
+                    "reward": {
+                        "reward": float(index),
+                        "rollout_stage": IDENTITY_AUTHENTICATION_STAGE,
+                        "stage_complete": bool(index),
+                        "tool_error_count": 0,
+                        "unfinished_interaction_penalty": 0.0 if index else 0.1,
+                        "action_progress": {"recall": float(index)},
+                    },
+                }
+                for index in range(2)
+            ]
+            path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            report = analyze(path, expected_rollouts=2, expected_tasks=1)
+            self.assertEqual(
+                report["behavior"]["normal_termination_rollout_count"], 0
+            )
+            self.assertEqual(report["behavior"]["stage_complete_rollout_count"], 1)
+            self.assertEqual(
+                report["behavior"]["completion_target_rollout_count"], 1
+            )
+            self.assertTrue(report["gates"]["normal_termination_observed"])
+            self.assertTrue(report["gates"]["stage_completion_observed"])
+            self.assertTrue(report["gates"]["ready_to_consider_optimization"])
 
     def test_rollout_diagnostic_rejects_system_failures(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

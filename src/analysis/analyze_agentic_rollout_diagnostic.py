@@ -38,6 +38,24 @@ def analyze(
         float(row["reward"].get("unfinished_interaction_penalty", 0.0)) > 0
         for row in rows
     ]
+    rollout_stages = [
+        str(
+            row.get("rollout_stage")
+            or row["reward"].get("rollout_stage")
+            or "FULL_TASK"
+        )
+        for row in rows
+    ]
+    full_task_completed = [
+        stage == "FULL_TASK" and not is_unfinished
+        for stage, is_unfinished in zip(
+            rollout_stages, unfinished, strict=True
+        )
+    ]
+    staged_completed = [
+        stage != "FULL_TASK" and bool(row["reward"].get("stage_complete"))
+        for row, stage in zip(rows, rollout_stages, strict=True)
+    ]
     system_failures = (
         load_jsonl(system_failure_path)
         if system_failure_path is not None and system_failure_path.is_file()
@@ -110,7 +128,17 @@ def analyze(
         "all_expected_tasks_observed": len(task_counts) == expected_tasks,
         "tool_call_rate_positive": any(value > 0 for value in tool_calls),
         "customer_continuation_observed": any(value > 0 for value in customer_turns),
-        "normal_termination_observed": any(not value for value in unfinished),
+        "normal_termination_observed": (
+            any(full_task_completed)
+            if any(stage == "FULL_TASK" for stage in rollout_stages)
+            else True
+        ),
+        "stage_completion_observed": (
+            any(staged_completed)
+            if any(stage != "FULL_TASK" for stage in rollout_stages)
+            else True
+        ),
+        "single_rollout_stage_observed": len(set(rollout_stages)) <= 1,
         "reward_has_variance": reward_variance > 0.0,
         "action_progress_has_variance": len(set(action_recalls)) > 1,
         "sufficient_task_groups_have_joint_variance": group_variance_gate,
@@ -187,13 +215,21 @@ def analyze(
             "positive_count": sum(value > 0 for value in rewards),
         },
         "behavior": {
+            "rollout_stages": sorted(set(rollout_stages)),
             "tool_call_rollout_count": sum(value > 0 for value in tool_calls),
             "customer_continuation_rollout_count": sum(value > 0 for value in customer_turns),
             "tool_error_rollout_count": sum(value > 0 for value in tool_errors),
             "tool_error_count": sum(tool_errors),
             "duplicate_excess_count": sum(duplicate_excess),
             "unfinished_rollout_count": sum(unfinished),
-            "normal_termination_rollout_count": sum(not value for value in unfinished),
+            "normal_termination_rollout_count": sum(full_task_completed),
+            "stage_complete_rollout_count": sum(staged_completed),
+            "completion_target_rollout_count": sum(
+                completed or stage_completed
+                for completed, stage_completed in zip(
+                    full_task_completed, staged_completed, strict=True
+                )
+            ),
             "mean_tool_calls": statistics.fmean(tool_calls) if tool_calls else None,
             "mean_action_recall": statistics.fmean(action_recalls) if action_recalls else None,
             "distinct_action_recalls": sorted(set(action_recalls)),

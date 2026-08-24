@@ -144,7 +144,11 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
     config = load_json(config_path)
     if config.get("scope") != "ISOLATED_AGENTIC_RL_ENGINEERING":
         raise ValueError("Agentic RL config scope mismatch")
-    from src.rl.retail_agentic_env import DEFAULT_REWARD_CONFIG
+    from src.rl.retail_agentic_env import (
+        DEFAULT_REWARD_CONFIG,
+        FULL_TASK_STAGE,
+        SUPPORTED_ROLLOUT_STAGES,
+    )
 
     reward = config["reward"]
     if reward != DEFAULT_REWARD_CONFIG:
@@ -154,6 +158,9 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
     execution_mode = config.get("execution_mode", "OPTIMIZE")
     if execution_mode not in {"OPTIMIZE", "ROLLOUT_DIAGNOSTIC"}:
         raise ValueError(f"Unsupported execution_mode: {execution_mode}")
+    rollout_stage = config.get("rollout", {}).get("stage", FULL_TASK_STAGE)
+    if rollout_stage not in SUPPORTED_ROLLOUT_STAGES:
+        raise ValueError(f"Unsupported rollout.stage: {rollout_stage}")
     if execution_mode == "ROLLOUT_DIAGNOSTIC":
         if float(config["grpo"]["learning_rate"]) != 0.0:
             raise ValueError("ROLLOUT_DIAGNOSTIC requires learning_rate=0")
@@ -392,6 +399,9 @@ def environment_only_preflight(config_path: Path) -> dict[str, Any]:
     os.environ["POLICYAGENT_MAX_TOOL_CALLS"] = str(
         config["rollout"]["max_tool_calls"]
     )
+    os.environ["POLICYAGENT_ROLLOUT_STAGE"] = str(
+        config["rollout"].get("stage", "FULL_TASK")
+    )
 
     class _PreflightUser:
         def generate_next_message(self, message, state):
@@ -426,12 +436,38 @@ def environment_only_preflight(config_path: Path) -> dict[str, Any]:
     }
 
 
-def wrap_retail_policy_for_agentic_protocol(policy: str) -> str:
+def wrap_retail_policy_for_agentic_protocol(
+    policy: str,
+    rollout_stage: str = "FULL_TASK",
+) -> str:
     """Wrap a frozen Retail policy with the tool-mediated dialogue contract."""
 
     policy = str(policy).strip()
     if not policy:
         raise ValueError("Retail policy must not be empty")
+    from src.rl.retail_agentic_env import (
+        FULL_TASK_STAGE,
+        IDENTITY_AUTHENTICATION_STAGE,
+        SUPPORTED_ROLLOUT_STAGES,
+    )
+
+    if rollout_stage not in SUPPORTED_ROLLOUT_STAGES:
+        raise ValueError(f"Unsupported rollout stage: {rollout_stage}")
+    stage_contract = ""
+    if rollout_stage == IDENTITY_AUTHENTICATION_STAGE:
+        stage_contract = (
+            "\n\n<stage_contract>\n"
+            "This rollout trains only the identity-authentication prefix of the "
+            "task. Obtain any missing identity information from the customer via "
+            "respond_to_user. Then call exactly one appropriate identity lookup "
+            "tool: find_user_id_by_email or find_user_id_by_name_zip. After the "
+            "tool returns a user ID, stop immediately with a short non-tool "
+            "response. Do not call get_user_details, order, product, or any "
+            "state-changing tool.\n"
+            "</stage_contract>"
+        )
+    elif rollout_stage != FULL_TASK_STAGE:
+        raise AssertionError("validated rollout stage was not handled")
     return (
         "You are a customer-service agent. Follow the Retail policy below. "
         "Use exactly one tool call at a time. Every customer-facing message, "
@@ -441,21 +477,25 @@ def wrap_retail_policy_for_agentic_protocol(policy: str) -> str:
         "a short non-tool response.\n\n<policy>\n"
         + policy
         + "\n</policy>"
+        + stage_contract
     )
 
 
-def build_retail_system_prompt() -> str:
+def build_retail_system_prompt(rollout_stage: str = "FULL_TASK") -> str:
     from tau2.registry import registry
 
     environment = registry.get_env_constructor("retail")()
     policy = environment.get_policy()
-    return wrap_retail_policy_for_agentic_protocol(policy)
+    return wrap_retail_policy_for_agentic_protocol(policy, rollout_stage)
 
 
 def build_dataset(preflight: dict[str, Any]):
     from datasets import Dataset
 
-    system = build_retail_system_prompt()
+    rollout_stage = preflight["config"].get("rollout", {}).get(
+        "stage", "FULL_TASK"
+    )
+    system = build_retail_system_prompt(rollout_stage)
     rows = []
     for opening in preflight["openings"]:
         rows.append(
@@ -489,6 +529,9 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     )
     os.environ["POLICYAGENT_MAX_TOOL_CALLS"] = str(
         config["rollout"]["max_tool_calls"]
+    )
+    os.environ["POLICYAGENT_ROLLOUT_STAGE"] = str(
+        config["rollout"].get("stage", "FULL_TASK")
     )
     rollout_log = output_dir / "raw_rollouts.jsonl"
     os.environ["POLICYAGENT_ROLLOUT_LOG"] = str(rollout_log)
