@@ -211,6 +211,7 @@ def build_summary(
     per_task: list[dict[str, Any]],
     failures: list[dict[str, Any]],
     infrastructure_failures: list[dict[str, Any]],
+    model_failures: list[dict[str, Any]],
     validated: dict[str, Any],
     run_name: str,
     model_run: dict[str, Any],
@@ -250,7 +251,7 @@ def build_summary(
         any(reward == 1.0 for reward in rewards) for rewards in reward_groups
     )
     return {
-        "schema_version": "retail-teacher-sft-benchmark-eval-summary-v2",
+        "schema_version": "retail-teacher-sft-benchmark-eval-summary-v3",
         "run_name": run_name,
         "model": {
             "vllm_model": model_run["vllm_model"],
@@ -287,13 +288,55 @@ def build_summary(
         "coverage": {
             "expected_tasks": len(validated["task_ids"]),
             "evaluated_tasks": len(per_task),
+            "model_failure_tasks": len({row["task_id"] for row in model_failures}),
+            "model_failure_trials": len(model_failures),
             "infrastructure_failure_tasks": len(
                 {row["task_id"] for row in infrastructure_failures}
             ),
             "system_failure_tasks": len({row["task_id"] for row in failures}),
         },
+        "model_failures": model_failures,
         "infrastructure_failures": infrastructure_failures,
         "system_failures": failures,
+    }
+
+
+def simulation_model_failure(
+    simulation: Any,
+    *,
+    task_id: str,
+    source: str,
+    trial_index: int,
+) -> dict[str, Any] | None:
+    """Classify an unscored hallucinated tool call as an Agent failure.
+
+    tau2 returns a tool-not-found observation to the Agent, then its environment
+    replay raises ``ValueError`` because the generated tool is absent from the
+    frozen environment.  The missing reward is therefore caused by the Agent's
+    invalid action, not by unavailable infrastructure.
+    """
+    if simulation.reward_info is not None:
+        return None
+    info = simulation.info if isinstance(simulation.info, dict) else {}
+    message = str(info.get("error") or "")
+    if not (
+        message.startswith("Unknown tool '")
+        and message.endswith(
+            "' encountered during replay. The tool does not exist in the current environment."
+        )
+    ):
+        return None
+    return {
+        "task_id": task_id,
+        "source": source,
+        "trial_index": trial_index,
+        "simulation_id": str(getattr(simulation, "id", "")),
+        "termination_reason": getattr(simulation, "termination_reason", None),
+        "error_type": info.get("error_type") or "ValueError",
+        "message": message,
+        "assigned_reward": 0.0,
+        "classification": "INVALID_AGENT_TOOL_CALL",
+        "score_source": "deterministic_invalid_tool_call",
     }
 
 
@@ -305,7 +348,12 @@ def simulation_infrastructure_failure(
     trial_index: int,
 ) -> dict[str, Any] | None:
     """Describe an unscored simulation without treating it as model failure."""
-    if simulation.reward_info is not None:
+    if simulation.reward_info is not None or simulation_model_failure(
+        simulation,
+        task_id=task_id,
+        source=source,
+        trial_index=trial_index,
+    ):
         return None
     info = simulation.info if isinstance(simulation.info, dict) else {}
     return {
@@ -405,6 +453,7 @@ def run(
     private_dir.mkdir(parents=True, exist_ok=True)
     failures: list[dict[str, Any]] = []
     infrastructure_failures: list[dict[str, Any]] = []
+    model_failures: list[dict[str, Any]] = []
     per_task: list[dict[str, Any]] = []
     for row in validated["task_rows"]:
         task_id = str(row["task_id"])
@@ -440,6 +489,19 @@ def run(
                 save_to=task_dir / "returned_results.json",
             )
             simulations = results.simulations
+            task_model_failures = {
+                trial_index: failure
+                for trial_index, sim in enumerate(simulations)
+                if (
+                    failure := simulation_model_failure(
+                        sim,
+                        task_id=task_id,
+                        source=str(row["source"]),
+                        trial_index=trial_index,
+                    )
+                )
+                is not None
+            }
             task_infrastructure_failures = [
                 failure
                 for trial_index, sim in enumerate(simulations)
@@ -456,7 +518,13 @@ def run(
             if task_infrastructure_failures:
                 infrastructure_failures.extend(task_infrastructure_failures)
                 continue
-            rewards = [float(sim.reward_info.reward) for sim in simulations]
+            model_failures.extend(task_model_failures.values())
+            rewards = [
+                0.0
+                if trial_index in task_model_failures
+                else float(sim.reward_info.reward)
+                for trial_index, sim in enumerate(simulations)
+            ]
             successful_trials = sum(reward == 1.0 for reward in rewards)
             per_task.append(
                 {
@@ -470,6 +538,7 @@ def run(
                         successful_trials / len(rewards), 4
                     ),
                     "num_trials": len(simulations),
+                    "model_failure_trials": len(task_model_failures),
                     "elapsed_seconds": round(time.perf_counter() - started, 2),
                 }
             )
@@ -488,6 +557,7 @@ def run(
         per_task=per_task,
         failures=failures,
         infrastructure_failures=infrastructure_failures,
+        model_failures=model_failures,
         validated=validated,
         run_name=run_name,
         model_run=model_run,
@@ -503,6 +573,7 @@ def run(
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "task_count": len(validated["task_ids"]),
             "completed_tasks": len(per_task),
+            "model_failures": model_failures,
             "infrastructure_failures": infrastructure_failures,
             "system_failures": failures,
             "summary_sha256": sha256(output_dir / "eval_summary.json"),

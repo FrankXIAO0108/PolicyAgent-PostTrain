@@ -14,6 +14,7 @@ from src.training.run_teacher_eval import (
     entity_overlap,
     select_smoke_task,
     simulation_infrastructure_failure,
+    simulation_model_failure,
     validate_checkpoint_binding,
     validate_config,
 )
@@ -284,6 +285,37 @@ class TeacherEvalReportingTests(unittest.TestCase):
         self.assertEqual(failure["error_type"], "ContextWindowExceededError")
         self.assertIn("maximum context", failure["message"])
 
+    def test_unknown_tool_replay_error_is_model_failure(self):
+        simulation = SimpleNamespace(
+            id="sim-invalid-tool",
+            reward_info=None,
+            termination_reason="infrastructure_error",
+            info={
+                "error_type": "ValueError",
+                "error": (
+                    "Unknown tool 'get_payment_method_details' encountered during "
+                    "replay. The tool does not exist in the current environment."
+                ),
+            },
+        )
+        failure = simulation_model_failure(
+            simulation,
+            task_id="71",
+            source="test_clean",
+            trial_index=1,
+        )
+        self.assertEqual(failure["classification"], "INVALID_AGENT_TOOL_CALL")
+        self.assertEqual(failure["assigned_reward"], 0.0)
+        self.assertEqual(failure["score_source"], "deterministic_invalid_tool_call")
+        self.assertIsNone(
+            simulation_infrastructure_failure(
+                simulation,
+                task_id="71",
+                source="test_clean",
+                trial_index=1,
+            )
+        )
+
     def test_summary_excludes_infrastructure_failure_from_success_denominator(self):
         validated = {
             "task_ids": ["59", "100"],
@@ -313,6 +345,7 @@ class TeacherEvalReportingTests(unittest.TestCase):
             ],
             failures=[],
             infrastructure_failures=infrastructure_failures,
+            model_failures=[],
             validated=validated,
             run_name="sft",
             model_run={"vllm_model": "model", "litellm_model": "openai/model"},
@@ -322,6 +355,51 @@ class TeacherEvalReportingTests(unittest.TestCase):
         self.assertEqual(summary["coverage"]["evaluated_tasks"], 1)
         self.assertEqual(summary["coverage"]["infrastructure_failure_tasks"], 1)
         self.assertEqual(summary["infrastructure_failures"], infrastructure_failures)
+
+    def test_summary_counts_invalid_tool_as_scored_model_failure(self):
+        validated = {
+            "task_ids": ["71"],
+            "num_trials": 4,
+            "seed": 20260818,
+            "config": {
+                "evaluation": {"type": "ALL_WITH_NL_ASSERTIONS"},
+                "agent": {"temperature": 0.0},
+            },
+        }
+        model_failures = [
+            {
+                "task_id": "71",
+                "source": "test_clean",
+                "trial_index": 1,
+                "assigned_reward": 0.0,
+                "classification": "INVALID_AGENT_TOOL_CALL",
+            }
+        ]
+        summary = build_summary(
+            per_task=[
+                {
+                    "task_id": "71",
+                    "source": "test_clean",
+                    "reward": [1.0, 0.0, 1.0, 1.0],
+                    "success": False,
+                }
+            ],
+            failures=[],
+            infrastructure_failures=[],
+            model_failures=model_failures,
+            validated=validated,
+            run_name="sft",
+            model_run={"vllm_model": "model", "litellm_model": "openai/model"},
+        )
+        self.assertEqual(summary["success_rate"]["trial_level"]["total_trials"], 4)
+        self.assertEqual(
+            summary["success_rate"]["trial_level"]["successful_trials"], 3
+        )
+        self.assertEqual(summary["coverage"]["evaluated_tasks"], 1)
+        self.assertEqual(summary["coverage"]["model_failure_tasks"], 1)
+        self.assertEqual(summary["coverage"]["model_failure_trials"], 1)
+        self.assertEqual(summary["coverage"]["infrastructure_failure_tasks"], 0)
+        self.assertEqual(summary["model_failures"], model_failures)
 
     def test_summary_reports_four_trial_stability_without_hiding_variance(self):
         validated = {
@@ -350,6 +428,7 @@ class TeacherEvalReportingTests(unittest.TestCase):
             ],
             failures=[],
             infrastructure_failures=[],
+            model_failures=[],
             validated=validated,
             run_name="base",
             model_run={"vllm_model": "model", "litellm_model": "openai/model"},
