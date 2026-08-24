@@ -879,6 +879,43 @@ class RetailAgenticSplitTests(unittest.TestCase):
         self.assertEqual(config["grpo"]["max_completion_length"], 384)
         self.assertEqual(config["data"]["task_ids"], ["0", "7", "10", "15"])
 
+    def test_expanded_identity_diagnostic_reuses_frozen_openings(self) -> None:
+        config = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_rollout_diagnostic_v2.json"
+            ).read_text(encoding="utf-8")
+        )
+        manifest = json.loads(
+            (PROJECT / config["data"]["openings_manifest"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        openings_path = PROJECT / config["data"]["openings"]
+        rows = [
+            json.loads(line)
+            for line in openings_path.read_text(encoding="utf-8").splitlines()
+        ]
+        self.assertEqual(config["rollout"]["stage"], IDENTITY_AUTHENTICATION_STAGE)
+        self.assertEqual(config["data"]["max_tasks"], 8)
+        self.assertEqual(config["diagnostic"]["expected_rollouts"], 32)
+        self.assertEqual(config["grpo"]["max_steps"], 16)
+        self.assertEqual(config["grpo"]["num_generations"], 2)
+        self.assertEqual([row["task_id"] for row in rows], config["data"]["task_ids"])
+        self.assertEqual(manifest["rows"], len(rows))
+        self.assertEqual(
+            hashlib.sha256(openings_path.read_bytes()).hexdigest().upper(),
+            manifest["output_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(
+                (PROJECT / config["data"]["task_split"]).read_bytes()
+            ).hexdigest().upper(),
+            manifest["task_split_sha256"],
+        )
+        self.assertIn("no_external_api_call", manifest["derivation"])
+
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "rollouts.jsonl"
