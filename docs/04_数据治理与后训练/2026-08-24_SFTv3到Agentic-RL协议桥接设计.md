@@ -245,3 +245,95 @@ rollout 的 SHA-256 为
 当前决定是隔离任务 0，不将受用户模拟器失败污染的轨迹用于优化；下一轮预注册其余 7 个
 任务的清洁诊断。只有新诊断无 system failure 且阶段信号门槛继续成立，才运行最小 GRPO
 权重更新。
+
+## 11. 清洁诊断与 GRPO 资格证据
+
+7-task 清洁诊断排除 task 0 的唯一依据是该任务在扩展诊断中 4/4 均为冻结用户模拟器
+system failure；筛选没有使用 reward。清洁诊断目录为：
+
+`/root/autodl-tmp/policyagent-runs/20260824-identity-auth-rollout-diagnostic7-clean-v3-rerun1`
+
+该轮 7 tasks × 4 rollouts 共 28 条，无 system failure，raw rollout SHA-256 为
+`760784DF31C6D78F8158E79D6309624D68EB0E5B5B58F1EB6ADC0F0074B4ACC2`。
+单轮仅 task 15 出现阶段目标方差，未达到 2-task 启动阈值。
+
+为避免因单轮小样本错误否定已观察到的稳定信号，随后仅合并两次独立诊断中相同的 7 个
+任务；task 0 的轨迹全部按 system failure 排除，不按 reward 选行。合并池共 56 条、每个
+任务 8 条，raw SHA-256 为
+`F1C7C87AC78982621BFAE6AA06DC5C945336D7D5C31F5C0A1E4013B57A4970EC`。
+task 7、10、15 共 3 个任务具有 reward 与 `stage_complete` 方差，超过预注册阈值 2；
+system failure、无工具正奖励和无动作进展正奖励均为 0。该证据只开放最小身份认证阶段
+GRPO 工程实验，不开放完整 Retail 或业务收益门禁。
+
+## 12. 28-step 身份认证阶段 GRPO
+
+正式配置：
+
+`configs/retail_agentic_qwen3_4b_identity_auth_grpo_v1.json`
+
+运行目录：
+
+`/root/autodl-tmp/policyagent-runs/20260824-identity-auth-grpo-s28-v1`
+
+| 项目 | 结果 |
+|---|---:|
+| 项目 commit | `dd25be621fd64d3e432b8c53582cf2f8c82563e5` |
+| config SHA-256 | `1617F9460C57AD02F99D736027D4EA7A231513A94BCCEFAF62ABD79EB067AA91` |
+| 起始 SFT 模型 SHA-256 | `0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576` |
+| 训练配置 | 28 steps，2 generations，QLoRA NF4，LR `5e-6`，DR-GRPO，`beta=0` |
+| 在线 rollout | 56 条，7 tasks × 8 |
+| raw rollout SHA-256 | `E2794D3F34E2711BEFE17DBD60C17A4860435FCE751911ACD40EEFBC5D2D000C` |
+| 正奖励 rollout | 10/56 |
+| 有组内 reward 方差的 step | 6/28（step 5/7/17/21/23/28） |
+| 非零 step grad norm | 0.22–0.38 |
+| train loss | -0.024823 |
+| 训练墙钟 | 1291.20 秒 |
+| system failure | 0 |
+| adapter SHA-256 | `09144162CEFB06FF9286D25BC08C830B90E6921B82FEDA5C13E1813155411A36` |
+| merged model SHA-256 | `AF9CDEE0DAEE8DD9701AB0CF7DF7FDB4A576335879E55DE1632BD48EA075C72E` |
+| run manifest SHA-256 | `F0D27E7EBD6F0DCC7E806EDEA8976C068A3EDB654FE2534325A55392725691F5` |
+
+训练前另完成 1-step smoke，验证在线生成、反向传播、adapter 保存和 7.5GB merged 模型
+写出。smoke 的两条 reward 均为 0、grad norm 为 0，因此只证明工程链路，不计作有效学习
+证据。正式训练中 6 个 step 同时具有 `reward_std=0.7071` 和非零 grad norm，证明本轮确实
+执行了组相对策略更新；训练 rollout 上的 reward 不能用于声明模型改善。
+
+运行中 CUDA allocator 多次报告约 4GB 临时分配失败后自动回退，进程持续完成且无
+traceback。单卡峰值接近 24GB，这构成可复现性和吞吐风险，但不是本轮 system failure。
+
+## 13. 同协议 post-GRPO 诊断与结论
+
+后评测配置只替换起始模型为 GRPO merged 模型；7 个任务、opening、seed、temperature、
+reward、stage、2 generations 和 28-rollout 规模均与 SFT clean-v3 相同。配置固定
+`learning_rate=0`、`beta=0`，不更新权重。
+
+运行目录：
+
+`/root/autodl-tmp/policyagent-runs/20260824-identity-auth-post-grpo-s28-diagnostic-v1`
+
+| 指标 | SFT clean-v3 | GRPO 后 | 方向 |
+|---|---:|---:|---|
+| 轨迹数 / task 数 | 28 / 7 | 28 / 7 | 可比 |
+| 正 reward / stage complete | 2 | 0 | 回退 |
+| 平均 Action Recall | 0.8929 | 0.8571 | 回退 |
+| 有业务工具调用的 rollout | 25 | 25 | 持平 |
+| 有客户继续交互的 rollout | 26 | 26 | 持平 |
+| 平均业务工具调用数 | 1.7143 | 1.7857 | 略增 |
+| tool error | 0 | 0 | 持平 |
+| 未完成 rollout | 26 | 28 | 回退 |
+| system failure | 0 | 0 | 持平 |
+
+post-GRPO raw rollout SHA-256 为
+`5F0BFAFED9AB8AB2959C4983D117E8BBF317B8C6ABB176E5BA16ED466D9A1730`，run manifest
+SHA-256 为
+`4D60BF9146DAAA1A4B415CD45B894E8BB537618452EFA081A7B98ED27D2A159C`。
+
+本次实验的工程闭环成立：真实 tau2 环境、动态用户模拟器、在线工具执行、程序化阶段奖励、
+GRPO 权重更新、adapter/merge 和独立无更新后评测均完成。但现有证据不支持行为提升，
+观测结果反而低于 28 条 SFT 基线。由于基线仅有 2 个正例，样本量不足以区分稳定退化与
+采样波动；不得据此宣称 GRPO 必然有害。
+
+最可能的限制包括：奖励极稀疏，28 个 step 只有 6 个具有非零组内优势；group size 为 2，
+估计方差高；`beta=0` 没有 KL 漂移约束；训练和评测任务规模过小。当前不应继续盲目增加
+GRPO steps。下一步应先扩大只读诊断或提高阶段奖励密度，并以独立冻结轨迹验证；只有在
+更可靠的开发评测上证明收益后，才把该 checkpoint 作为后续业务主线起点。
