@@ -1041,6 +1041,20 @@ class RetailAgenticSplitTests(unittest.TestCase):
             "AF9CDEE0DAEE8DD9701AB0CF7DF7FDB4A576335879E55DE1632BD48EA075C72E",
         )
 
+        post_grpo_seed2 = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_grpo_s28_rollout_diagnostic_seed20260825_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(post_grpo_seed2["seed"], 20260825)
+        first_seed_normalized = dict(post_grpo)
+        second_seed_normalized = dict(post_grpo_seed2)
+        first_seed_normalized["seed"] = None
+        second_seed_normalized["seed"] = None
+        self.assertEqual(first_seed_normalized, second_seed_normalized)
+
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "rollouts.jsonl"
