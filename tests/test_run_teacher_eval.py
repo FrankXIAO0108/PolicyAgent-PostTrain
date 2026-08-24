@@ -97,7 +97,8 @@ class TeacherEvalConfigTests(unittest.TestCase):
             [run["name"] for run in validated["model_runs"]],
             ["base", "sft_v3_wave_a_fixed_s80"],
         )
-        self.assertEqual(validated["config"]["agent"]["max_tokens"], 2048)
+        self.assertEqual(validated["config"]["agent"]["max_tokens"], 1024)
+        self.assertEqual(validated["config"]["evaluation"]["max_steps"], 60)
         self.assertFalse(validated["config"]["claims"]["fresh_unseen_evaluation"])
 
     def test_select_smoke_task_filters_rows(self):
