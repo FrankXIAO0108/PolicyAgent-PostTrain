@@ -1020,6 +1020,27 @@ class RetailAgenticSplitTests(unittest.TestCase):
         self.assertEqual(smoke["grpo"]["max_steps"], 1)
         self.assertEqual(smoke["grpo"]["num_generations"], 2)
 
+        post_grpo = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_grpo_s28_rollout_diagnostic_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(post_grpo["execution_mode"], "ROLLOUT_DIAGNOSTIC")
+        self.assertEqual(post_grpo["data"], config["data"])
+        self.assertEqual(post_grpo["rollout"], config["rollout"])
+        self.assertEqual(post_grpo["reward"], config["reward"])
+        self.assertEqual(post_grpo["grpo"]["max_steps"], 14)
+        self.assertEqual(post_grpo["grpo"]["num_generations"], 2)
+        self.assertEqual(post_grpo["grpo"]["learning_rate"], 0.0)
+        self.assertEqual(post_grpo["grpo"]["beta"], 0.0)
+        self.assertFalse(post_grpo["diagnostic"]["weight_update_expected"])
+        self.assertEqual(
+            post_grpo["model"]["expected_sha256"],
+            "AF9CDEE0DAEE8DD9701AB0CF7DF7FDB4A576335879E55DE1632BD48EA075C72E",
+        )
+
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "rollouts.jsonl"
