@@ -1,4 +1,4 @@
-"""Teacher trajectory multi-turn SFT runner.
+"""Teacher trajectory and Agentic protocol-bridge multi-turn SFT runner.
 
 Trains Qwen3-4B-Instruct (LoRA + 4-bit NF4) on the released teacher SFT
 dataset (``teacher_sft_release`` output). Every assistant turn in the frozen
@@ -11,7 +11,8 @@ docs/04_数据治理与后训练/2026-08-18_教师轨迹合并SFT数据划分与
 - reports Base vs SFT validation loss on the entity-disjoint VALIDATION split;
 - does not claim any formal Retail gate or business improvement.
 
-Scope is intentionally separate from the isolated tool-protocol warmup runner.
+Both supported scopes are intentionally separate from the isolated synthetic
+tool-protocol warmup runner.
 """
 
 from __future__ import annotations
@@ -37,7 +38,8 @@ from src.training.run_retail_agentic_grpo import (
 from src.training.run_retail_tool_sft import TOOL_NAMES, build_tools
 
 SCOPE = "TEACHER_TRAJECTORY_SFT"
-SUPPORTED_SCOPES = {SCOPE}
+PROTOCOL_BRIDGE_SCOPE = "AGENTIC_PROTOCOL_BRIDGE_SFT"
+SUPPORTED_SCOPES = {SCOPE, PROTOCOL_BRIDGE_SCOPE}
 
 
 def save_merged_model_enabled(config: dict[str, Any]) -> bool:
@@ -667,6 +669,16 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         and math.isfinite(sft_loss)
         and sft_loss < base_loss
     )
+    if config["scope"] == PROTOCOL_BRIDGE_SCOPE:
+        scope_notes = [
+            "Owner-reviewed development trajectories transformed deterministically to the Agentic respond_to_user protocol.",
+            "The protocol view preserves the source TRAIN/VALIDATION split and does not create independent policy gold.",
+        ]
+    else:
+        scope_notes = [
+            "SECOND_REVIEWED teacher pool; not ADJUDICATED policy gold.",
+            "Validation split is entity-disjoint from training (merged pool plan v1).",
+        ]
     manifest = {
         "schema_version": "retail-teacher-sft-run-v1",
         "scope": config["scope"],
@@ -727,10 +739,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         },
         "formal_retail_readiness_gate_opened": False,
         "business_improvement_claim_allowed": False,
-        "notes": [
-            "SECOND_REVIEWED teacher pool; not ADJUDICATED policy gold.",
-            "Validation split is entity-disjoint from training (merged pool plan v1).",
-        ],
+        "notes": scope_notes,
     }
     save_json(output_dir / "run_manifest.json", manifest)
     print(

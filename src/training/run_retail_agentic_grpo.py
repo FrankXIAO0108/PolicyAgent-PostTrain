@@ -426,11 +426,12 @@ def environment_only_preflight(config_path: Path) -> dict[str, Any]:
     }
 
 
-def build_retail_system_prompt() -> str:
-    from tau2.registry import registry
+def wrap_retail_policy_for_agentic_protocol(policy: str) -> str:
+    """Wrap a frozen Retail policy with the tool-mediated dialogue contract."""
 
-    environment = registry.get_env_constructor("retail")()
-    policy = environment.get_policy()
+    policy = str(policy).strip()
+    if not policy:
+        raise ValueError("Retail policy must not be empty")
     return (
         "You are a customer-service agent. Follow the Retail policy below. "
         "Use exactly one tool call at a time. Every customer-facing message, "
@@ -441,6 +442,14 @@ def build_retail_system_prompt() -> str:
         + policy
         + "\n</policy>"
     )
+
+
+def build_retail_system_prompt() -> str:
+    from tau2.registry import registry
+
+    environment = registry.get_env_constructor("retail")()
+    policy = environment.get_policy()
+    return wrap_retail_policy_for_agentic_protocol(policy)
 
 
 def build_dataset(preflight: dict[str, Any]):
