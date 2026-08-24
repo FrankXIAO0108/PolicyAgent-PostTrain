@@ -1,7 +1,7 @@
 # SFT v3 到 Agentic RL 协议桥接设计
 
 日期：2026-08-24
-状态：20-step 协议 SFT 已完成，动态 rollout 复测待运行
+状态：20-step 协议 SFT 与 16 条动态 rollout 诊断已完成；RL 优化门禁保持关闭
 
 ## 1. 问题定义
 
@@ -105,3 +105,66 @@ SFT v3 的 16/16 completion 都生成了正常自然语言，但 0/16 生成结�
 2-step smoke 的 Base/SFT validation loss 为 0.428757/0.427405，正式 20-step 的
 SFT validation loss 降至 0.409007。该结果支持“协议监督被模型学习”，但动态行为是否
 改善仍必须由冻结的无更新 rollout 诊断回答。
+
+## 7. 冻结动态 rollout 诊断
+
+运行目录：
+
+`/root/autodl-tmp/policyagent-runs/20260824-sft-v3-protocol-bridge-s20-agentic-rollout-diagnostic-v4`
+
+关键绑定：
+
+| 项目 | 结果 |
+|---|---|
+| 项目 commit | `f7d7dfa310030875dea59ac03ba2f541d89913ad` |
+| config SHA-256 | `B27EF44063129BBE7C3A469E3E395CCC9C81AF89AEAC300B66E0BCA27BBF7F17` |
+| 起始模型 SHA-256 | `0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576` |
+| raw rollout SHA-256 | `E20F581FD53B193E331E5A4A1FAA15FCE51BAD99ED9148D7C73CC503640FE465` |
+| run manifest SHA-256 | `FE415AEE47D5FB663B4D64007EFFD3C135C0D51902E1F421342F322F9A7CD863` |
+| user simulator | `deepseek/deepseek-v4-flash`，API preflight 通过 |
+| 轨迹规模 | 4 tasks × 4 rollouts = 16 |
+| 墙钟 | 368.10 秒 |
+
+相同任务、rollout 数和 reward 口径下，与协议桥 SFT 前的诊断比较：
+
+| 指标 | 原 SFT v3 | 协议桥 SFT 20-step |
+|---|---:|---:|
+| 有业务工具调用的 rollout | 0/16 | 14/16 |
+| 有客户继续交互的 rollout | 0/16 | 14/16 |
+| 平均业务工具调用数 | 0.0000 | 1.5625 |
+| 平均 Action Recall | 0.0000 | 0.2625 |
+| 正 reward rollout | 0/16 | 4/16 |
+| 平均 reward | 0.0000 | 0.0750 |
+| 正常终止 rollout | 0/16 | 0/16 |
+| reward 与 Action Recall 均有组内方差的 task | 0/4 | 0/4 |
+| system failure | 0 | 5 条 sidecar 记录 |
+
+这证明协议桥 SFT 已学到 `respond_to_user` 和基础身份认证工具链；它没有证明模型已能完成
+端到端业务任务。task 10 的 4 条 reward 均为 0.3，其余 task 均为 0；没有任何 task
+同时具备 reward 与 Action Recall 的组内方差，所以 GRPO 相对优势仍为零。
+
+5 条 system failure 均发生在 task 0、seed 20260810，包括 1 条
+`INVALID_RESPONSE` 和 4 条 `UPSTREAM_REQUEST_FAILED`。它们由用户模拟器收到空 assistant
+消息触发，不能混入普通模型 0 分。诊断分析器已要求正常终止，并将独立 sidecar failure
+纳入门禁。
+
+## 8. Completion 预算诊断
+
+当前动态诊断使用 `max_completion_length=384`。TRL 1.9 的工具循环将模型输出、工具调用和
+工具返回共同计入该预算；超过预算时会回滚本轮工具结果并退出循环。本轮 8 个 step 的
+显式 `clipped_ratio` 为 `0, 0.5, 0, 0.5, 0, 0.5, 0, 0`，即 3/16 rollout
+被明确截断。原始 completion 还存在停在半个工具名、半个 JSON 或工具返回后的情况。
+
+对桥接训练集中同 task 的已审核完整轨迹重新使用运行时 tokenizer 计数：
+
+| task | 初始 prompt tokens | 完整 completion tokens | 轨迹条数 |
+|---|---:|---:|---:|
+| 7 | 3,835 | 6,316–7,116 | 3 |
+| 10 | 3,816 | 2,379 | 1 |
+| 15 | 3,862 | 5,472 | 1 |
+
+task 0 不在桥接 SFT 数据中，因此没有对应教师轨迹长度，不能推断。384-token 动态预算
+至少比现有完整教师 completion 小约 6 倍，复杂任务小约 18 倍。单卡 RTX 4090 不应直接
+把 GRPO completion 提到 7k 后硬跑；下一阶段应先定义可审计的阶段化 rollout 单元，或在
+保持环境语义的前提下减少工具返回冗余，再做无更新诊断。任何方案都需先证明正常终止、
+无 system failure 且至少两个 task 具有联合组内方差，才允许冻结优化配置。

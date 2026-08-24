@@ -22,6 +22,7 @@ def analyze(
     expected_rollouts: int,
     expected_tasks: int,
     baseline_path: Path | None = None,
+    system_failure_path: Path | None = None,
 ) -> dict[str, Any]:
     rows = load_jsonl(path)
     rewards = [float(row["reward"]["reward"]) for row in rows]
@@ -37,6 +38,14 @@ def analyze(
         float(row["reward"].get("unfinished_interaction_penalty", 0.0)) > 0
         for row in rows
     ]
+    system_failures = (
+        load_jsonl(system_failure_path)
+        if system_failure_path is not None and system_failure_path.is_file()
+        else []
+    )
+    system_failure_categories = Counter(
+        str(row.get("category") or "UNKNOWN") for row in system_failures
+    )
     action_recalls = [
         float(row["reward"]["action_progress"]["recall"] or 0.0) for row in rows
     ]
@@ -101,6 +110,7 @@ def analyze(
         "all_expected_tasks_observed": len(task_counts) == expected_tasks,
         "tool_call_rate_positive": any(value > 0 for value in tool_calls),
         "customer_continuation_observed": any(value > 0 for value in customer_turns),
+        "normal_termination_observed": any(not value for value in unfinished),
         "reward_has_variance": reward_variance > 0.0,
         "action_progress_has_variance": len(set(action_recalls)) > 1,
         "sufficient_task_groups_have_joint_variance": group_variance_gate,
@@ -108,6 +118,7 @@ def analyze(
         "no_positive_reward_without_action_progress": (
             positive_without_action_progress == 0
         ),
+        "no_system_failures": len(system_failures) == 0,
     }
     regression = None
     if baseline_path is not None:
@@ -182,6 +193,7 @@ def analyze(
             "tool_error_count": sum(tool_errors),
             "duplicate_excess_count": sum(duplicate_excess),
             "unfinished_rollout_count": sum(unfinished),
+            "normal_termination_rollout_count": sum(not value for value in unfinished),
             "mean_tool_calls": statistics.fmean(tool_calls) if tool_calls else None,
             "mean_action_recall": statistics.fmean(action_recalls) if action_recalls else None,
             "distinct_action_recalls": sorted(set(action_recalls)),
@@ -189,6 +201,18 @@ def analyze(
             "positive_without_action_progress_count": (
                 positive_without_action_progress
             ),
+        },
+        "system_failures": {
+            "source": (
+                {
+                    "path": str(system_failure_path),
+                    "sha256": sha256(system_failure_path),
+                }
+                if system_failure_path is not None and system_failure_path.is_file()
+                else None
+            ),
+            "count": len(system_failures),
+            "categories": dict(sorted(system_failure_categories.items())),
         },
         "group_variance": {
             "definition": "within-task population variance across repeated rollouts",
@@ -219,12 +243,14 @@ def main() -> None:
     parser.add_argument("--expected-tasks", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--baseline-rollouts", type=Path)
+    parser.add_argument("--system-failures", type=Path)
     args = parser.parse_args()
     report = analyze(
         args.rollouts.resolve(),
         args.expected_rollouts,
         args.expected_tasks,
         args.baseline_rollouts.resolve() if args.baseline_rollouts else None,
+        args.system_failures.resolve() if args.system_failures else None,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(

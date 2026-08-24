@@ -813,6 +813,74 @@ class RetailAgenticSplitTests(unittest.TestCase):
             self.assertFalse(report["gates"]["tool_error_count_not_increased"])
             self.assertFalse(report["gates"]["ready_to_consider_optimization"])
 
+    def test_rollout_diagnostic_requires_a_normal_termination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rollouts.jsonl"
+            rows = [
+                {
+                    "task_id": "0",
+                    "tool_calls": 1,
+                    "customer_turns": 1,
+                    "reward": {
+                        "reward": float(index),
+                        "tool_error_count": 0,
+                        "unfinished_interaction_penalty": 0.1,
+                        "action_progress": {"recall": float(index)},
+                    },
+                }
+                for index in range(2)
+            ]
+            path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            report = analyze(path, expected_rollouts=2, expected_tasks=1)
+            self.assertEqual(
+                report["behavior"]["normal_termination_rollout_count"], 0
+            )
+            self.assertFalse(report["gates"]["normal_termination_observed"])
+            self.assertFalse(report["gates"]["ready_to_consider_optimization"])
+
+    def test_rollout_diagnostic_rejects_system_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "rollouts.jsonl"
+            failure_path = root / "system_failures.jsonl"
+            rows = [
+                {
+                    "task_id": "0",
+                    "tool_calls": 1,
+                    "customer_turns": 1,
+                    "reward": {
+                        "reward": float(index),
+                        "tool_error_count": 0,
+                        "action_progress": {"recall": float(index)},
+                    },
+                }
+                for index in range(2)
+            ]
+            path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            failure_path.write_text(
+                json.dumps({"category": "INVALID_RESPONSE"}) + "\n",
+                encoding="utf-8",
+            )
+            report = analyze(
+                path,
+                expected_rollouts=2,
+                expected_tasks=1,
+                system_failure_path=failure_path,
+            )
+            self.assertEqual(report["system_failures"]["count"], 1)
+            self.assertEqual(
+                report["system_failures"]["categories"],
+                {"INVALID_RESPONSE": 1},
+            )
+            self.assertFalse(report["gates"]["no_system_failures"])
+            self.assertFalse(report["gates"]["ready_to_consider_optimization"])
+
     def test_transferred_upstream_requires_commit_and_package_hash(self) -> None:
         commit = "58e5e1ace69302e6982d27014569c03e0ffccdd2"
         with tempfile.TemporaryDirectory() as directory:

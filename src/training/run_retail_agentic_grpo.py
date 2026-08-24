@@ -648,6 +648,16 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
             "files": len(completion_files),
             "bytes": sum(path.stat().st_size for path in completion_files),
         }
+    system_failure_rows = 0
+    if system_failure_log.is_file():
+        system_failure_rows = len(
+            system_failure_log.read_text(encoding="utf-8").splitlines()
+        )
+        artifacts["system_failures"] = {
+            "path": str(system_failure_log),
+            "sha256": sha256(system_failure_log),
+            "rows": system_failure_rows,
+        }
     if optimization_enabled:
         artifacts.update(
             {
@@ -689,11 +699,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         "rollout": config["rollout"],
         "quantization": quantization,
         "user_simulator_preflight": api_preflight,
-        "system_failure_count": (
-            len(system_failure_log.read_text(encoding="utf-8").splitlines())
-            if system_failure_log.is_file()
-            else 0
-        ),
+        "system_failure_count": system_failure_rows,
         "formal_retail_readiness_gate_opened": False,
         "business_improvement_claim_allowed": False,
     }
