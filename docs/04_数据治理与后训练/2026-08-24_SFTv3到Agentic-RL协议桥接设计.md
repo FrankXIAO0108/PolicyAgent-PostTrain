@@ -344,3 +344,36 @@ SFT 基线唯一出现正确停止的 task 15 没有产生非零优势 group。r
 估计方差高；`beta=0` 没有 KL 漂移约束；训练和评测任务规模过小。当前不应继续盲目增加
 GRPO steps。下一步应先扩大只读诊断或提高阶段奖励密度，并以独立冻结轨迹验证；只有在
 更可靠的开发评测上证明收益后，才把该 checkpoint 作为后续业务主线起点。
+
+## 14. GRPO 训练信号离线审计
+
+新增只读审计器 `src/evaluation/grpo_training_audit.py`。它在统计前校验 config 与 raw
+rollout 的 SHA-256 是否和 `run_manifest.json` 一致，并按冻结配置中的
+`num_generations` 对连续 rollout 分组。当前 runner 没有在 raw row 中记录显式 group ID，
+因此报告将 `sequential_rows_by_num_generations` 明确记录为分组方法，并要求同组 task ID
+一致；这项限制不能被隐去。
+
+复现命令：
+
+```powershell
+python -m src.evaluation.grpo_training_audit `
+  --run-dir output/20260824-identity-auth-grpo-s28-v1 `
+  --config configs/retail_agentic_qwen3_4b_identity_auth_grpo_v1.json `
+  --output output/20260824-identity-auth-grpo-s28-v1/training_audit.json
+```
+
+审计结果与原始日志一致：
+
+- 28 个 group 中 20 个全 0、2 个全 1、6 个有组内差异；
+- 22/28 step 的 `reward_std=0`，只有 task 13、20、22 产生有效比较；
+- 6 个非零 reward-std step 均有非零梯度，grad norm 范围 0.21875--0.375；
+- completion step 均值为 162.125 token，第一步 118、最后一步 206；
+- 12/28 step 出现截断，`clipped_ratio` 的 step 均值为 0.267857，最大值为 1；
+- entropy 从 0.092663 到 0.224084，范围 0.060421--0.338915，现有数据不支持
+  entropy collapse 判断；
+- `beta=0`，因此不存在可供分析的 KL 曲线；
+- 日志只有整体 `step_time`，没有 rollout 与 model update 的独立计时，不能回答二者耗时占比。
+
+该审计只证明出现过真实策略更新，并固定训练信号稀疏、截断和监控缺口；它不评估行为
+提升，也不能单独证明 post-GRPO 回退的因果根因。下一项可比实验仍是独立 seed 的无更新
+后评测，而不是追加训练 step。
