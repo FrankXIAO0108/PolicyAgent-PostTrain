@@ -975,6 +975,20 @@ class RetailAgenticSplitTests(unittest.TestCase):
             manifest["task_split_sha256"],
         )
 
+        seed2_config = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_rollout_diagnostic_clean_seed20260825_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(seed2_config["seed"], 20260825)
+        seed1_normalized = dict(config)
+        seed2_normalized = dict(seed2_config)
+        seed1_normalized["seed"] = None
+        seed2_normalized["seed"] = None
+        self.assertEqual(seed1_normalized, seed2_normalized)
+
     def test_identity_authentication_grpo_is_bound_to_eligible_evidence(self) -> None:
         config = json.loads(
             (
