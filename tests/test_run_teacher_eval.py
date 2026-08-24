@@ -21,6 +21,7 @@ from src.training.run_teacher_eval import (
 LOCAL_TAU2_ROOT = Path(r"D:\tau2-bench")
 REQUIRES_TAU2 = LOCAL_TAU2_ROOT.joinpath("data/tau2/domains/retail/tasks.json").is_file()
 V2_CONFIG = Path("configs/retail_teacher_eval_v2_owner_corrected.json").resolve()
+V3_CONFIG = Path("configs/retail_teacher_eval_v3_wave_a.json").resolve()
 
 
 def load_real_config() -> dict:
@@ -84,6 +85,17 @@ class TeacherEvalConfigTests(unittest.TestCase):
         self.assertEqual(
             sum(row["source"] == "test_clean" for row in validated["task_rows"]),
             11,
+        )
+        self.assertFalse(validated["config"]["claims"]["fresh_unseen_evaluation"])
+
+    def test_wave_a_v3_regression_config_validates(self):
+        validated = validate_config(V3_CONFIG)
+        self.assertEqual(len(validated["task_ids"]), 18)
+        self.assertEqual(validated["num_trials"], 4)
+        self.assertEqual(len(validated["entity_values"]), 188)
+        self.assertEqual(
+            [run["name"] for run in validated["model_runs"]],
+            ["base", "sft_v3_wave_a_fixed_s80"],
         )
         self.assertFalse(validated["config"]["claims"]["fresh_unseen_evaluation"])
 
