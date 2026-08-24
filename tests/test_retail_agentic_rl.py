@@ -702,6 +702,11 @@ class RetailAgenticSplitTests(unittest.TestCase):
             .hexdigest()
             .upper(),
         )
+        self.assertNotIn(
+            b"\r\n",
+            (PROJECT / config["data"]["task_split"]).read_bytes(),
+            "Frozen RL v2 data must remain LF-stable across Windows and Linux",
+        )
 
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

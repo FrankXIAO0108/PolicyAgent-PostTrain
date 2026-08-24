@@ -5,7 +5,7 @@
   "rows": 4,
   "task_ids": ["0", "7", "10", "15"],
   "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
-  "task_split_sha256": "F48E74011C4BE3556A15CF782AA31D0A615DCCEEECB1755F6B529941A1017C35",
+  "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
   "output_path": "data/retail_agentic_rl_v2/qwen3_sft_v3_diagnostic4_initial_user_messages.jsonl",
   "output_sha256": "A65B69B3754940519A45D519039109D081C2ADF6A12A9E9F89CF914CB0CC5C4D",
   "source_openings_path": "data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages.jsonl",
