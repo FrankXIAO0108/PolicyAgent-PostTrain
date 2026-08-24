@@ -1,7 +1,7 @@
 # SFT v3 到 Agentic RL 协议桥接设计
 
 日期：2026-08-24
-状态：本地数据构建与结构门禁已通过，GPU smoke 尚未运行
+状态：20-step 协议 SFT 已完成，动态 rollout 复测待运行
 
 ## 1. 问题定义
 
@@ -77,3 +77,31 @@ SFT v3 的 16/16 completion 都生成了正常自然语言，但 0/16 生成结�
 协议 SFT 若成功，只证明模型能把已有业务行为映射到 Agentic 环境动作空间。它不证明
 业务成功率提高，也不证明 RL 已有收益。若复测仍无组内信号，应继续诊断动作终止、
 上下文长度或轨迹覆盖，而不是强行开启权重更新。
+
+## 6. 实际运行结果
+
+运行目录：
+
+`/root/autodl-tmp/policyagent-runs/20260824-sft-v3-agentic-protocol-bridge-s20-v1`
+
+绑定与结果：
+
+| 项目 | 结果 |
+|---|---:|
+| 项目 commit | `b17a675c7d98973076b77dce7a98716dac18074e` |
+| config SHA-256 | `83757478B9F369EC3BA0C6623ED9C3AC0C61AF42D37C1F0B00F5E585C83D75F5` |
+| 最大序列长度 | 14,266 tokens |
+| 训练步数 | 20 |
+| 训练累计 token | 730,600（日志显示值） |
+| train loss | 0.259592 |
+| Base validation loss | 0.428757 |
+| SFT validation loss | 0.409007 |
+| validation loss 相对下降 | 4.61% |
+| 总墙钟 | 389.72 秒 |
+| adapter SHA-256 | `488146860A18E5FCC0F351F3423B502678859360A16007465344FCC40D89EFDE` |
+| merged model SHA-256 | `0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576` |
+| run manifest SHA-256 | `56A28EF5040E84E157FDE8EA486CB4225FFC55FC6CFEC41DBE5DB86B146A71CF` |
+
+2-step smoke 的 Base/SFT validation loss 为 0.428757/0.427405，正式 20-step 的
+SFT validation loss 降至 0.409007。该结果支持“协议监督被模型学习”，但动态行为是否
+改善仍必须由冻结的无更新 rollout 诊断回答。
