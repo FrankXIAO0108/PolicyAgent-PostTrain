@@ -1,0 +1,23 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "rl_train",
+  "rows": 4,
+  "task_ids": ["0", "7", "10", "15"],
+  "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+  "task_split_sha256": "F48E74011C4BE3556A15CF782AA31D0A615DCCEEECB1755F6B529941A1017C35",
+  "output_path": "data/retail_agentic_rl_v2/qwen3_sft_v3_diagnostic4_initial_user_messages.jsonl",
+  "output_sha256": "A65B69B3754940519A45D519039109D081C2ADF6A12A9E9F89CF914CB0CC5C4D",
+  "source_openings_path": "data/retail_agentic_rl_v1/qwen3_diagnostic8_initial_user_messages.jsonl",
+  "source_openings_sha256": "8F23026B875C977EC6DD380893C9759CA1B6E8808881CD64187F36B19D3BAD20",
+  "derivation": "deterministic_task_id_subset_no_external_api_call",
+  "user_model": "deepseek/deepseek-v4-flash",
+  "temperature": 0.0,
+  "total_usage": {
+    "completion_tokens": 575,
+    "prompt_tokens": 1939
+  },
+  "total_cost": 0.0003095288,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false
+}

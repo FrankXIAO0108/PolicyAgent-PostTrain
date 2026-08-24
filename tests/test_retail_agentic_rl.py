@@ -16,7 +16,11 @@ from src.rl.retail_agentic_env import (
     gate_environment_state_reward,
     one_to_one_action_progress,
 )
-from src.training.run_retail_agentic_grpo import validate_upstream_checkout
+from src.training.run_retail_agentic_grpo import (
+    selected_task_ids,
+    validate_upstream_checkout,
+)
+from src.rl.task_split import protect_validation_from_sft_tasks
 from src.analysis.analyze_agentic_rollout_diagnostic import analyze
 
 
@@ -536,6 +540,30 @@ class ProcessRewardSignalTests(unittest.TestCase):
 
 
 class RetailAgenticSplitTests(unittest.TestCase):
+    def test_sft_seen_validation_tasks_are_reassigned_to_rl_train(self) -> None:
+        tasks = [
+            SimpleNamespace(
+                id=str(task_id),
+                evaluation_criteria=SimpleNamespace(actions=[]),
+            )
+            for task_id in range(5)
+        ]
+        split = {
+            "rl_train": ["0", "1"],
+            "rl_validation": ["2", "3"],
+            "development_audit": ["4"],
+            "strata": {"candidate_counts": {"query": 4}, "validation_counts": {}},
+        }
+        reassigned = protect_validation_from_sft_tasks(
+            split,
+            tasks=tasks,
+            sft_task_ids={"2"},
+        )
+        self.assertEqual(reassigned, ["2"])
+        self.assertEqual(split["rl_train"], ["0", "1", "2"])
+        self.assertEqual(split["rl_validation"], ["3"])
+        self.assertEqual(split["strata"]["validation_counts"], {"query": 1})
+
     def test_frozen_split_is_disjoint_and_reserves_official_test(self) -> None:
         manifest = json.loads(
             (PROJECT / "data" / "retail_agentic_rl_v1" / "task_split.json").read_text(
@@ -599,6 +627,80 @@ class RetailAgenticSplitTests(unittest.TestCase):
         self.assertEqual(
             diagnostic["diagnostic"]["expected_tasks"],
             diagnostic["data"]["max_tasks"],
+        )
+
+    def test_v2_split_and_sft_diagnostic_are_bound_and_clean(self) -> None:
+        split = json.loads(
+            (PROJECT / "data" / "retail_agentic_rl_v2" / "task_split.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        train = set(split["splits"]["rl_train"])
+        validation = set(split["splits"]["rl_validation"])
+        development = set(split["splits"]["development_audit"])
+        self.assertEqual((len(train), len(validation), len(development)), (47, 7, 20))
+        self.assertFalse(train & validation)
+        self.assertFalse(train & development)
+        self.assertFalse(validation & development)
+        self.assertEqual(len(train | validation | development), 74)
+        self.assertEqual(
+            split["sft_task_isolation"][
+                "reassigned_from_rl_validation_to_rl_train"
+            ],
+            ["2", "3", "4"],
+        )
+        self.assertEqual(
+            split["leakage_checks"]["rl_validation_sft_task_overlap_count"], 0
+        )
+
+        config = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_sft_v3_rollout_diagnostic_v2.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(config["reward"], DEFAULT_REWARD_CONFIG)
+        self.assertEqual(config["model"]["source_stage"], "SFT")
+        self.assertEqual(
+            config["model"]["training_data_manifest_sha256"],
+            split["source"]["sft_data_manifest_sha256"],
+        )
+        self.assertEqual(config["data"]["max_tasks"], 4)
+        self.assertEqual(config["data"]["task_ids"], ["0", "7", "10", "15"])
+        self.assertEqual(selected_task_ids(config, split), ["0", "7", "10", "15"])
+        self.assertEqual(config["grpo"]["num_generations"], 2)
+        self.assertEqual(config["grpo"]["max_steps"], 8)
+        self.assertEqual(config["diagnostic"]["expected_rollouts"], 16)
+        self.assertEqual(
+            config["diagnostic"]["expected_rollouts_per_task"], 4
+        )
+
+        openings_path = PROJECT / config["data"]["openings"]
+        openings_manifest = json.loads(
+            (PROJECT / config["data"]["openings_manifest"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        opening_rows = [
+            json.loads(line)
+            for line in openings_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        self.assertEqual(
+            [row["task_id"] for row in opening_rows], config["data"]["task_ids"]
+        )
+        self.assertEqual(
+            hashlib.sha256(openings_path.read_bytes()).hexdigest().upper(),
+            openings_manifest["output_sha256"],
+        )
+        self.assertEqual(
+            openings_manifest["task_split_sha256"],
+            hashlib.sha256(
+                (PROJECT / config["data"]["task_split"]).read_bytes()
+            )
+            .hexdigest()
+            .upper(),
         )
 
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:

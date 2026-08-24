@@ -186,6 +186,25 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
         raise ValueError("Upstream commit binding mismatch")
     if split["leakage_checks"].get("passed") is not True:
         raise ValueError("Task split leakage checks are not passing")
+    if config["model"].get("source_stage") == "SFT":
+        expected_manifest_sha256 = config["model"].get(
+            "training_data_manifest_sha256"
+        )
+        actual_manifest_sha256 = split.get("source", {}).get(
+            "sft_data_manifest_sha256"
+        )
+        if not expected_manifest_sha256 or (
+            actual_manifest_sha256 != expected_manifest_sha256
+        ):
+            raise ValueError("RL split is not bound to the SFT training manifest")
+        if (
+            split["leakage_checks"].get(
+                "rl_validation_sft_task_overlap_count"
+            )
+            != 0
+        ):
+            raise ValueError("SFT-seen task is present in RL validation")
+    selected_task_ids(config, split)
     upstream_checkout = validate_upstream_checkout(
         config["upstream"]["commit"],
         config["upstream"].get("source_package_sha256"),
@@ -200,6 +219,35 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
         "split_sha256": sha256(split_path),
         "upstream_checkout": upstream_checkout,
     }
+
+
+def selected_task_ids(
+    config: dict[str, Any], split: dict[str, Any]
+) -> list[str]:
+    """Resolve an ordered diagnostic subset without depending on split ordering."""
+    data = config["data"]
+    subset_ids = [str(task_id) for task_id in split["splits"][data["train_subset"]]]
+    configured = data.get("task_ids")
+    if configured is not None:
+        selected = [str(task_id) for task_id in configured]
+        if not selected or len(selected) != len(set(selected)):
+            raise ValueError("data.task_ids must be non-empty and unique")
+        outside = sorted(set(selected) - set(subset_ids), key=int)
+        if outside:
+            raise ValueError(
+                f"Configured task IDs are outside {data['train_subset']}: {outside}"
+            )
+        max_tasks = data.get("max_tasks")
+        if max_tasks is not None and int(max_tasks) != len(selected):
+            raise ValueError("data.max_tasks must equal len(data.task_ids)")
+        return selected
+    max_tasks = data.get("max_tasks")
+    if max_tasks is not None:
+        max_tasks = int(max_tasks)
+        if max_tasks <= 0:
+            raise ValueError("data.max_tasks must be positive when configured")
+        subset_ids = subset_ids[:max_tasks]
+    return subset_ids
 
 
 def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
@@ -223,14 +271,7 @@ def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
     if openings_manifest["output_sha256"] != sha256(openings_path):
         raise ValueError("Opening utterance hash mismatch")
 
-    subset = data["train_subset"]
-    expected_ordered = list(split["splits"][subset])
-    max_tasks = data.get("max_tasks")
-    if max_tasks is not None:
-        max_tasks = int(max_tasks)
-        if max_tasks <= 0:
-            raise ValueError("data.max_tasks must be positive when configured")
-        expected_ordered = expected_ordered[:max_tasks]
+    expected_ordered = selected_task_ids(config, split)
     expected_ids = set(expected_ordered)
     row_ids = {str(row["task_id"]) for row in openings}
     if row_ids != expected_ids:

@@ -150,6 +150,32 @@ def stratified_split(
     }
 
 
+def protect_validation_from_sft_tasks(
+    split: dict[str, Any],
+    *,
+    tasks: list[Any],
+    sft_task_ids: set[str],
+) -> list[str]:
+    """Move SFT-seen tasks out of RL validation while preserving the partition."""
+    overlap = sorted(set(split["rl_validation"]) & sft_task_ids, key=int)
+    if not overlap:
+        return []
+    split["rl_validation"] = sorted(
+        set(split["rl_validation"]) - set(overlap), key=int
+    )
+    split["rl_train"] = sorted(set(split["rl_train"]) | set(overlap), key=int)
+    task_by_id = {str(task.id): task for task in tasks}
+    split["strata"]["validation_counts"] = dict(
+        sorted(
+            Counter(
+                task_stratum(task_by_id[task_id])
+                for task_id in split["rl_validation"]
+            ).items()
+        )
+    )
+    return overlap
+
+
 def git_commit(path: Path) -> str:
     return subprocess.run(
         ["git", "-c", f"safe.directory={path.as_posix()}", "rev-parse", "HEAD"],
@@ -166,6 +192,8 @@ def build_manifest(
     upstream_root: Path,
     validation_size: int,
     seed: int,
+    sft_split_plan: Path | None = None,
+    sft_data_manifest: Path | None = None,
 ) -> dict[str, Any]:
     _ensure_tau2_importable()
     from tau2.registry import registry
@@ -181,6 +209,28 @@ def build_manifest(
         validation_size=validation_size,
         seed=seed,
     )
+    sft_task_ids: set[str] = set()
+    reassigned_validation_ids: list[str] = []
+    if (sft_split_plan is None) != (sft_data_manifest is None):
+        raise ValueError(
+            "sft_split_plan and sft_data_manifest must be provided together"
+        )
+    if sft_split_plan is not None and sft_data_manifest is not None:
+        if not sft_split_plan.is_file() or not sft_data_manifest.is_file():
+            raise FileNotFoundError("SFT split plan or data manifest is missing")
+        sft_rows = [
+            json.loads(line)
+            for line in sft_split_plan.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        sft_task_ids = {str(row["task_id"]) for row in sft_rows}
+        reassigned_validation_ids = protect_validation_from_sft_tasks(
+            split,
+            tasks=train_tasks,
+            sft_task_ids=sft_task_ids,
+        )
+        if set(split["rl_validation"]) & sft_task_ids:
+            raise RuntimeError("SFT-seen task remains in RL validation")
     all_selected = (
         set(split["rl_train"])
         | set(split["rl_validation"])
@@ -198,8 +248,12 @@ def build_manifest(
         raise RuntimeError(
             f"Upstream commit mismatch: expected {expected_upstream}, got {upstream_commit}"
         )
-    return {
-        "schema_version": "retail-agentic-rl-task-split-v1",
+    manifest = {
+        "schema_version": (
+            "retail-agentic-rl-task-split-v2"
+            if sft_split_plan is not None
+            else "retail-agentic-rl-task-split-v1"
+        ),
         "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
         "seed": seed,
         "claims": {
@@ -233,6 +287,30 @@ def build_manifest(
             "passed": True,
         },
     }
+    if sft_split_plan is not None and sft_data_manifest is not None:
+        manifest["source"]["sft_split_plan"] = str(
+            sft_split_plan.relative_to(REPO_ROOT)
+        ).replace("\\", "/")
+        manifest["source"]["sft_split_plan_sha256"] = sha256_file(sft_split_plan)
+        manifest["source"]["sft_data_manifest"] = str(
+            sft_data_manifest.relative_to(REPO_ROOT)
+        ).replace("\\", "/")
+        manifest["source"]["sft_data_manifest_sha256"] = sha256_file(
+            sft_data_manifest
+        )
+        manifest["sft_task_isolation"] = {
+            "sft_task_count": len(sft_task_ids),
+            "reassigned_from_rl_validation_to_rl_train": reassigned_validation_ids,
+            "rl_train_overlap_count": len(set(split["rl_train"]) & sft_task_ids),
+            "rl_validation_overlap_count": len(
+                set(split["rl_validation"]) & sft_task_ids
+            ),
+            "development_audit_overlap_count": len(
+                set(split["development_audit"]) & sft_task_ids
+            ),
+        }
+        manifest["leakage_checks"]["rl_validation_sft_task_overlap_count"] = 0
+    return manifest
 
 
 def main() -> None:
@@ -254,12 +332,22 @@ def main() -> None:
     )
     parser.add_argument("--validation-size", type=int, default=10)
     parser.add_argument("--seed", type=int, default=20260810)
+    parser.add_argument("--sft-split-plan", type=Path)
+    parser.add_argument("--sft-data-manifest", type=Path)
     args = parser.parse_args()
     manifest = build_manifest(
         baseline_config=args.baseline_config.resolve(),
         upstream_root=args.upstream_root.resolve(),
         validation_size=args.validation_size,
         seed=args.seed,
+        sft_split_plan=(
+            args.sft_split_plan.resolve() if args.sft_split_plan is not None else None
+        ),
+        sft_data_manifest=(
+            args.sft_data_manifest.resolve()
+            if args.sft_data_manifest is not None
+            else None
+        ),
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
