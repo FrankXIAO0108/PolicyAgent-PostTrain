@@ -1005,6 +1005,21 @@ class RetailAgenticSplitTests(unittest.TestCase):
         )
         self.assertFalse(evidence["selection_used_reward_values"])
 
+        smoke = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_grpo_smoke_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(smoke["execution_mode"], "OPTIMIZE")
+        self.assertEqual(smoke["model"], config["model"])
+        self.assertEqual(smoke["data"], config["data"])
+        self.assertEqual(smoke["rollout"], config["rollout"])
+        self.assertEqual(smoke["reward"], config["reward"])
+        self.assertEqual(smoke["grpo"]["max_steps"], 1)
+        self.assertEqual(smoke["grpo"]["num_generations"], 2)
+
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "rollouts.jsonl"
