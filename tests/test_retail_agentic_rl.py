@@ -975,6 +975,36 @@ class RetailAgenticSplitTests(unittest.TestCase):
             manifest["task_split_sha256"],
         )
 
+    def test_identity_authentication_grpo_is_bound_to_eligible_evidence(self) -> None:
+        config = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_grpo_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        evidence = config["eligibility_evidence"]
+        self.assertEqual(config["execution_mode"], "OPTIMIZE")
+        self.assertEqual(
+            config["rollout"]["stage"], IDENTITY_AUTHENTICATION_STAGE
+        )
+        self.assertEqual(config["reward"], DEFAULT_REWARD_CONFIG)
+        self.assertEqual(
+            config["data"]["task_ids"],
+            ["7", "10", "11", "13", "15", "20", "22"],
+        )
+        self.assertEqual(config["grpo"]["max_steps"], 28)
+        self.assertEqual(config["grpo"]["num_generations"], 2)
+        self.assertGreater(config["grpo"]["learning_rate"], 0.0)
+        self.assertEqual(config["grpo"]["beta"], 0.0)
+        self.assertTrue(config["quantization"]["enabled"])
+        self.assertTrue(evidence["ready_to_consider_optimization"])
+        self.assertGreaterEqual(
+            evidence["selected_variance_task_count"],
+            evidence["minimum_variance_tasks"],
+        )
+        self.assertFalse(evidence["selection_used_reward_values"])
+
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "rollouts.jsonl"
