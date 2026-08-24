@@ -916,6 +916,65 @@ class RetailAgenticSplitTests(unittest.TestCase):
         )
         self.assertIn("no_external_api_call", manifest["derivation"])
 
+    def test_clean_identity_diagnostic_excludes_only_system_failure_task(self) -> None:
+        config = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "retail_agentic_qwen3_4b_identity_auth_rollout_diagnostic_clean_v3.json"
+            ).read_text(encoding="utf-8")
+        )
+        manifest = json.loads(
+            (PROJECT / config["data"]["openings_manifest"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        openings_path = PROJECT / config["data"]["openings"]
+        rows = [
+            json.loads(line)
+            for line in openings_path.read_text(encoding="utf-8").splitlines()
+        ]
+        source_openings_path = PROJECT / manifest["source_openings_path"]
+        source_rows = [
+            json.loads(line)
+            for line in source_openings_path.read_text(encoding="utf-8").splitlines()
+        ]
+        self.assertEqual(config["execution_mode"], "ROLLOUT_DIAGNOSTIC")
+        self.assertEqual(
+            config["rollout"]["stage"], IDENTITY_AUTHENTICATION_STAGE
+        )
+        self.assertEqual(
+            config["data"]["task_ids"],
+            ["7", "10", "11", "13", "15", "20", "22"],
+        )
+        self.assertEqual(config["data"]["max_tasks"], 7)
+        self.assertEqual(config["grpo"]["max_steps"], 14)
+        self.assertEqual(config["grpo"]["learning_rate"], 0.0)
+        self.assertEqual(config["diagnostic"]["expected_rollouts"], 28)
+        self.assertEqual(config["diagnostic"]["expected_tasks"], 7)
+        self.assertEqual(
+            [row["task_id"] for row in rows], config["data"]["task_ids"]
+        )
+        self.assertEqual(source_rows[1:], rows)
+        self.assertEqual(manifest["excluded_task_ids"], ["0"])
+        self.assertFalse(manifest["selection_used_reward_values"])
+        self.assertIn("no_external_api_call", manifest["derivation"])
+        self.assertEqual(
+            hashlib.sha256(openings_path.read_bytes()).hexdigest().upper(),
+            manifest["output_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(source_openings_path.read_bytes()).hexdigest().upper(),
+            manifest["source_openings_sha256"],
+        )
+        self.assertNotIn(b"\r\n", openings_path.read_bytes())
+        self.assertEqual(
+            hashlib.sha256(
+                (PROJECT / config["data"]["task_split"]).read_bytes()
+            ).hexdigest().upper(),
+            manifest["task_split_sha256"],
+        )
+
     def test_rollout_diagnostic_requires_behavior_and_reward_variance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "rollouts.jsonl"

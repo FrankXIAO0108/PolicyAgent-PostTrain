@@ -1,0 +1,28 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "rl_train",
+  "rows": 7,
+  "task_ids": ["7", "10", "11", "13", "15", "20", "22"],
+  "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+  "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+  "output_path": "data/retail_agentic_rl_v2/identity_auth_diagnostic7_clean_initial_user_messages.jsonl",
+  "output_sha256": "356C7B31AAD5676B8F35DEEC0D43CA1AD5BFF9E9BAE696F561EC460D8CA3F1B7",
+  "source_openings_path": "data/retail_agentic_rl_v2/identity_auth_diagnostic8_initial_user_messages.jsonl",
+  "source_openings_sha256": "8F23026B875C977EC6DD380893C9759CA1B6E8808881CD64187F36B19D3BAD20",
+  "source_diagnostic_rollouts_sha256": "36032C1A5C18C8F5C7D26907DD42FA851FF282B831D71DC810AE1852C84A3C09",
+  "source_diagnostic_system_failures_sha256": "24B660EBE8ADADF450DCC27E56379CD69D46EFC436ABC3D48AC0E013A83D3BFD",
+  "excluded_task_ids": ["0"],
+  "exclusion_reason": "task_0_had_four_user_simulator_system_failures_in_the_bound_source_diagnostic",
+  "selection_used_reward_values": false,
+  "derivation": "deterministic_filter_excluding_only_system_failure_task_no_external_api_call",
+  "user_model": "deepseek/deepseek-v4-flash",
+  "temperature": 0.0,
+  "total_usage": {
+    "completion_tokens": 954,
+    "prompt_tokens": 3457
+  },
+  "total_cost": 0.0005227992,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false
+}
