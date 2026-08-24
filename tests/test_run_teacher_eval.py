@@ -97,6 +97,7 @@ class TeacherEvalConfigTests(unittest.TestCase):
             [run["name"] for run in validated["model_runs"]],
             ["base", "sft_v3_wave_a_fixed_s80"],
         )
+        self.assertEqual(validated["config"]["agent"]["max_tokens"], 2048)
         self.assertFalse(validated["config"]["claims"]["fresh_unseen_evaluation"])
 
     def test_select_smoke_task_filters_rows(self):
@@ -151,6 +152,12 @@ class TeacherEvalConfigTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_config(self.write(payload))
 
+    def test_rejects_nonpositive_agent_max_tokens(self):
+        payload = load_real_config()
+        payload["agent"]["max_tokens"] = 0
+        with self.assertRaisesRegex(ValueError, "agent.max_tokens"):
+            validate_config(self.write(payload))
+
     def test_rejects_wrong_evaluation_type(self):
         payload = load_real_config()
         payload["evaluation"]["type"] = "ALL"
@@ -188,10 +195,15 @@ class TeacherEvalConfigTests(unittest.TestCase):
 
     def test_build_agent_llm_args_local_gets_placeholder_key(self):
         args = build_agent_llm_args(
-            {"temperature": 0.0, "api_base": "http://localhost:8000/v1"}
+            {
+                "temperature": 0.0,
+                "max_tokens": 2048,
+                "api_base": "http://localhost:8000/v1",
+            }
         )
         self.assertEqual(args["api_key"], "EMPTY")
         self.assertEqual(args["temperature"], 0.0)
+        self.assertEqual(args["max_tokens"], 2048)
         self.assertEqual(args["api_base"], "http://localhost:8000/v1")
 
     def test_build_agent_llm_args_explicit_key_wins(self):

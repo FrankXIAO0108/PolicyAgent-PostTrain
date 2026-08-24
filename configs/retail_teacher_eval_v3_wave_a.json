@@ -209,6 +209,7 @@
   "agent": {
     "implementation": "llm_agent",
     "temperature": 0,
+    "max_tokens": 2048,
     "api_base": "http://localhost:8000/v1"
   },
   "user": {
@@ -251,6 +252,7 @@
     "Task IDs and task-definition entity values were checked disjoint from the 80-row Wave A Teacher-SFT pool.",
     "The 80-step checkpoint was selected using the 22-row development validation loss comparison, before this benchmark run.",
     "Checkpoint selection by teacher-forced loss does not establish Agent task success or business improvement.",
+    "Each agent turn is capped at 2048 generated tokens to prevent a single runaway response from consuming the full served context window.",
     "Agent is served by local vLLM; user simulator and NL judge use DeepSeek, whose external backend is not controlled by this repository.",
     "The 11 test_clean tasks use the official test split for development regression only and do not support an official leaderboard or business-improvement claim.",
     "Entity isolation covers task-definition text and frozen training group IDs; it is not proof of independence for every latent environment-state feature."

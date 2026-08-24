@@ -46,6 +46,8 @@ def validate_config(path: Path) -> dict[str, Any]:
         raise ValueError("Teacher eval agent temperature must be 0.0")
     if not agent.get("api_base"):
         raise ValueError("Teacher eval requires an api_base for the served agent model")
+    if "max_tokens" in agent and int(agent["max_tokens"]) < 1:
+        raise ValueError("agent.max_tokens must be at least 1")
 
     user = config["user"]
     if user["implementation"] != "user_simulator":
@@ -329,6 +331,8 @@ def build_agent_llm_args(agent_config: dict[str, Any]) -> dict[str, Any]:
         "temperature": agent_config["temperature"],
         "api_base": api_base,
     }
+    if "max_tokens" in agent_config:
+        args["max_tokens"] = int(agent_config["max_tokens"])
     if "api_key" in agent_config:
         args["api_key"] = str(agent_config["api_key"])
     elif api_base.startswith(("http://localhost", "http://127.0.0.1")):
