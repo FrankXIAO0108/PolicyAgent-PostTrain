@@ -1,0 +1,16 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "synthetic-unit-test-trajectory",
+  "description": "The agent invents an unsupported restore tool and mutates the cancelled order.",
+  "messages": [
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "a1", "name": "find_user_id_by_name_zip", "arguments": {"first_name": "Chen", "last_name": "Smith", "zip": "32278"}}]},
+    {"role": "tool", "tool_call_id": "a1", "success": true, "content": "chen_smith_8425"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "o1", "name": "get_order_details", "arguments": {"order_id": "#W8859225"}}]},
+    {"role": "tool", "tool_call_id": "o1", "success": true, "content": {"order_id": "#W8859225", "status": "cancelled"}},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "r1", "name": "restore_cancelled_order", "arguments": {"order_id": "#W8859225"}}]},
+    {"role": "tool", "tool_call_id": "r1", "success": true, "content": {"order_id": "#W8859225", "status": "processed"}},
+    {"role": "assistant", "content": "Your order has been restored.", "tool_calls": []}
+  ],
+  "stopped": true,
+  "final_state_patch": {"orders": {"#W8859225": {"status": "processed"}}}
+}

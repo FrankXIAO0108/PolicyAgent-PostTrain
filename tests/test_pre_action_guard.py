@@ -8,6 +8,7 @@ from src.guards.retail_pre_action import (
     GuardContext,
     GuardDecision,
     ToolProposal,
+    WRITE_TOOLS,
     evaluate_retail_actions,
 )
 
@@ -25,6 +26,9 @@ def categories(result) -> set[str]:
 
 
 class RetailPreActionGuardTests(unittest.TestCase):
+    def test_modify_user_address_is_a_database_write(self) -> None:
+        self.assertIn("modify_user_address", WRITE_TOOLS)
+
     def test_same_item_exchange_is_blocked(self) -> None:
         result = evaluate_retail_actions(
             [

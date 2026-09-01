@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 import os
 import tempfile
 import unittest
@@ -106,7 +107,9 @@ class UserSimulatorFailFastTests(unittest.TestCase):
             self.assertEqual(payload["stage"], "USER_SIMULATOR_PREFLIGHT")
             self.assertEqual(payload["category"], "AUTHENTICATION_FAILED")
 
-    def test_runner_probes_api_before_runtime_or_gpu_loading(self) -> None:
+    def test_runner_validates_local_contract_before_api_and_probes_before_trainer(
+        self,
+    ) -> None:
         preflight = {
             "config": {
                 "reward": {},
@@ -124,10 +127,20 @@ class UserSimulatorFailFastTests(unittest.TestCase):
         ), patch.object(
             agentic_runner, "probe_user_simulator_api", side_effect=failure
         ) as probe, patch.object(agentic_runner, "check_runtime") as runtime:
-            with self.assertRaises(UserSimulatorSystemFailure):
+            with self.assertRaises(KeyError):
                 agentic_runner.run(preflight, Path(directory) / "run")
-        probe.assert_called_once_with(model="deepseek/test")
+        probe.assert_not_called()
         runtime.assert_not_called()
+
+        source = inspect.getsource(agentic_runner.run)
+        self.assertLess(
+            source.index("validate_optimization_contract("),
+            source.index("probe_user_simulator_api("),
+        )
+        self.assertLess(
+            source.index("probe_user_simulator_api("),
+            source.index("trainer = trainer_class("),
+        )
 
 
 if __name__ == "__main__":

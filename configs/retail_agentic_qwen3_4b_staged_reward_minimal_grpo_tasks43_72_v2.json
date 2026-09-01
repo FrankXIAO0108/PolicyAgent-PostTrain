@@ -1,0 +1,202 @@
+{
+  "schema_version": "retail-agentic-grpo-config-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "execution_mode": "OPTIMIZE",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved_for_final_evaluation": true,
+    "development_task_selection_used_historical_reward": true,
+    "minimal_engineering_run_only": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"
+    }
+  },
+  "model": {
+    "name_or_path": "/root/autodl-tmp/policyagent-runs/20260824-sft-v3-agentic-protocol-bridge-s20-v1/teacher_sft_merged",
+    "source_stage": "SFT_PROTOCOL_BRIDGE",
+    "expected_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+    "training_data_manifest_path": "data/retail_agentic_rl_v2/protocol_bridge_sft_manifest_v1.json",
+    "training_data_manifest_sha256": "696C8DAC2796E736ACB3DDBF8A3A9B18A893428CEA146C2C36C0DFB98284B436",
+    "training_data_source_manifest_sha256": "59B162093E2658E68C41FA06FE0B44E3EB145FFF1F978580501FBB461AC14C2B"
+  },
+  "data": {
+    "task_split": "data/retail_agentic_rl_v2/task_split.json",
+    "openings": "data/retail_agentic_rl_v2/terminal_only_prescreen_tasks43_72_initial_user_messages.jsonl",
+    "openings_manifest": "data/retail_agentic_rl_v2/terminal_only_prescreen_tasks43_72_initial_user_messages_manifest.json",
+    "train_subset": "development_audit",
+    "task_ids": [
+      "43",
+      "72"
+    ],
+    "max_tasks": 2
+  },
+  "seed": 20260826,
+  "precision": "bf16",
+  "quantization": {
+    "enabled": true,
+    "mode": "4bit_nf4",
+    "double_quant": true
+  },
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "grpo": {
+    "max_steps": 2,
+    "learning_rate": 0.000005,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 2,
+    "num_generations": 2,
+    "max_completion_length": 13312,
+    "temperature": 0.8,
+    "beta": 0.02,
+    "loss_type": "dr_grpo",
+    "use_vllm": false,
+    "logging_steps": 1,
+    "save_steps": 2,
+    "log_completions": true,
+    "num_completions_to_print": 0,
+    "gradient_checkpointing": true
+  },
+  "rollout": {
+    "stage": "FULL_TASK",
+    "max_customer_turns": 8,
+    "max_tool_calls": 32,
+    "max_tool_calling_iterations": 40
+  },
+  "reward": {
+    "process_reward_mode": "tiered_terminal_process_v2",
+    "environment_state_action_progress_gate": "none",
+    "environment_state_weight": 0,
+    "required_action_weight": 0,
+    "communication_weight": 0,
+    "tool_error_penalty_each": 0,
+    "tool_error_penalty_cap": 0,
+    "repeated_call_penalty_each": 0,
+    "repeated_call_penalty_cap": 0,
+    "unexpected_write_penalty_each": 0,
+    "unexpected_write_penalty_cap": 0,
+    "unfinished_interaction_penalty": 0,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": false,
+    "staged_reward_spec": {
+      "spec_id": "retail-staged-reward-shadow-tasks43-72-v2",
+      "reward": {
+        "terminal_complete_success_score": 1,
+        "terminal_incomplete_communication_cap": 0.9,
+        "complete_success_efficiency_penalty_cap": 0.02,
+        "nonterminal_component_weights": {
+          "identity_link": 0.1,
+          "target_evidence": 0.2,
+          "required_write_progress": 0.5,
+          "grounded_communication": 0.1
+        },
+        "normalize_active_nonterminal_weights_to": 0.9,
+        "no_correct_write_cap": 0.35,
+        "tool_error_penalty_each": 0.03,
+        "tool_error_penalty_cap": 0.09,
+        "repeated_call_penalty_each": 0.02,
+        "repeated_call_penalty_cap": 0.06,
+        "limit_reached_penalty": 0.1,
+        "unexpected_write_hard_cap": 0,
+        "minimum": 0,
+        "maximum": 1
+      },
+      "tasks": {
+        "43": {
+          "identity_link": {
+            "required_user_id": "lucas_santos_6600",
+            "required_order_ids": [
+              "#W1588712",
+              "#W7895761"
+            ]
+          },
+          "target_evidence_calls": [
+            {
+              "evidence_id": "43_order_in_transit",
+              "name": "get_order_details",
+              "arguments": {
+                "order_id": "#W1588712"
+              }
+            },
+            {
+              "evidence_id": "43_daughter_order_and_tablet",
+              "name": "get_order_details",
+              "arguments": {
+                "order_id": "#W7895761"
+              }
+            }
+          ],
+          "required_write_action_ids": [
+            "43_4"
+          ],
+          "communication_source": "terminal_evaluator.tau2.communication.communicate_checks"
+        },
+        "72": {
+          "identity_link": {
+            "required_user_id": "ivan_khan_7475",
+            "required_order_ids": [
+              "#W5270061"
+            ]
+          },
+          "target_evidence_calls": [
+            {
+              "evidence_id": "72_target_order",
+              "name": "get_order_details",
+              "arguments": {
+                "order_id": "#W5270061"
+              }
+            },
+            {
+              "evidence_id": "72_backpack_variants",
+              "name": "get_product_details",
+              "arguments": {
+                "product_id": "2524789262"
+              }
+            }
+          ],
+          "required_write_action_ids": [
+            "72_0",
+            "72_1"
+          ],
+          "communication_source": null
+        }
+      }
+    }
+  },
+  "generation_safety": {
+    "mode": "eos_finished_rows_v1"
+  },
+  "engineering_acceptance": {
+    "enforcement": "POST_RUN_ARTIFACT_REVIEW_NOT_RUNNER_GATE",
+    "expected_optimizer_steps": 2,
+    "expected_rollouts": 4,
+    "expected_tasks": 2,
+    "minimum_nonzero_reward_std_groups": 1,
+    "finite_gradients_required": true,
+    "trainable_parameter_change_required": true,
+    "same_protocol_before_after_evaluation_required": true,
+    "business_score_improvement_required": false,
+    "gpu_backward_and_memory_validated": false
+  },
+  "activation_precision": {
+    "mode": "qwen3_nf4_bf16_outputs_v1"
+  }
+}

@@ -10,6 +10,7 @@ from typing import Any
 WRITE_TOOLS = {
     "cancel_pending_order",
     "exchange_delivered_order_items",
+    "modify_user_address",
     "modify_pending_order_address",
     "modify_pending_order_items",
     "modify_pending_order_payment",

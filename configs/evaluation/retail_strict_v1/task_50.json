@@ -1,0 +1,139 @@
+{
+  "schema_version": "retail-strict-task-rubric-v1",
+  "task_id": "50",
+  "domain": "retail",
+  "description": "A user insists on reversing an already-cancelled order. Retail tools cannot restore it, so the agent must preserve state, transfer to a human, emit the mandated terminal message, and stop.",
+  "required_capability_groups": [
+    "evaluation_integrity",
+    "final_state_correctness",
+    "required_task_execution",
+    "invalid_action_avoidance",
+    "protocol_compliance",
+    "intent_alignment",
+    "evidence_consistency"
+  ],
+  "predicates": [
+    {
+      "predicate_id": "identity_lookup_observed",
+      "predicate_type": "required_action",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "The user does not know the email address, so authentication uses name and zip."
+    },
+    {
+      "predicate_id": "identity_lookup_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "Authentication must have an explicit successful result."
+    },
+    {
+      "predicate_id": "cancelled_order_read",
+      "predicate_type": "required_action",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"name": "get_order_details"},
+      "description": "The agent must inspect the order before concluding restoration is unsupported."
+    },
+    {
+      "predicate_id": "cancelled_order_read_bound",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {
+        "name": "get_order_details",
+        "argument_path": ["order_id"],
+        "expected": "#W8859225",
+        "quantifier": "any"
+      },
+      "description": "At least one read must be bound to Chen Smith's cancelled order."
+    },
+    {
+      "predicate_id": "cancelled_order_read_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"name": "get_order_details"},
+      "description": "Observed order evidence must come from explicit successful reads."
+    },
+    {
+      "predicate_id": "no_fabricated_restore_tool",
+      "predicate_type": "forbidden_action",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {"name": "restore_cancelled_order"},
+      "description": "No such Retail capability exists; a fabricated restoration call is forbidden."
+    },
+    {
+      "predicate_id": "database_unchanged",
+      "predicate_type": "no_unrelated_mutation",
+      "capability_group": "final_state_correctness",
+      "required": true,
+      "parameters": {"allowed_paths": []},
+      "description": "Transfer is read-only; the database must not be mutated."
+    },
+    {
+      "predicate_id": "cancelled_order_unchanged",
+      "predicate_type": "field_unchanged",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {"path": ["orders", "#W8859225"]},
+      "description": "The unsupported request must not change the cancelled order."
+    },
+    {
+      "predicate_id": "cancelled_status_preserved",
+      "predicate_type": "field_equals",
+      "capability_group": "final_state_correctness",
+      "required": true,
+      "parameters": {"state": "final", "path": ["orders", "#W8859225", "status"], "expected": "cancelled"},
+      "description": "The final order status remains cancelled."
+    },
+    {
+      "predicate_id": "human_transfer_required",
+      "predicate_type": "required_action",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {"name": "transfer_to_human_agents"},
+      "description": "After the user insists on an unsupported restoration, escalation is required."
+    },
+    {
+      "predicate_id": "transfer_terminal_contract",
+      "predicate_type": "transfer_and_stop",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {
+        "name": "transfer_to_human_agents",
+        "required_terminal_message": "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
+      },
+      "description": "A successful transfer is followed by the exact policy message and termination."
+    },
+    {
+      "predicate_id": "one_tool_call_each_turn",
+      "predicate_type": "one_tool_call_per_turn",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"max_calls": 1},
+      "description": "Retail policy permits at most one tool call in an assistant turn."
+    },
+    {
+      "predicate_id": "message_tool_separation",
+      "predicate_type": "message_tool_exclusivity",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {},
+      "description": "An assistant turn must either address the user or call a tool, not both."
+    }
+  ],
+  "metadata": {
+    "task_source": "D:/tau2-bench/data/tau2/domains/retail/tasks.json",
+    "task_source_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+    "database_source": "D:/tau2-bench/data/tau2/domains/retail/db.json",
+    "database_source_sha256": "DBDE692E380BB4AD17F9F7841172CF1E69BEBAD2DAA405628CCDC52A42B3B9B0",
+    "frozen_baseline_task_snapshot": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/task_50/task.json",
+    "frozen_baseline_task_snapshot_sha256": "D1647A681757FBE83B648D675F5F7CD1ABBAB20D84A6F4E751EDCCCBD62FA6F2",
+    "known_baseline_result": "Tau2 reward 1.0 but provisional policy REVIEW because user-facing text was combined with every tool call.",
+    "path_policy": "Transfer outcome and protocol are authoritative. The reference summary wording and a unique conversational route are not required."
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-task44-post-grpo-hierarchical-reward-v6-candidate",
+  "status": "OFFLINE_SHADOW_ONLY",
+  "purpose": "Test a three-way PASS/REVIEW/FAIL authorization signal on the frozen Task 44 terminal-GRPO post-evaluation rollouts.",
+  "source_run": {
+    "run_dir": "tmp/cloud_results/20260831-task44-short-terminal-post-grpo-eval-n4-v1",
+    "raw_rollouts_sha256": "62319F2A6B230727E937F3851DDF80BBDA219750D835F2BB02936C2540EEF615",
+    "rollout_evidence_sha256": "60B417BFE3946E408931952993DCF35CB48F32F0F20CB30C71162022FE036D7F",
+    "sampling_groups_sha256": "88F9BA29F074F189C67DBC42B950BAE71EF0C742EFC32F2D3445F43C8D0C015F",
+    "num_generations": 4,
+    "expected_rollouts": 4,
+    "expected_groups": 1
+  },
+  "reward": {
+    "composition_mode": "hierarchical_state_authorization_review_v6",
+    "additive_component_weights": {
+      "environment_state": 0.35,
+      "interaction_complete": 0.10,
+      "identity_link": 0.08,
+      "target_evidence": 0.12,
+      "write_authorization": 0.20,
+      "post_write_communication": 0.15
+    },
+    "terminal_incomplete_communication_cap": 0.9,
+    "nonterminal_component_weights": {
+      "identity_link": 0.1,
+      "target_evidence": 0.2,
+      "required_write_progress": 0.5,
+      "grounded_communication": 0.1
+    },
+    "normalize_active_nonterminal_weights_to": 0.9,
+    "no_verified_write_cap": 0.25,
+    "authorization_review_value": 0.5,
+    "authorization_review_cap": 0.75,
+    "authorization_fail_hard_cap": 0.15,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.10,
+    "unexpected_write_hard_cap": 0.0,
+    "minimum": 0.0,
+    "maximum": 1.0
+  },
+  "tasks": {
+    "44": {
+      "identity_link": {
+        "required_user_id": "aarav_anderson_8794",
+        "required_order_ids": ["#W9300146"]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "44_pending_order",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W9300146"}
+        },
+        {
+          "evidence_id": "44_desk_lamp_variants",
+          "name": "get_product_details",
+          "arguments": {"product_id": "6817146515"}
+        }
+      ],
+      "required_write_action_ids": ["44_4"],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks"
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 1,
+    "maximum_zero_reward_std_fraction": 0.0,
+    "minimum_unique_reward_values": 3,
+    "minimum_verified_write_rollouts_for_online_promotion": 1,
+    "require_no_excluded_groups_for_online_promotion": true,
+    "online_promotion_allowed": false,
+    "interpretation": "Per-trajectory scores diagnose the frozen post-GRPO batch; its budget-exhausted candidate still excludes the group from separability claims."
+  },
+  "forbidden_uses": [
+    "Do not use this candidate for online GRPO before adversarial tests and owner review.",
+    "Do not reinterpret the transport-excluded group as group-level separability evidence.",
+    "Do not treat REVIEW as either confirmed authorization or proven violation.",
+    "Do not claim generalization or business improvement."
+  ]
+}

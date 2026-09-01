@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-staged-reward-semantics-tasks43-72-v3-candidate",
+  "status": "OFFLINE_AUDIT_ONLY",
+  "purpose": "Separate reference-call progress from business facts proven by tool results before any scalar Reward revision.",
+  "supersedes_online_reward": false,
+  "sources": {
+    "v2_spec": {
+      "path": "configs/evaluation/staged_reward_shadow_tasks43_72_v2.json",
+      "sha256": "030D124DD1493ABC13668287998A38D362835039FF34F667835ECF6020D039A5"
+    },
+    "s5i_raw_rollouts": {
+      "path": "_local_private_runs/cloud_grpo_s5i_20260829/evidence/raw_rollouts.jsonl",
+      "sha256": "EBEB466E963934CCEBFDA7422295E921514A83FC8F76E0711BE478239F4E59E0"
+    },
+    "s5i_rollout_evidence": {
+      "path": "_local_private_runs/cloud_grpo_s5i_20260829/evidence/rollout_evidence.jsonl",
+      "sha256": "40ACA5E11D8EE2C4011CE17E5C8C995224D5D4993C6038D18F1373FAA46C02B2"
+    },
+    "historical_task_results": [
+      {
+        "path": "_local_private_runs/cloud_sft_v3_20260824/eval_v3_sft_v3_full/flat_evidence/task_43_returned_results.json",
+        "sha256": "89F4DC5B99609FE8D096AE788FA99DA7B013F71D70917C09AA4EF4E53C7510A0"
+      },
+      {
+        "path": "_local_private_runs/cloud_sft_v3_20260824/eval_v3_sft_v3_full/flat_evidence/task_72_returned_results.json",
+        "sha256": "9E883B4DF3A2B0AF7752B64645741FC5715378EC783821621E1F6D36AF203159"
+      }
+    ]
+  },
+  "tasks": {
+    "43": {
+      "reference_calls": [
+        {
+          "evidence_id": "43_first_reference_order_inspected",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W1588712"}
+        },
+        {
+          "evidence_id": "43_daughter_order_inspected",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W7895761"}
+        }
+      ],
+      "result_evidence": [
+        {
+          "evidence_id": "43_daughter_order_business_facts",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W7895761"},
+          "assertions": [
+            {"path": ["order_id"], "expected": "#W7895761"},
+            {"path": ["status"], "expected": "delivered"},
+            {
+              "path": ["address"],
+              "expected": {
+                "address1": "943 Maple Drive",
+                "address2": "Suite 356",
+                "city": "Chicago",
+                "state": "IL",
+                "zip": "60621"
+              }
+            },
+            {
+              "path": ["items"],
+              "expected": [{"name": "Tablet", "options": {"storage": "64GB"}}]
+            },
+            {
+              "path": ["fulfillments"],
+              "expected": [{"tracking_id": ["840887978435"]}]
+            }
+          ]
+        }
+      ],
+      "future_intent_dependency": null
+    },
+    "72": {
+      "reference_calls": [
+        {
+          "evidence_id": "72_target_order_inspected",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W5270061"}
+        },
+        {
+          "evidence_id": "72_backpack_variants_inspected",
+          "name": "get_product_details",
+          "arguments": {"product_id": "2524789262"}
+        }
+      ],
+      "result_evidence": [
+        {
+          "evidence_id": "72_target_order_business_facts",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W5270061"},
+          "assertions": [
+            {"path": ["status"], "expected": "pending"},
+            {
+              "path": ["address"],
+              "expected": {"city": "Washington", "state": "DC", "zip": "20353"}
+            },
+            {
+              "path": ["items"],
+              "expected": [
+                {"name": "Backpack", "product_id": "2524789262"},
+                {"name": "Desk Lamp", "product_id": "6817146515"}
+              ]
+            }
+          ]
+        },
+        {
+          "evidence_id": "72_final_backpack_variant_available",
+          "name": "get_product_details",
+          "arguments": {"product_id": "2524789262"},
+          "assertions": [
+            {
+              "path": ["variants", "5917587651"],
+              "expected": {
+                "available": true,
+                "options": {"color": "grey", "size": "medium", "material": "polyester"}
+              }
+            }
+          ]
+        }
+      ],
+      "future_intent_dependency": {
+        "description": "The user changes from gift card and lamp-plus-backpack to PayPal and backpack-only at confirmation time.",
+        "structured_dialogue_binding_available": false,
+        "scalar_write_reward_allowed_without_binding": false
+      }
+    }
+  },
+  "candidate_ordering": [
+    "complete_terminal_success",
+    "full_verified_write",
+    "partial_verified_write",
+    "result_evidence",
+    "reference_call_progress",
+    "identity_link"
+  ],
+  "forbidden_uses": [
+    "Do not use this candidate as an online scalar Reward.",
+    "Do not interpret reference-call progress as proof of a business fact.",
+    "Do not reward task 72 final-write intent before a structured dialogue-stage binding exists.",
+    "Do not claim model improvement from cross-checkpoint historical ordering."
+  ]
+}

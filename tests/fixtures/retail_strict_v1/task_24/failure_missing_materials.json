@@ -1,0 +1,17 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "synthetic-unit-test-trajectory",
+  "description": "The agent preserves the grill but omits the requested T-shirt identities and materials.",
+  "messages": [
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "a1", "name": "find_user_id_by_name_zip", "arguments": {"first_name": "Sofia", "last_name": "Hernandez", "zip": "98193"}}]},
+    {"role": "tool", "tool_call_id": "a1", "success": true, "content": "sofia_hernandez_5364"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "o1", "name": "get_order_details", "arguments": {"order_id": "#W9609649"}}]},
+    {"role": "tool", "tool_call_id": "o1", "success": true, "content": {"order_id": "#W9609649", "status": "processed"}},
+    {"role": "assistant", "content": "I kept the grill and found order #W9609649.", "tool_calls": []}
+  ],
+  "final_answer": "I kept the grill and found order #W9609649.",
+  "claim_checks": {
+    "target_tshirts_identity": {"verdict": "FAIL", "answer_sha256": "a45c9eba5735da9461ac79868a9bf04a6ec7b6b6102584e26e6a047d64f08af9", "state_path": ["orders", "#W9609649", "items"], "reason": "The two target T-shirts are not identified."},
+    "target_tshirt_materials": {"verdict": "FAIL", "answer_sha256": "a45c9eba5735da9461ac79868a9bf04a6ec7b6b6102584e26e6a047d64f08af9", "state_path": ["orders", "#W9609649", "items"], "reason": "Cotton and polyester are not communicated."}
+  }
+}

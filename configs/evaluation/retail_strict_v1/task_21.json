@@ -1,0 +1,282 @@
+{
+  "schema_version": "retail-strict-task-rubric-v1",
+  "task_id": "21",
+  "domain": "retail",
+  "description": "The user first requests a shoe modification, then adds a keyboard modification before final confirmation. Both changes must be resolved and executed atomically with the gift card, and the final state and balance must be reported truthfully.",
+  "required_capability_groups": [
+    "evaluation_integrity",
+    "final_state_correctness",
+    "required_task_execution",
+    "invalid_action_avoidance",
+    "protocol_compliance",
+    "intent_alignment",
+    "evidence_consistency"
+  ],
+  "predicates": [
+    {
+      "predicate_id": "identity_lookup_observed",
+      "predicate_type": "required_action",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "The user does not know the email address, so authentication uses the supplied name and zip code."
+    },
+    {
+      "predicate_id": "identity_lookup_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "Authentication must have an explicit successful result."
+    },
+    {
+      "predicate_id": "target_order_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {
+        "name": "get_order_details",
+        "argument_path": ["order_id"],
+        "expected": "#W9911714",
+        "quantifier": "any"
+      },
+      "description": "At least one successful discovery or verification path must inspect the pending order containing both target products."
+    },
+    {
+      "predicate_id": "gift_card_owner_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {
+        "name": "get_user_details",
+        "argument_path": ["user_id"],
+        "expected": "ethan_garcia_1261",
+        "quantifier": "any"
+      },
+      "description": "The agent must inspect the authenticated user's payment methods to ground gift-card availability and balance."
+    },
+    {
+      "predicate_id": "user_reads_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_user_details"},
+      "description": "Every observed user-details read must have an explicit successful result."
+    },
+    {
+      "predicate_id": "order_reads_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_order_details"},
+      "description": "Every observed target-order read must have an explicit successful result."
+    },
+    {
+      "predicate_id": "keyboard_product_resolution",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {
+        "name": "get_product_details",
+        "argument_path": ["product_id"],
+        "expected": "1656367028",
+        "quantifier": "any"
+      },
+      "description": "The user confuses a product ID with an item ID; the agent must resolve product 1656367028 before modifying its keyboard variant."
+    },
+    {
+      "predicate_id": "keyboard_product_resolution_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_product_details"},
+      "description": "The product-to-variant evidence used to resolve the user's ID confusion must come from an explicit successful tool result."
+    },
+    {
+      "predicate_id": "single_atomic_item_write",
+      "predicate_type": "action_cardinality",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {
+        "name": "modify_pending_order_items",
+        "action_class": "write",
+        "min_count": 1,
+        "max_count": 1
+      },
+      "description": "Retail policy allows the pending-order item modification only once, so both requested changes must be submitted atomically."
+    },
+    {
+      "predicate_id": "atomic_item_pairs_match_latest_intent",
+      "predicate_type": "paired_action_arguments_equal",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {
+        "name": "modify_pending_order_items",
+        "left_argument_path": ["item_ids"],
+        "right_argument_path": ["new_item_ids"],
+        "expected_pairs": [
+          ["9791469541", "4107812777"],
+          ["1340995114", "1421289881"]
+        ]
+      },
+      "description": "Both old-to-new item mappings are required; reversing the pair order is valid, but cross-pairing is not."
+    },
+    {
+      "predicate_id": "target_order_argument",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {
+        "name": "modify_pending_order_items",
+        "argument_path": ["order_id"],
+        "expected": "#W9911714"
+      },
+      "description": "The atomic write must target the pending order containing both products."
+    },
+    {
+      "predicate_id": "gift_card_argument",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {
+        "name": "modify_pending_order_items",
+        "argument_path": ["payment_method_id"],
+        "expected": "gift_card_4332117"
+      },
+      "description": "The user explicitly selects the existing gift card for the price difference."
+    },
+    {
+      "predicate_id": "confirmation_covers_latest_revision",
+      "predicate_type": "write_after_confirmation",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {
+        "name": "modify_pending_order_items",
+        "require_after_latest_revision": true
+      },
+      "description": "The final confirmation must occur after the user adds the keyboard change and before the one-shot write."
+    },
+    {
+      "predicate_id": "atomic_transition_is_valid",
+      "predicate_type": "action_state_transition_consistent",
+      "capability_group": "final_state_correctness",
+      "required": true,
+      "parameters": {
+        "name": "modify_pending_order_items",
+        "argument_checks": [
+          {"path": ["order_id"], "expected": "#W9911714"},
+          {"path": ["payment_method_id"], "expected": "gift_card_4332117"}
+        ],
+        "paired_arguments": {
+          "left_argument_path": ["item_ids"],
+          "right_argument_path": ["new_item_ids"],
+          "expected_pairs": [
+            ["9791469541", "4107812777"],
+            ["1340995114", "1421289881"]
+          ]
+        },
+        "required_initial_fields": [
+          {"path": ["orders", "#W9911714", "status"], "expected": "pending"},
+          {"path": ["users", "ethan_garcia_1261", "gift_card_balance"], "expected": 86.0}
+        ],
+        "expected_final_fields": [
+          {"path": ["orders", "#W9911714", "status"], "expected": "pending (item modified)"},
+          {
+            "path": ["orders", "#W9911714", "items_by_id"],
+            "expected": {
+              "4107812777": {
+                "name": "Running Shoes",
+                "product_id": "6938111410",
+                "price": 155.33,
+                "options": {"size": "9", "color": "black", "material": "synthetic", "sole": "rubber"}
+              },
+              "1421289881": {
+                "name": "Mechanical Keyboard",
+                "product_id": "1656367028",
+                "price": 268.77,
+                "options": {"switch type": "linear", "backlight": "none", "size": "80%"}
+              }
+            }
+          },
+          {
+            "path": ["orders", "#W9911714", "payment_history"],
+            "expected": [
+              {"transaction_type": "payment", "amount": 671.66, "payment_method_id": "paypal_3798357"},
+              {"transaction_type": "payment", "amount": 41.92, "payment_method_id": "gift_card_4332117"}
+            ]
+          },
+          {"path": ["users", "ethan_garcia_1261", "gift_card_balance"], "expected": 44.08}
+        ]
+      },
+      "description": "Correct arguments must produce the exact two-item state transition and gift-card debit. Correct calls that are rejected or corrupted by the environment invalidate evaluation instead of counting as model failures."
+    },
+    {
+      "predicate_id": "no_unrelated_mutation",
+      "predicate_type": "no_unrelated_mutation",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {
+        "allowed_paths": [
+          ["orders", "#W9911714", "status"],
+          ["orders", "#W9911714", "items_by_id"],
+          ["orders", "#W9911714", "payment_history"],
+          ["users", "ethan_garcia_1261", "gift_card_balance"]
+        ]
+      },
+      "description": "No state outside the intended order modification and gift-card debit may change."
+    },
+    {
+      "predicate_id": "no_unnecessary_transfer",
+      "predicate_type": "forbidden_action",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {"name": "transfer_to_human_agents"},
+      "description": "The supported pending-order modification must not be transferred."
+    },
+    {
+      "predicate_id": "one_tool_call_each_turn",
+      "predicate_type": "one_tool_call_per_turn",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"max_calls": 1},
+      "description": "Retail policy permits at most one tool call in an assistant turn."
+    },
+    {
+      "predicate_id": "message_tool_separation",
+      "predicate_type": "message_tool_exclusivity",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {},
+      "description": "An assistant turn must either address the user or call a tool, not both."
+    },
+    {
+      "predicate_id": "modification_summary_truthful",
+      "predicate_type": "final_claim_matches_state",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {"claim_id": "modification_summary"},
+      "description": "The final answer must truthfully report both completed item modifications."
+    },
+    {
+      "predicate_id": "gift_card_balance_truthful",
+      "predicate_type": "final_claim_matches_state",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"claim_id": "gift_card_balance"},
+      "description": "The reported post-modification gift-card balance must equal 44.08."
+    }
+  ],
+  "metadata": {
+    "task_source": "D:/tau2-bench/data/tau2/domains/retail/tasks.json",
+    "task_source_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+    "database_source": "D:/tau2-bench/data/tau2/domains/retail/db.json",
+    "database_source_sha256": "DBDE692E380BB4AD17F9F7841172CF1E69BEBAD2DAA405628CCDC52A42B3B9B0",
+    "upstream_tools_source": "D:/tau2-bench/src/tau2/domains/retail/tools.py",
+    "upstream_tools_source_sha256": "B40CEEFD87B428792E2FDCE545B0156131273BE6E3AD36E29093763F5DD370F4",
+    "frozen_baseline_task_snapshot": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/task_21/task.json",
+    "frozen_baseline_task_snapshot_sha256": "7B89F708ECF0F2028D671BA8D946DD8FEA96811B98D2CED202CBB2A9B4D922DB",
+    "known_baseline_result": "Tau2 reward 1.0 despite a corrupted two-item tool result and Retail turn-protocol violations; strict evaluation must not treat this as a valid success.",
+    "known_environment_defect": "At the frozen upstream source, modify_pending_order_items reuses the last validation-loop variant while writing every item. Correct multi-item arguments can therefore produce an inconsistent state.",
+    "path_policy": "Outcome and policy constraints are authoritative. Pair ordering and read order are not unique; the two old-to-new mappings, one-shot write, confirmation after the late revision, payment method, final state, and truthful claims are required."
+  }
+}

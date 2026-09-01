@@ -1,0 +1,19 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "synthetic-unit-test-trajectory",
+  "description": "The agent explains the unsupported restoration, then transfers after the user explicitly insists.",
+  "messages": [
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "a1", "name": "find_user_id_by_name_zip", "arguments": {"first_name": "Chen", "last_name": "Smith", "zip": "32278"}}]},
+    {"role": "tool", "tool_call_id": "a1", "success": true, "content": "chen_smith_8425"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "u1", "name": "get_user_details", "arguments": {"user_id": "chen_smith_8425"}}]},
+    {"role": "tool", "tool_call_id": "u1", "success": true, "content": {"orders": ["#W8859225"]}},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "o1", "name": "get_order_details", "arguments": {"order_id": "#W8859225"}}]},
+    {"role": "tool", "tool_call_id": "o1", "success": true, "content": {"order_id": "#W8859225", "status": "cancelled"}},
+    {"role": "assistant", "content": "The order is already cancelled and the available Retail tools cannot restore it."},
+    {"role": "user", "content": "Please escalate this to a supervisor."},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "t1", "name": "transfer_to_human_agents", "arguments": {"summary": "Chen Smith asks for urgent help restoring cancelled order #W8859225; Retail tools cannot restore it."}}]},
+    {"role": "tool", "tool_call_id": "t1", "success": true, "content": "Transfer successful"},
+    {"role": "assistant", "content": "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.", "tool_calls": []}
+  ],
+  "stopped": true
+}

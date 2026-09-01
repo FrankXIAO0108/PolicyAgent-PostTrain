@@ -1,0 +1,30 @@
+{
+  "initial_state": {
+    "orders": {
+      "#W9911714": {
+        "status": "pending",
+        "items_by_id": {
+          "9791469541": {
+            "name": "Running Shoes",
+            "product_id": "6938111410",
+            "price": 147.05,
+            "options": {"size": "9", "color": "yellow", "material": "synthetic", "sole": "rubber"}
+          },
+          "1340995114": {
+            "name": "Mechanical Keyboard",
+            "product_id": "1656367028",
+            "price": 235.13,
+            "options": {"switch type": "tactile", "backlight": "none", "size": "full size"}
+          }
+        },
+        "payment_history": [
+          {"transaction_type": "payment", "amount": 671.66, "payment_method_id": "paypal_3798357"}
+        ]
+      }
+    },
+    "users": {
+      "ethan_garcia_1261": {"gift_card_balance": 86.0}
+    }
+  },
+  "projection_note": "This fixture is a deterministic projection of the frozen Retail DB containing only fields required by the Task 21 rubric; it is not a new benchmark result."
+}

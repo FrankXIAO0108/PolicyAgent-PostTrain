@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-staged-reward-shadow-task95-v2",
+  "status": "FROZEN_FOR_OFFLINE_DIAGNOSTIC_ONLY",
+  "mode": "OFFLINE_SAME_ROLLOUT_SHADOW_ONLY",
+  "inherits_reward_semantics_from": "retail-staged-reward-shadow-tasks43-72-v2",
+  "purpose": "Compare terminal-only and staged candidate rewards on the exact same four frozen Task95 rollouts without changing model, task, sampling, trajectory, or online training behavior.",
+  "source_run": {
+    "run_dir": "_local_private_runs/20260831-s8-task95-terminal-prescreen-v1",
+    "raw_rollouts_sha256": "EF52C4BB0D2B1BB2CF2D0067F02954E1B969215562CBFC6C39FD82CBAFB90BF9",
+    "rollout_evidence_sha256": "E3ED59DB50F34D8EACC25174022417766C5807F8B7014CD57B0C1BF5810C3985",
+    "sampling_groups_sha256": "D876FB491D66E974298F3E32109EF30E6140D20DE7A8EDA2251B53AE304EEF86",
+    "num_generations": 2,
+    "expected_rollouts": 4,
+    "expected_groups": 2
+  },
+  "authority": {
+    "terminal_environment_state": "OBSERVATIONAL_TERMINAL_SIGNAL",
+    "transport_validity": "FROZEN_SAMPLING_DIAGNOSTIC_AUTHORITY",
+    "identity_link": "BENCHMARK_TRAINING_ONLY_MEDIUM_CONFIDENCE",
+    "target_evidence": "BENCHMARK_TRAINING_ONLY_MEDIUM_CONFIDENCE",
+    "required_write_progress": "BENCHMARK_ACTION_MATCH_ONLY_NOT_EXECUTION_PROOF",
+    "grounded_communication": "BENCHMARK_TRAINING_ONLY_MEDIUM_CONFIDENCE",
+    "tool_error_and_repeat_penalties": "OFFLINE_DIAGNOSTIC_ONLY",
+    "unexpected_write_hard_cap": "OFFLINE_CANDIDATE_HIGH_CONFIDENCE",
+    "confirmation_policy_and_premature_transfer": "DIAGNOSTIC_ONLY_NOT_SCALAR"
+  },
+  "reward": {
+    "terminal_complete_success_score": 1.0,
+    "terminal_incomplete_communication_cap": 0.9,
+    "complete_success_efficiency_penalty_cap": 0.02,
+    "nonterminal_component_weights": {
+      "identity_link": 0.1,
+      "target_evidence": 0.2,
+      "required_write_progress": 0.5,
+      "grounded_communication": 0.1
+    },
+    "normalize_active_nonterminal_weights_to": 0.9,
+    "no_required_action_match_cap": 0.35,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.1,
+    "unexpected_write_hard_cap": 0.0,
+    "minimum": 0.0,
+    "maximum": 1.0
+  },
+  "tasks": {
+    "95": {
+      "identity_link": {
+        "required_user_id": "lei_wilson_4541",
+        "required_order_ids": ["#W2905754", "#W4073673"]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "95_order_1",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W2905754"}
+        },
+        {
+          "evidence_id": "95_order_2",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W4073673"}
+        },
+        {
+          "evidence_id": "95_laptop_variants",
+          "name": "get_product_details",
+          "arguments": {"product_id": "4760268021"}
+        }
+      ],
+      "required_write_action_ids": ["96_0", "96_1"],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks"
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 1,
+    "maximum_zero_reward_std_fraction": 0.5,
+    "minimum_unique_reward_values": 2,
+    "minimum_required_action_match_rollouts_for_online_promotion": 1,
+    "require_no_required_action_match_cap_check": true,
+    "require_unexpected_write_hard_cap_check": true,
+    "require_no_excluded_groups_for_online_promotion": true,
+    "online_promotion_allowed": false,
+    "interpretation": "This gate diagnoses same-rollout reward separability only. Task95 online promotion is forbidden because the batch lacks a positive terminal trajectory and contains a censored group; semantic reward safety is also not validated."
+  },
+  "known_semantic_risks": [
+    "A prefix-progress score can be positive for a full trajectory that prematurely transfers instead of completing the task.",
+    "Required-write progress is an action-match signal and does not by itself prove a unique non-error execution result.",
+    "Grounded communication checks numeric observation before mention but do not validate payment/refund polarity or full sentence semantics.",
+    "Confirmation and one-tool-call-per-turn policy checks are not scalar reward components."
+  ],
+  "forbidden_uses": [
+    "Do not use this report as evidence that staged reward is ready for online GRPO.",
+    "Do not count transport-invalid or censored groups in reward-separability statistics.",
+    "Do not tune weights after observing these four rollouts to manufacture variance.",
+    "Do not call action-progress match a verified safe write.",
+    "Do not use hidden benchmark references as a production reward."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "synthetic-unit-test-trajectory",
+  "description": "After authentication and checking the grill, the agent reads only the target T-shirt order.",
+  "messages": [
+    {"role": "user", "content": "I may cancel my grill, then I need information about two shirts."},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "a1", "name": "find_user_id_by_name_zip", "arguments": {"first_name": "Sofia", "last_name": "Hernandez", "zip": "98193"}}]},
+    {"role": "tool", "tool_call_id": "a1", "success": true, "content": "sofia_hernandez_5364"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "g1", "name": "get_order_details", "arguments": {"order_id": "#W3561391"}}]},
+    {"role": "tool", "tool_call_id": "g1", "success": true, "content": {"order_id": "#W3561391", "status": "pending"}},
+    {"role": "assistant", "content": "Please confirm whether you still want to cancel #W3561391."},
+    {"role": "user", "content": "I changed my mind. Keep it. Tell me about the two T-shirts in my other order."},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "o1", "name": "get_order_details", "arguments": {"order_id": "#W9609649"}}]},
+    {"role": "tool", "tool_call_id": "o1", "success": true, "content": {"order_id": "#W9609649", "status": "processed"}},
+    {"role": "assistant", "content": "The grill order #W3561391 will remain unchanged. In order #W9609649, the blue size M T-shirt is cotton and the black size S T-shirt is polyester.", "tool_calls": []}
+  ],
+  "final_answer": "The grill order #W3561391 will remain unchanged. In order #W9609649, the blue size M T-shirt is cotton and the black size S T-shirt is polyester.",
+  "claim_checks": {
+    "target_tshirts_identity": {"verdict": "PASS", "answer_sha256": "214730d2d1b58ed3a261e305f9d8527dc7f155706ab15aa6dd8618ab9777b141", "state_path": ["orders", "#W9609649", "items"], "observed_item_ids": ["9612497925", "1176194968"]},
+    "target_tshirt_materials": {"verdict": "PASS", "answer_sha256": "214730d2d1b58ed3a261e305f9d8527dc7f155706ab15aa6dd8618ab9777b141", "state_path": ["orders", "#W9609649", "items"], "observed": {"9612497925": "cotton", "1176194968": "polyester"}}
+  }
+}

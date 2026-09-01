@@ -1,0 +1,46 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "frozen-source-projection",
+  "source": {
+    "database": "D:/tau2-bench/data/tau2/domains/retail/db.json",
+    "database_sha256": "DBDE692E380BB4AD17F9F7841172CF1E69BEBAD2DAA405628CCDC52A42B3B9B0",
+    "note": "Only Task 24 entities used by the rubric are projected here; this is not a recorded model rollout."
+  },
+  "initial_state": {
+    "orders": {
+      "#W3561391": {
+        "order_id": "#W3561391",
+        "user_id": "sofia_hernandez_5364",
+        "status": "pending",
+        "items": [
+          {
+            "name": "Grill",
+            "product_id": "6819683148",
+            "item_id": "5946177616",
+            "options": {"type": "gas", "size": "portable", "features": "none"}
+          }
+        ],
+        "cancel_reason": null
+      },
+      "#W9609649": {
+        "order_id": "#W9609649",
+        "user_id": "sofia_hernandez_5364",
+        "status": "processed",
+        "items": [
+          {
+            "name": "T-Shirt",
+            "product_id": "9523456873",
+            "item_id": "9612497925",
+            "options": {"color": "blue", "size": "M", "material": "cotton", "style": "crew neck"}
+          },
+          {
+            "name": "T-Shirt",
+            "product_id": "9523456873",
+            "item_id": "1176194968",
+            "options": {"color": "black", "size": "S", "material": "polyester", "style": "crew neck"}
+          }
+        ]
+      }
+    }
+  }
+}

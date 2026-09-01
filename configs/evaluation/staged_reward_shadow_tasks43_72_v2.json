@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-staged-reward-shadow-tasks43-72-v2",
+  "status": "FROZEN_FOR_OFFLINE_SHADOW",
+  "mode": "OFFLINE_SHADOW_ONLY",
+  "supersedes": "retail-staged-reward-shadow-tasks43-72-v1",
+  "change_reason": "Remove the unconditional terminal override that ranked a communication-incomplete task 43 failure above complete successes.",
+  "purpose": "Validate a tiered terminal-plus-process reward on the exact frozen C3 rollouts and existing historical write trajectories before online integration.",
+  "source_run": {
+    "run_dir": "_local_private_runs/cloud_grpo_c3_20260826/20260826-terminal-only-prescreen43-72-v1",
+    "raw_rollouts_sha256": "2AAB6CB4BC7441CEB2D9A711D231C95A77BD10B9A8AF99805AEBF7F64511843F",
+    "rollout_evidence_sha256": "491925CB557389E4616664813B1175F1B1091D480695008356584B9F2236607D",
+    "num_generations": 2,
+    "expected_rollouts": 16,
+    "expected_groups": 8
+  },
+  "authority": {
+    "terminal_environment_state": "ONLINE_CANDIDATE_HIGH_CONFIDENCE",
+    "identity_link": "BENCHMARK_TRAINING_ONLY_MEDIUM_CONFIDENCE",
+    "target_evidence": "BENCHMARK_TRAINING_ONLY_MEDIUM_CONFIDENCE",
+    "required_write_progress": "BENCHMARK_TRAINING_ONLY_HIGH_CONFIDENCE",
+    "grounded_communication": "BENCHMARK_TRAINING_ONLY_MEDIUM_CONFIDENCE",
+    "tool_error_and_repeat_penalties": "ONLINE_CANDIDATE_MEDIUM_CONFIDENCE",
+    "unexpected_write_hard_cap": "ONLINE_CANDIDATE_HIGH_CONFIDENCE",
+    "confirmation_and_policy": "DIAGNOSTIC_ONLY_NOT_SCALAR"
+  },
+  "reward": {
+    "terminal_complete_success_score": 1.0,
+    "terminal_incomplete_communication_cap": 0.9,
+    "complete_success_efficiency_penalty_cap": 0.02,
+    "nonterminal_component_weights": {
+      "identity_link": 0.1,
+      "target_evidence": 0.2,
+      "required_write_progress": 0.5,
+      "grounded_communication": 0.1
+    },
+    "normalize_active_nonterminal_weights_to": 0.9,
+    "no_correct_write_cap": 0.35,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.1,
+    "unexpected_write_hard_cap": 0.0,
+    "minimum": 0.0,
+    "maximum": 1.0
+  },
+  "tasks": {
+    "43": {
+      "identity_link": {
+        "required_user_id": "lucas_santos_6600",
+        "required_order_ids": ["#W1588712", "#W7895761"]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "43_order_in_transit",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W1588712"}
+        },
+        {
+          "evidence_id": "43_daughter_order_and_tablet",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W7895761"}
+        }
+      ],
+      "required_write_action_ids": ["43_4"],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks"
+    },
+    "72": {
+      "identity_link": {
+        "required_user_id": "ivan_khan_7475",
+        "required_order_ids": ["#W5270061"]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "72_target_order",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W5270061"}
+        },
+        {
+          "evidence_id": "72_backpack_variants",
+          "name": "get_product_details",
+          "arguments": {"product_id": "2524789262"}
+        }
+      ],
+      "required_write_action_ids": ["72_0", "72_1"],
+      "communication_source": null
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 2,
+    "maximum_zero_reward_std_fraction": 0.75,
+    "minimum_unique_reward_values": 3,
+    "minimum_correct_write_rollouts_for_online_promotion": 1,
+    "require_no_write_cap_check": true,
+    "require_unexpected_write_hard_cap_check": true,
+    "interpretation": "Separability and ordering are offline gates only. Passing permits online implementation and a no-update prescreen, not a business-improvement claim."
+  },
+  "forbidden_uses": [
+    "Do not use this report as a business-improvement claim.",
+    "Do not use hidden benchmark references as a production reward.",
+    "Do not promote confirmation or policy diagnostics into scalar reward without separate validation.",
+    "Do not skip the no-update online prescreen before a parameter-update run."
+  ]
+}

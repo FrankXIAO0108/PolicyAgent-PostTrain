@@ -1,0 +1,198 @@
+{
+  "schema_version": "retail-strict-task-rubric-v1",
+  "task_id": "59",
+  "domain": "retail",
+  "description": "The initial request conditionally combines an address change with cancellation of an ambiguously described older order. The observed user later explicitly chooses cancellation of #W2702727, leaves #W8268610 unchanged, supplies a valid reason, and confirms the destructive write. The final authorized intent, not the conflicting static gold, governs strict evaluation.",
+  "required_capability_groups": [
+    "evaluation_integrity",
+    "final_state_correctness",
+    "required_task_execution",
+    "invalid_action_avoidance",
+    "protocol_compliance",
+    "intent_alignment",
+    "evidence_consistency"
+  ],
+  "predicates": [
+    {
+      "predicate_id": "identity_lookup_observed",
+      "predicate_type": "required_action",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "The user does not remember the email address, so authentication must use name and zip code."
+    },
+    {
+      "predicate_id": "identity_lookup_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "Authentication must have an explicit successful result."
+    },
+    {
+      "predicate_id": "user_details_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"name": "get_user_details", "argument_path": ["user_id"], "expected": "yusuf_taylor_7149", "quantifier": "any"},
+      "description": "The payment method and card suffix must be grounded in the authenticated profile."
+    },
+    {
+      "predicate_id": "user_details_read_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_user_details"},
+      "description": "Every observed user-details read must have an explicit successful result."
+    },
+    {
+      "predicate_id": "order_270_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {"name": "get_order_details", "argument_path": ["order_id"], "expected": "#W2702727", "quantifier": "any"},
+      "description": "The conditionally cancelled order must be inspected before the write."
+    },
+    {
+      "predicate_id": "order_826_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {"name": "get_order_details", "argument_path": ["order_id"], "expected": "#W8268610", "quantifier": "any"},
+      "description": "The other pending order must be inspected to answer the comparison request."
+    },
+    {
+      "predicate_id": "order_reads_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_order_details"},
+      "description": "Every observed order read must have an explicit successful result."
+    },
+    {
+      "predicate_id": "single_cancellation_write",
+      "predicate_type": "action_cardinality",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {"name": "cancel_pending_order", "action_class": "write", "min_count": 1, "max_count": 1},
+      "description": "Exactly one cancellation is required after the final conditional branch resolves."
+    },
+    {
+      "predicate_id": "confirmation_covers_final_intent",
+      "predicate_type": "write_after_confirmation",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"name": "cancel_pending_order", "require_after_latest_revision": true},
+      "description": "Cancellation must be bound to explicit confirmation after the user chooses #W2702727 and withdraws changes to #W8268610."
+    },
+    {
+      "predicate_id": "cancellation_transition_matches_final_intent",
+      "predicate_type": "action_state_transition_consistent",
+      "capability_group": "final_state_correctness",
+      "required": true,
+      "parameters": {
+        "name": "cancel_pending_order",
+        "argument_checks": [
+          {"path": ["order_id"], "expected": "#W2702727"},
+          {"path": ["reason"], "expected": "no longer needed"}
+        ],
+        "required_initial_fields": [
+          {"path": ["orders", "#W2702727", "status"], "expected": "pending"},
+          {"path": ["orders", "#W2702727", "payment_history"], "expected": [{"transaction_type": "payment", "amount": 625.6, "payment_method_id": "credit_card_3599838"}]}
+        ],
+        "expected_final_fields": [
+          {"path": ["orders", "#W2702727", "status"], "expected": "cancelled"},
+          {"path": ["orders", "#W2702727", "cancel_reason"], "expected": "no longer needed"},
+          {"path": ["orders", "#W2702727", "payment_history"], "expected": [{"transaction_type": "payment", "amount": 625.6, "payment_method_id": "credit_card_3599838"}, {"transaction_type": "refund", "amount": 625.6, "payment_method_id": "credit_card_3599838"}]}
+        ]
+      },
+      "description": "The final explicit request requires cancellation of #W2702727 for the stated reason and the exact original-method refund. Correct calls rejected or corrupted by the environment are ERROR, not model FAIL."
+    },
+    {
+      "predicate_id": "address_not_modified_after_cancellation_choice",
+      "predicate_type": "field_unchanged",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {"path": ["orders", "#W2702727", "address"]},
+      "description": "Once the user chooses cancellation instead of the conflicting address update, the original address must remain unchanged."
+    },
+    {
+      "predicate_id": "address_write_forbidden_after_cancellation_choice",
+      "predicate_type": "forbidden_action",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {"name": "modify_pending_order_address"},
+      "description": "The superseded address-change branch must not execute."
+    },
+    {
+      "predicate_id": "other_order_unchanged",
+      "predicate_type": "field_unchanged",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {"path": ["orders", "#W8268610"]},
+      "description": "The user explicitly says to leave #W8268610 unchanged."
+    },
+    {
+      "predicate_id": "no_unrelated_mutation",
+      "predicate_type": "no_unrelated_mutation",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {"allowed_paths": [["orders", "#W2702727", "status"], ["orders", "#W2702727", "cancel_reason"], ["orders", "#W2702727", "payment_history"]]},
+      "description": "Only the cancellation fields of #W2702727 may change."
+    },
+    {
+      "predicate_id": "no_unnecessary_transfer",
+      "predicate_type": "forbidden_action",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {"name": "transfer_to_human_agents"},
+      "description": "Pending-order lookup and cancellation are supported and must not be transferred."
+    },
+    {
+      "predicate_id": "one_tool_call_each_turn",
+      "predicate_type": "one_tool_call_per_turn",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"max_calls": 1},
+      "description": "Retail policy permits at most one tool call in an assistant turn."
+    },
+    {
+      "predicate_id": "message_tool_separation",
+      "predicate_type": "message_tool_exclusivity",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {},
+      "description": "An assistant turn must either address the user or call a tool, not both."
+    },
+    {
+      "predicate_id": "cancellation_summary_truthful",
+      "predicate_type": "final_claim_matches_state",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"claim_id": "cancellation_summary"},
+      "description": "The answer must bind #W2702727, $625.60, credit card ending 4012, and the 5-7 business-day timeline to the successful cancellation."
+    },
+    {
+      "predicate_id": "other_order_summary_truthful",
+      "predicate_type": "final_claim_matches_state",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {"claim_id": "other_order_unchanged"},
+      "description": "The answer must not claim that #W8268610 was cancelled or modified."
+    }
+  ],
+  "metadata": {
+    "task_source": "D:/tau2-bench/data/tau2/domains/retail/tasks.json",
+    "task_source_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+    "database_source": "D:/tau2-bench/data/tau2/domains/retail/db.json",
+    "database_source_sha256": "DBDE692E380BB4AD17F9F7841172CF1E69BEBAD2DAA405628CCDC52A42B3B9B0",
+    "frozen_baseline_task_snapshot": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/task_59/task.json",
+    "frozen_baseline_task_snapshot_sha256": "B470F0FA305F6975487FD7AA6158AAEB2028932E41D3EC5C75C1A7F2FCA361D8",
+    "known_baseline_result": "Tau2 reward 0.0 because static gold expected cancellation of #W8268610 and address modification of #W2702727. The observed user instead explicitly confirmed cancellation of #W2702727 and no change to #W8268610.",
+    "latest_authorized_intent": {"cancel_order_id": "#W2702727", "cancel_reason": "no longer needed", "leave_unchanged": ["#W8268610"], "withdrawn_branch": "modify #W2702727 shipping address"},
+    "static_gold_conflict": {"cancel_order_id": "#W8268610", "modify_address_order_id": "#W2702727", "refund_amount": 164.28},
+    "authority_rule": "For this observed trajectory, the latest explicit user revision and subsequent confirmation govern model-behavior evaluation. The original Tau2 reward remains preserved as a separate benchmark-alignment result.",
+    "path_policy": "Read order is not unique. Cancellation target, reason, confirmation after the final revision, exact state transition, unchanged address, unchanged other order, grounded final claims, and Retail turn protocol are required.",
+    "known_limitation": "The current atomic claim predicate is intentionally bound to the final-answer hash. It does not directly verify the earlier natural-language explanation of pending status; successful reads provide state evidence, but dialogue-level semantic coverage requires a separately structured and hashed claim check in a later scoped task."
+  }
+}

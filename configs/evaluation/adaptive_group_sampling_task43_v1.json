@@ -1,0 +1,27 @@
+{
+  "schema_version": "adaptive-group-sampling-policy-v1",
+  "execution_mode": "SAMPLING_ONLY",
+  "task_ids": [
+    43
+  ],
+  "sampling": {
+    "min_samples": 4,
+    "increment": 2,
+    "max_samples": 8,
+    "mode": "terminal",
+    "reward_std_epsilon": 0.000001,
+    "minimum_reward_range": 0.1
+  },
+  "required_bindings": [
+    "task_id",
+    "prompt_sha256",
+    "initial_state_sha256",
+    "policy_snapshot_sha256",
+    "decoding_config_sha256",
+    "reward_version"
+  ],
+  "fresh_environment_per_rollout": true,
+  "optimizer_update_during_incremental_sampling": false,
+  "retain_all_samples_in_accepted_group": true,
+  "notes": "Offline sampling decision policy only; not integrated into GRPOTrainer."
+}

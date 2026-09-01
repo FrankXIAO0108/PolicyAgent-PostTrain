@@ -1,0 +1,15 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "synthetic-unit-test-trajectory",
+  "description": "Transfer succeeds but the required terminal message is replaced and the protocol is incomplete.",
+  "messages": [
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "a1", "name": "find_user_id_by_name_zip", "arguments": {"first_name": "Chen", "last_name": "Smith", "zip": "32278"}}]},
+    {"role": "tool", "tool_call_id": "a1", "success": true, "content": "chen_smith_8425"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "o1", "name": "get_order_details", "arguments": {"order_id": "#W8859225"}}]},
+    {"role": "tool", "tool_call_id": "o1", "success": true, "content": {"order_id": "#W8859225", "status": "cancelled"}},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "t1", "name": "transfer_to_human_agents", "arguments": {"summary": "Unsupported restoration requested."}}]},
+    {"role": "tool", "tool_call_id": "t1", "success": true, "content": "Transfer successful"},
+    {"role": "assistant", "content": "A human will contact you later.", "tool_calls": []}
+  ],
+  "stopped": true
+}

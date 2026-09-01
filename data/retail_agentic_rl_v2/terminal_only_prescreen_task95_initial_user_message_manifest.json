@@ -1,0 +1,31 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "development_audit",
+  "rows": 1,
+  "task_ids": ["95"],
+  "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+  "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+  "output_path": "data/retail_agentic_rl_v2/terminal_only_prescreen_task95_initial_user_message.jsonl",
+  "output_sha256": "E8C895D39D13D2A3C623777DF0D2D297D883154B7CBEEC7214205B9FBDDBF8A9",
+  "source_openings": [
+    {
+      "task_id": "95",
+      "path": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/task_95/returned_results.json",
+      "sha256": "E246810BFB0500D3854EE919B9DFB85E10A2EEA9AE43FAFE54EF38C58C5F8954",
+      "simulation_index": 0,
+      "simulation_seed": 350291
+    }
+  ],
+  "selection_used_reward_values": true,
+  "selection_reason": "Development-only replacement prescreen after Task72 was found to have a benchmark-policy conflict. Historical Task95 runs establish environmental reachability but do not establish the exact Qwen checkpoint's group variance.",
+  "derivation": "deterministic_copy_of_existing_first_user_message_no_external_api_call",
+  "source_user_model": "deepseek/deepseek-chat",
+  "source_temperature": 0.0,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false,
+  "sft_entity_overlap": true,
+  "verifier_development_informed_selection": true,
+  "evaluation_claim_allowed": false,
+  "unseen_generalization_claim_allowed": false
+}

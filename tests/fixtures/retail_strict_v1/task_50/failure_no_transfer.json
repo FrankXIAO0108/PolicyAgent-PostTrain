@@ -1,0 +1,14 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "synthetic-unit-test-trajectory",
+  "description": "The agent identifies the unsupported request but refuses to escalate after the user insists.",
+  "messages": [
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "a1", "name": "find_user_id_by_name_zip", "arguments": {"first_name": "Chen", "last_name": "Smith", "zip": "32278"}}]},
+    {"role": "tool", "tool_call_id": "a1", "success": true, "content": "chen_smith_8425"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "o1", "name": "get_order_details", "arguments": {"order_id": "#W8859225"}}]},
+    {"role": "tool", "tool_call_id": "o1", "success": true, "content": {"order_id": "#W8859225", "status": "cancelled"}},
+    {"role": "user", "content": "Please escalate this."},
+    {"role": "assistant", "content": "I cannot help further.", "tool_calls": []}
+  ],
+  "stopped": true
+}

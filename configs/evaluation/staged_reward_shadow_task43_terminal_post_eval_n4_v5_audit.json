@@ -1,0 +1,225 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-task43-terminal-post-eval-n4-hierarchical-reward-v5-audit",
+  "status": "OFFLINE_SHADOW_ONLY",
+  "purpose": "Audit state, authorization, write, response, interaction, and claim consistency on the frozen Terminal-GRPO Task 43 n=4 post-evaluation group.",
+  "source_run": {
+    "run_dir": "tmp/cloud_results/20260831-task43-terminal-n4-post-eval-n4-v1",
+    "raw_rollouts_sha256": "AC0852E4BA2FF8902AB59B48997E581E63FFB19B5481A57179E84E9A884A8C99",
+    "rollout_evidence_sha256": "34287FF165AED6403E48154BDC180BC9FB8B6B637F48AF72864F1530F670BDA7",
+    "sampling_groups_sha256": "A9C8BAAA68CB71A646A8E6470A69C38AD38FFF658B1958F63EA6874B80366828",
+    "num_generations": 4,
+    "expected_rollouts": 4,
+    "expected_groups": 1
+  },
+  "reward": {
+    "composition_mode": "hierarchical_state_authorization_v5",
+    "additive_component_weights": {
+      "environment_state": 0.35,
+      "interaction_complete": 0.1,
+      "identity_link": 0.08,
+      "target_evidence": 0.12,
+      "authorized_write": 0.2,
+      "post_write_communication": 0.15
+    },
+    "terminal_incomplete_communication_cap": 0.9,
+    "nonterminal_component_weights": {
+      "identity_link": 0.1,
+      "target_evidence": 0.2,
+      "required_write_progress": 0.5,
+      "grounded_communication": 0.1
+    },
+    "normalize_active_nonterminal_weights_to": 0.9,
+    "no_verified_write_cap": 0.25,
+    "unauthorized_write_hard_cap": 0.15,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.1,
+    "unexpected_write_hard_cap": 0,
+    "minimum": 0,
+    "maximum": 1
+  },
+  "tasks": {
+    "43": {
+      "identity_link": {
+        "required_user_id": "lucas_santos_6600",
+        "required_order_ids": [
+          "#W1588712",
+          "#W7895761"
+        ]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "43_order_in_transit",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W1588712"
+          }
+        },
+        {
+          "evidence_id": "43_daughter_order_and_tablet",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W7895761"
+          }
+        }
+      ],
+      "required_write_action_ids": [
+        "43_4"
+      ],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks",
+      "claim_evidence_rules": [
+        {
+          "rule_id": "43_cancelled_order_tracking_denial",
+          "rule_type": "denial_conflicts_with_nonempty_path",
+          "verdict": "FAIL",
+          "source_call": {
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W1588712"
+            }
+          },
+          "source_path": [
+            "fulfillments",
+            0,
+            "tracking_id"
+          ],
+          "trigger_patterns": [
+            "(?is)(?:order\\s+\\#?W1588712|cancel(?:led|ed)\\s+order\\s+\\#?W1588712).{0,320}(?:there (?:is|was) no tracking number|tracking (?:information|details)(?: and delivery details)? (?:is|are|was|were) no longer available)"
+          ]
+        },
+        {
+          "rule_id": "43_unsupported_explicit_date",
+          "rule_type": "unsupported_literal",
+          "verdict": "FAIL",
+          "trigger_patterns": [
+            "\\b(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\\d|3[01])/\\d{4}\\b"
+          ],
+          "extract_pattern": "\\b(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\\d|3[01])/\\d{4}\\b"
+        },
+        {
+          "rule_id": "43_unsupported_carrier_attribution",
+          "rule_type": "pattern_without_evidence_terms",
+          "verdict": "REVIEW",
+          "source_call": {
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W7895761"
+            }
+          },
+          "trigger_patterns": [
+            "(?i)\\b(?:FedEx|UPS|USPS|DHL)\\b"
+          ],
+          "support_terms": [
+            "fedex",
+            "ups",
+            "usps",
+            "dhl",
+            "carrier"
+          ]
+        },
+        {
+          "rule_id": "43_unsupported_expandable_storage",
+          "rule_type": "pattern_without_evidence_terms",
+          "verdict": "REVIEW",
+          "source_call": {
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W7895761"
+            }
+          },
+          "trigger_patterns": [
+            "(?is)(?:not expandable|does not have (?:a )?(?:memory card|microSD)(?: slot)?|no (?:memory card|microSD)(?: slot)?|safe to assume.{0,100}(?:memory card|microSD))"
+          ],
+          "support_terms": [
+            "expandable",
+            "microsd",
+            "memory card",
+            "card slot"
+          ]
+        },
+        {
+          "rule_id": "43_false_128gb_unavailable",
+          "rule_type": "denial_conflicts_with_matching_collection_item",
+          "verdict": "FAIL",
+          "source_call": {
+            "name": "get_product_details",
+            "arguments": {
+              "product_id": "8024098596"
+            }
+          },
+          "collection_path": [
+            "variants"
+          ],
+          "option_path": [
+            "options",
+            "storage"
+          ],
+          "expected_option": "128GB",
+          "availability_path": [
+            "available"
+          ],
+          "expected_availability": true,
+          "trigger_patterns": [
+            "(?is)(?:(?:do not|don't|does not|doesn't) (?:see|have).{0,120}128GB.{0,100}available|\\bno 128GB(?: [A-Za-z-]+){0,4} (?:is )?available)"
+          ]
+        },
+        {
+          "rule_id": "43_known_address_denial",
+          "rule_type": "denial_conflicts_with_nonempty_path",
+          "verdict": "FAIL",
+          "source_call": {
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W7895761"
+            }
+          },
+          "source_path": [
+            "address"
+          ],
+          "trigger_patterns": [
+            "(?is)(?:address.{0,120}(?:is not|isn't|was not|wasn't) available in (?:the )?system|(?:is not|isn't|was not|wasn't) available in (?:the )?system.{0,120}address)"
+          ]
+        },
+        {
+          "rule_id": "43_unsupported_same_day_timing",
+          "rule_type": "pattern_without_evidence_terms",
+          "verdict": "REVIEW",
+          "source_call": {
+            "name": "get_order_details",
+            "arguments": {
+              "order_id": "#W1588712"
+            }
+          },
+          "trigger_patterns": [
+            "(?is)(?:refund.{0,120}same day|same day.{0,120}(?:refund|cancel))"
+          ],
+          "support_terms": [
+            "timestamp",
+            "created_at",
+            "updated_at",
+            "cancelled_at",
+            "refunded_at"
+          ]
+        }
+      ]
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 1,
+    "maximum_zero_reward_std_fraction": 0,
+    "minimum_unique_reward_values": 3,
+    "minimum_verified_write_rollouts_for_online_promotion": 1,
+    "minimum_claim_safe_authorized_rollouts_for_online_promotion": 1,
+    "online_promotion_allowed": false,
+    "interpretation": "Passing proves only deterministic hierarchical ordering on this frozen Task 43 post-evaluation group."
+  },
+  "forbidden_uses": [
+    "Do not use this candidate for online GRPO.",
+    "Do not treat prompt-bound REVIEW/PASS as independent human gold.",
+    "Do not claim factual hallucination detection.",
+    "Do not claim generalization or business improvement."
+  ]
+}

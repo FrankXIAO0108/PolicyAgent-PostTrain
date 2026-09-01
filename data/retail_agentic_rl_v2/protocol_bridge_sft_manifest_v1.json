@@ -1,0 +1,63 @@
+{
+  "claims": {
+    "business_improvement_claim_allowed": false,
+    "formal_retail_gate_unchanged": true,
+    "human_adjudicated_business_gold": false,
+    "owner_reviewed_development_data": true,
+    "protocol_alignment_only": true
+  },
+  "counts": {
+    "aggregate": {
+      "existing_tool_calls_preserved": 658,
+      "removed_initial_greetings": 80,
+      "respond_to_user_calls_added": 532,
+      "terminal_completions_added": 80
+    },
+    "by_split": {
+      "TRAIN": {
+        "existing_tool_calls_preserved": 485,
+        "removed_initial_greetings": 58,
+        "respond_to_user_calls_added": 385,
+        "terminal_completions_added": 58
+      },
+      "VALIDATION": {
+        "existing_tool_calls_preserved": 173,
+        "removed_initial_greetings": 22,
+        "respond_to_user_calls_added": 147,
+        "terminal_completions_added": 22
+      }
+    },
+    "rows": 80,
+    "splits": {
+      "TRAIN": 58,
+      "VALIDATION": 22
+    },
+    "tasks": 55
+  },
+  "files": {
+    "sft_dataset": {
+      "path": "sft_dataset.jsonl",
+      "rows": 80,
+      "sha256": "572706FA3D4D9F88C03E02B8ED50E0BACE832BEDF28FA9FDD42F75FE1E2B74AB"
+    }
+  },
+  "leakage_and_quality_checks": {
+    "all_rows_end_with_terminal_assistant": true,
+    "all_rows_start_with_user": true,
+    "duplicate_candidate_ids": 0,
+    "passed": true,
+    "pii_scan_inherited_from_bound_source": true,
+    "plain_assistant_before_terminal": 0,
+    "source_quality_gate_passed": true,
+    "task_leakage_across_splits": []
+  },
+  "schema_version": "agentic-protocol-bridge-sft-manifest-v1",
+  "scope": "AGENTIC_PROTOCOL_BRIDGE_SFT",
+  "source": {
+    "dataset_path": "_local_private_runs\\merged_sft_v3_wave_a_owner_reviewed\\release_v2\\sft_dataset.jsonl",
+    "dataset_sha256": "DFB76C036B17226E211A93BECDC7F518C07AB4B16B2666BE7787185192885146",
+    "manifest_path": "_local_private_runs\\merged_sft_v3_wave_a_owner_reviewed\\manifest.json",
+    "manifest_sha256": "59B162093E2658E68C41FA06FE0B44E3EB145FFF1F978580501FBB461AC14C2B",
+    "rows": 80
+  }
+}

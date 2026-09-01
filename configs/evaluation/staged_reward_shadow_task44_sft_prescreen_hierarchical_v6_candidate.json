@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-task44-sft-prescreen-hierarchical-reward-v6-candidate",
+  "status": "OFFLINE_SHADOW_ONLY",
+  "purpose": "Test a three-way PASS/REVIEW/FAIL authorization signal on the frozen Task 44 SFT prescreen rollouts without treating REVIEW as a proven policy failure.",
+  "source_run": {
+    "run_dir": "tmp/cloud_results/20260831-task44-explicit-context-terminal-prescreen-n4-v1",
+    "raw_rollouts_sha256": "18A49EACCAC05131C5C7BEFF294A217A8D1B8E7F61F7EB1D9296322D86148479",
+    "rollout_evidence_sha256": "1B436FF9CD1B68410F5BF4C4E0FA1C7E12FFEA88355A47EE3B0DA7D4C2409E3F",
+    "sampling_groups_sha256": "5E8A831B8D8D3871F99EA9ED41494661E31048F997EC5DD4D9B50AA117D74A5C",
+    "num_generations": 4,
+    "expected_rollouts": 4,
+    "expected_groups": 1
+  },
+  "reward": {
+    "composition_mode": "hierarchical_state_authorization_review_v6",
+    "additive_component_weights": {
+      "environment_state": 0.35,
+      "interaction_complete": 0.10,
+      "identity_link": 0.08,
+      "target_evidence": 0.12,
+      "write_authorization": 0.20,
+      "post_write_communication": 0.15
+    },
+    "terminal_incomplete_communication_cap": 0.9,
+    "nonterminal_component_weights": {
+      "identity_link": 0.1,
+      "target_evidence": 0.2,
+      "required_write_progress": 0.5,
+      "grounded_communication": 0.1
+    },
+    "normalize_active_nonterminal_weights_to": 0.9,
+    "no_verified_write_cap": 0.25,
+    "authorization_review_value": 0.5,
+    "authorization_review_cap": 0.75,
+    "authorization_fail_hard_cap": 0.15,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.10,
+    "unexpected_write_hard_cap": 0.0,
+    "minimum": 0.0,
+    "maximum": 1.0
+  },
+  "tasks": {
+    "44": {
+      "identity_link": {
+        "required_user_id": "aarav_anderson_8794",
+        "required_order_ids": ["#W9300146"]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "44_pending_order",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W9300146"}
+        },
+        {
+          "evidence_id": "44_desk_lamp_variants",
+          "name": "get_product_details",
+          "arguments": {"product_id": "6817146515"}
+        }
+      ],
+      "required_write_action_ids": ["44_4"],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks"
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 1,
+    "maximum_zero_reward_std_fraction": 0.0,
+    "minimum_unique_reward_values": 3,
+    "minimum_verified_write_rollouts_for_online_promotion": 1,
+    "online_promotion_allowed": false,
+    "interpretation": "Passing proves only Task 44 development-set ordering. REVIEW receives partial credit but remains non-authoritative until confirmation labels are calibrated."
+  },
+  "forbidden_uses": [
+    "Do not use this candidate for online GRPO before adversarial tests and owner review.",
+    "Do not treat REVIEW as either confirmed authorization or proven violation.",
+    "Do not treat a benchmark-matched write as proof of policy compliance.",
+    "Do not claim generalization or business improvement."
+  ]
+}

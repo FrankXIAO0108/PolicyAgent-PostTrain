@@ -1,0 +1,36 @@
+{
+  "initial_state": {
+    "orders": {
+      "#W1304208": {
+        "status": "delivered",
+        "items": [{"name": "Hiking Boots", "product_id": "7363354090", "item_id": "1615379700", "price": 253.89, "options": {"size": "10", "material": "synthetic", "waterproof": "yes"}}],
+        "payment_history": [{"transaction_type": "payment", "amount": 253.89, "payment_method_id": "paypal_1679017"}],
+        "exchange_items": null,
+        "exchange_new_items": null,
+        "exchange_payment_method_id": null,
+        "exchange_price_difference": null
+      },
+      "#W8353027": {
+        "status": "delivered",
+        "items": [{"name": "Jigsaw Puzzle", "product_id": "1808611083", "item_id": "6245746168", "price": 46.0, "options": {"pieces": "1500", "theme": "animals", "difficulty level": "intermediate"}}],
+        "payment_history": [{"transaction_type": "payment", "amount": 1861.84, "payment_method_id": "paypal_1679017"}],
+        "exchange_items": null,
+        "exchange_new_items": null,
+        "exchange_payment_method_id": null,
+        "exchange_price_difference": null
+      }
+    },
+    "users": {"yara_ito_8499": {"payment_methods": {"paypal_1679017": {"source": "paypal", "id": "paypal_1679017"}}}},
+    "products": {
+      "7363354090": {
+        "1615379700": {"available": true, "price": 253.89, "options": {"size": "10", "material": "synthetic", "waterproof": "yes"}},
+        "8106223139": {"available": true, "price": 249.12, "options": {"size": "9", "material": "leather", "waterproof": "yes"}}
+      },
+      "1808611083": {
+        "6245746168": {"available": true, "price": 46.0, "options": {"pieces": "1500", "theme": "animals", "difficulty level": "intermediate"}},
+        "3112842858": {"available": true, "price": 49.1, "options": {"pieces": "1000", "theme": "fantasy", "difficulty level": "intermediate"}}
+      }
+    }
+  },
+  "projection_note": "Deterministic projection of the frozen Retail DB. Only fields required by the Task 107 rubric are retained; this is not a new benchmark result."
+}

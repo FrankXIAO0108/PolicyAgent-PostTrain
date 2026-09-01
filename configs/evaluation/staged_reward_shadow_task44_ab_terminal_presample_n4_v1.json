@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-task44-ab-terminal-presample-hierarchical-reward-v6-v1",
+  "status": "OFFLINE_SHADOW_ONLY",
+  "purpose": "Rescore the frozen Task 44 Terminal n=4 presample with Staged v6 so the compared reward functions consume identical trajectories.",
+  "source_run": {
+    "run_dir": "/root/autodl-tmp/policyagent-runs/20260901-task44-ab-terminal-presample-n4-v2",
+    "raw_rollouts_sha256": "0CC1814CABB233B9989F6AC3D892B403C4139909D97F93784563817750C10E4F",
+    "rollout_evidence_sha256": "54D8D7C469E34C1C9F43B04409EB336C2921D04C0385C1190678B107C171679A",
+    "sampling_groups_sha256": "2483DD201731B9D74E8666CEED4F0EB52A040159EAD7E70ED94A13BEADF7CEA6",
+    "num_generations": 4,
+    "expected_rollouts": 4,
+    "expected_groups": 1
+  },
+  "reward": {
+    "composition_mode": "hierarchical_state_authorization_review_v6",
+    "additive_component_weights": {
+      "environment_state": 0.35,
+      "interaction_complete": 0.10,
+      "identity_link": 0.08,
+      "target_evidence": 0.12,
+      "write_authorization": 0.20,
+      "post_write_communication": 0.15
+    },
+    "terminal_incomplete_communication_cap": 0.9,
+    "nonterminal_component_weights": {
+      "identity_link": 0.1,
+      "target_evidence": 0.2,
+      "required_write_progress": 0.5,
+      "grounded_communication": 0.1
+    },
+    "normalize_active_nonterminal_weights_to": 0.9,
+    "no_verified_write_cap": 0.25,
+    "authorization_review_value": 0.5,
+    "authorization_review_cap": 0.75,
+    "authorization_fail_hard_cap": 0.15,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.10,
+    "unexpected_write_hard_cap": 0.0,
+    "minimum": 0.0,
+    "maximum": 1.0
+  },
+  "tasks": {
+    "44": {
+      "identity_link": {
+        "required_user_id": "aarav_anderson_8794",
+        "required_order_ids": ["#W9300146"]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "44_pending_order",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W9300146"}
+        },
+        {
+          "evidence_id": "44_desk_lamp_variants",
+          "name": "get_product_details",
+          "arguments": {"product_id": "6817146515"}
+        }
+      ],
+      "required_write_action_ids": ["44_4"],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks"
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 1,
+    "maximum_zero_reward_std_fraction": 0.0,
+    "minimum_unique_reward_values": 3,
+    "minimum_verified_write_rollouts_for_online_promotion": 1,
+    "online_promotion_allowed": false,
+    "interpretation": "Passing proves only same-trajectory Task 44 development reward separability. It does not prove policy learning or business improvement."
+  },
+  "forbidden_uses": [
+    "Do not use this offline report as evidence of a trained-policy improvement.",
+    "Do not treat REVIEW as either confirmed authorization or proven violation.",
+    "Do not treat a benchmark-matched write as proof of policy compliance.",
+    "Do not claim generalization or business improvement."
+  ]
+}

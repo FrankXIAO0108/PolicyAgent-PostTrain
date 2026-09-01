@@ -1,0 +1,30 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "rl_train",
+  "rows": 1,
+  "task_ids": [
+    "44"
+  ],
+  "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+  "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+  "output_path": "data/retail_agentic_rl_v2/terminal_grpo_closure_task44_initial_user_message.jsonl",
+  "output_sha256": "A22BE366ABB27A642E95E1EE2ED6B741981CC7D85D4FA8108BC7251791D0860C",
+  "source_openings": [
+    {
+      "task_id": "44",
+      "path": "_local_private_runs/layer2_run_v1/private_evaluation/task_44/returned_results.json",
+      "sha256": "23A1177516281265B74F0C818674DEC11F0CC14FE4CDD699C63AA2B86C7A8246",
+      "simulation_index": 0,
+      "simulation_seed": 814494
+    }
+  ],
+  "selection_used_reward_values": true,
+  "selection_reason": "Development-only short-horizon GRPO candidate selected from rl_train. The task has one deterministic database mutation, a four-to-five-call nominal path, and owner-reviewed corrected SFT evidence. A fresh exact-checkpoint stochastic prescreen is required before optimization.",
+  "derivation": "deterministic_copy_of_existing_first_user_message_no_external_api_call",
+  "source_user_model": "deepseek/deepseek-chat",
+  "source_temperature": 0.0,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false,
+  "evaluation_claim_allowed": false
+}

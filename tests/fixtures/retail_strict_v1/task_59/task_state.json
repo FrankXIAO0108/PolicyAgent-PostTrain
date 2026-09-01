@@ -1,0 +1,27 @@
+{
+  "initial_state": {
+    "orders": {
+      "#W2702727": {
+        "status": "pending",
+        "address": {"address1": "163 Cedar Street", "address2": "Suite 165", "city": "San Jose", "country": "USA", "state": "CA", "zip": "95154"},
+        "items": [
+          {"name": "Bookshelf", "product_id": "8600330539", "item_id": "7373893106", "price": 531.22},
+          {"name": "Yoga Mat", "product_id": "4635925001", "item_id": "2733768059", "price": 94.38}
+        ],
+        "payment_history": [{"transaction_type": "payment", "amount": 625.6, "payment_method_id": "credit_card_3599838"}],
+        "cancel_reason": null
+      },
+      "#W8268610": {
+        "status": "pending",
+        "address": {"address1": "163 Cedar Street", "address2": "Suite 165", "city": "San Jose", "country": "USA", "state": "CA", "zip": "95154"},
+        "items": [{"name": "Desk Lamp", "product_id": "6817146515", "item_id": "9083642334", "price": 164.28}],
+        "payment_history": [{"transaction_type": "payment", "amount": 164.28, "payment_method_id": "credit_card_3599838"}],
+        "cancel_reason": null
+      }
+    },
+    "users": {
+      "yusuf_taylor_7149": {"credit_card_id": "credit_card_3599838", "last_four": "4012"}
+    }
+  },
+  "projection_note": "Deterministic projection of the frozen Retail DB. Only fields required by the Task 59 rubric are retained; this is not a new benchmark result."
+}

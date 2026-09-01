@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-task43-n4-confirmation-staged-reward-v4-candidate",
+  "status": "OFFLINE_SHADOW_ONLY",
+  "purpose": "Test whether strict prompt-bound confirmation changes within-group ordering on the frozen Task 43 n=4 rollouts.",
+  "source_run": {
+    "run_dir": "tmp/cloud_results/20260831-task43-terminal-grpo-n4-v3",
+    "raw_rollouts_sha256": "EDF2B19EF756E1827E57E151638273707D1045CBF57BF4EBC4DBE8A7AE3978EF",
+    "rollout_evidence_sha256": "AA2E652A988563BCA052DF7823B895F4323D083B150515FDFDA3463054FA0594",
+    "num_generations": 4,
+    "expected_rollouts": 8,
+    "expected_groups": 2
+  },
+  "reward": {
+    "composition_mode": "additive_terminal_process_confirmation_v4",
+    "additive_component_weights": {
+      "terminal_environment": 0.40,
+      "identity_link": 0.08,
+      "target_evidence": 0.12,
+      "required_write_progress": 0.20,
+      "grounded_communication": 0.10,
+      "confirmation_binding": 0.10
+    },
+    "terminal_incomplete_communication_cap": 0.9,
+    "nonterminal_component_weights": {
+      "identity_link": 0.1,
+      "target_evidence": 0.2,
+      "required_write_progress": 0.5,
+      "grounded_communication": 0.1
+    },
+    "normalize_active_nonterminal_weights_to": 0.9,
+    "no_correct_write_cap": 0.35,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.1,
+    "unexpected_write_hard_cap": 0.0,
+    "minimum": 0.0,
+    "maximum": 1.0
+  },
+  "tasks": {
+    "43": {
+      "identity_link": {
+        "required_user_id": "lucas_santos_6600",
+        "required_order_ids": ["#W1588712", "#W7895761"]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "43_order_in_transit",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W1588712"}
+        },
+        {
+          "evidence_id": "43_daughter_order_and_tablet",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W7895761"}
+        }
+      ],
+      "required_write_action_ids": ["43_4"],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks"
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 2,
+    "maximum_zero_reward_std_fraction": 0.0,
+    "minimum_unique_reward_values": 3,
+    "minimum_verified_write_rollouts_for_online_promotion": 1,
+    "online_promotion_allowed": false,
+    "interpretation": "Passing proves only that strict confirmation adds a third reward level on the frozen eight rollouts."
+  },
+  "forbidden_uses": [
+    "Do not use this candidate for online GRPO before owner review.",
+    "Do not treat REVIEW confirmation as a policy violation or independent gold.",
+    "Do not claim factual hallucination detection from confirmation binding.",
+    "Do not claim generalization or business improvement from this single-task development run."
+  ]
+}

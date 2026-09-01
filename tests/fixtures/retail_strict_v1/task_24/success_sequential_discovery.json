@@ -1,0 +1,26 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "synthetic-unit-test-trajectory",
+  "description": "The agent discovers the target by sequential reads; this deliberately differs from the targeted-read path.",
+  "messages": [
+    {"role": "user", "content": "I may cancel my grill, then I need information about two shirts."},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "a1", "name": "find_user_id_by_name_zip", "arguments": {"first_name": "Sofia", "last_name": "Hernandez", "zip": "98193"}}]},
+    {"role": "tool", "tool_call_id": "a1", "success": true, "content": "sofia_hernandez_5364"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "u1", "name": "get_user_details", "arguments": {"user_id": "sofia_hernandez_5364"}}]},
+    {"role": "tool", "tool_call_id": "u1", "success": true, "content": {"orders": ["#W3561391", "#W6876713", "#W9609649"]}},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "g1", "name": "get_order_details", "arguments": {"order_id": "#W3561391"}}]},
+    {"role": "tool", "tool_call_id": "g1", "success": true, "content": {"order_id": "#W3561391", "status": "pending"}},
+    {"role": "assistant", "content": "Please confirm whether you still want to cancel #W3561391."},
+    {"role": "user", "content": "No, keep it. Which two T-shirts did I order elsewhere and what are they made of?"},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "d1", "name": "get_order_details", "arguments": {"order_id": "#W6876713"}}]},
+    {"role": "tool", "tool_call_id": "d1", "success": true, "content": {"order_id": "#W6876713", "status": "delivered"}},
+    {"role": "assistant", "content": null, "tool_calls": [{"id": "o1", "name": "get_order_details", "arguments": {"order_id": "#W9609649"}}]},
+    {"role": "tool", "tool_call_id": "o1", "success": true, "content": {"order_id": "#W9609649", "status": "processed"}},
+    {"role": "assistant", "content": "I have not cancelled the grill. Your two T-shirts in #W9609649 are blue/M/cotton and black/S/polyester.", "tool_calls": []}
+  ],
+  "final_answer": "I have not cancelled the grill. Your two T-shirts in #W9609649 are blue/M/cotton and black/S/polyester.",
+  "claim_checks": {
+    "target_tshirts_identity": {"verdict": "PASS", "answer_sha256": "49c43b775f23b3ac19148bf6acfb4862a1b68c0adeaed9da60a9f74d047d53d3", "state_path": ["orders", "#W9609649", "items"], "observed_item_ids": ["9612497925", "1176194968"]},
+    "target_tshirt_materials": {"verdict": "PASS", "answer_sha256": "49c43b775f23b3ac19148bf6acfb4862a1b68c0adeaed9da60a9f74d047d53d3", "state_path": ["orders", "#W9609649", "items"], "observed": {"9612497925": "cotton", "1176194968": "polyester"}}
+  }
+}

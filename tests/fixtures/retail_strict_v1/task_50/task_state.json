@@ -1,0 +1,23 @@
+{
+  "schema_version": "retail-strict-fixture-v1",
+  "fixture_kind": "frozen-source-projection",
+  "source": {
+    "database": "D:/tau2-bench/data/tau2/domains/retail/db.json",
+    "database_sha256": "DBDE692E380BB4AD17F9F7841172CF1E69BEBAD2DAA405628CCDC52A42B3B9B0",
+    "note": "Only Task 50 entities used by the rubric are projected here; this is not a recorded model rollout."
+  },
+  "initial_state": {
+    "orders": {
+      "#W8859225": {
+        "order_id": "#W8859225",
+        "user_id": "chen_smith_8425",
+        "status": "cancelled",
+        "payment_history": [
+          {"transaction_type": "payment", "amount": 1130.65, "payment_method_id": "paypal_9175769"},
+          {"transaction_type": "refund", "amount": 1130.65, "payment_method_id": "paypal_9175769"}
+        ],
+        "item_ids": ["1999523885", "9665000388", "5966895767", "2052249669"]
+      }
+    }
+  }
+}

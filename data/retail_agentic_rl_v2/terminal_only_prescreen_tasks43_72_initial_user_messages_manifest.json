@@ -1,0 +1,35 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "development_audit",
+  "rows": 2,
+  "task_ids": ["43", "72"],
+  "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+  "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+  "output_path": "data/retail_agentic_rl_v2/terminal_only_prescreen_tasks43_72_initial_user_messages.jsonl",
+  "output_sha256": "1DC60BD755C1CBF200B75267026F4D1FCEC2D5FFE18CCAA5E7968EF210C0C401",
+  "source_openings": [
+    {
+      "task_id": "43",
+      "path": "_local_private_runs/cloud_sft_v3_20260824/eval_v3_sft_v3_full/flat_evidence/task_43_returned_results.json",
+      "sha256": "89F4DC5B99609FE8D096AE788FA99DA7B013F71D70917C09AA4EF4E53C7510A0",
+      "simulation_index": 0,
+      "simulation_seed": 350291
+    },
+    {
+      "task_id": "72",
+      "path": "_local_private_runs/cloud_sft_v3_20260824/eval_v3_sft_v3_full/flat_evidence/task_72_returned_results.json",
+      "sha256": "9E883B4DF3A2B0AF7752B64645741FC5715378EC783821621E1F6D36AF203159",
+      "simulation_index": 0,
+      "simulation_seed": 350291
+    }
+  ],
+  "selection_used_reward_values": true,
+  "selection_reason": "Development-only signal prescreen: historical SFT trials showed both success and failure for each task. Fresh same-protocol group variance is still required before optimization.",
+  "derivation": "deterministic_copy_of_existing_first_user_messages_no_external_api_call",
+  "source_user_model": "deepseek/deepseek-chat",
+  "source_temperature": 0.0,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false,
+  "evaluation_claim_allowed": false
+}

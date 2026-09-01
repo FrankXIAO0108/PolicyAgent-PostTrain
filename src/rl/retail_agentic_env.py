@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -21,9 +22,12 @@ from src.rl.user_simulator_fail_fast import generate_with_fail_fast
 
 REWARD_CONFIG_ENV = "POLICYAGENT_REWARD_CONFIG_JSON"
 ROLLOUT_LOG_ENV = "POLICYAGENT_ROLLOUT_LOG"
+ROLLOUT_EVIDENCE_LOG_ENV = "POLICYAGENT_ROLLOUT_EVIDENCE_LOG"
 ROLLOUT_STAGE_ENV = "POLICYAGENT_ROLLOUT_STAGE"
+REQUIRE_TRANSPORT_COMPLETE_ENV = "POLICYAGENT_REQUIRE_TRANSPORT_COMPLETE_GROUPS"
 FULL_TASK_STAGE = "FULL_TASK"
 IDENTITY_AUTHENTICATION_STAGE = "IDENTITY_AUTHENTICATION"
+TIERED_TERMINAL_PROCESS_MODE = "tiered_terminal_process_v2"
 SUPPORTED_ROLLOUT_STAGES = {
     FULL_TASK_STAGE,
     IDENTITY_AUTHENTICATION_STAGE,
@@ -49,6 +53,166 @@ DEFAULT_REWARD_CONFIG: dict[str, Any] = {
     "policy_guard_used_as_reward": False,
     "confirmation_signal_used_as_reward": False,
 }
+TERMINAL_ONLY_REWARD_CONFIG: dict[str, Any] = {
+    "process_reward_mode": "terminal_environment_state",
+    "environment_state_action_progress_gate": "none",
+    "environment_state_weight": 1.0,
+    "required_action_weight": 0.0,
+    "communication_weight": 0.0,
+    "tool_error_penalty_each": 0.0,
+    "tool_error_penalty_cap": 0.0,
+    "repeated_call_penalty_each": 0.0,
+    "repeated_call_penalty_cap": 0.0,
+    "unexpected_write_penalty_each": 0.0,
+    "unexpected_write_penalty_cap": 0.0,
+    "unfinished_interaction_penalty": 0.0,
+    "llm_judge_used": False,
+    "policy_guard_used_as_reward": False,
+    "confirmation_signal_used_as_reward": False,
+}
+
+GUARDED_STOP_FLAGS = {
+    "TOOL_RESULT_BUDGET_EXCEEDED",
+    "CONTEXT_LIMIT",
+    "COMPLETION_BUDGET_EXHAUSTED",
+    "CUSTOMER_TURN_LIMIT",
+    "TOOL_CALL_LIMIT",
+    "PARSE_OR_PROTOCOL_ERROR",
+    "TOOL_ITERATION_LIMIT",
+    "UNRESOLVED_TOOL_CALL",
+    "USER_STOP_AND_MODEL_EOS",
+    "MODEL_EOS_BEFORE_USER_STOP",
+    "MODEL_END_WITHOUT_EOS",
+}
+GUARDED_PRIMARY_STOP_REASONS = GUARDED_STOP_FLAGS - {
+    "CUSTOMER_TURN_LIMIT",
+    "TOOL_CALL_LIMIT",
+    "PARSE_OR_PROTOCOL_ERROR",
+}
+GUARDED_COMPLETION_TELEMETRY_KEYS = {
+    "stop_reason",
+    "stop_reason_source",
+    "stop_flags",
+    "model_ended",
+    "model_eos_observed",
+    "completion_token_budget_exhausted",
+    "context_limit_reached",
+    "tool_iteration_limit_reached",
+    "unresolved_tool_call",
+    "framework_loop_abnormal_end",
+    "prompt_tokens",
+    "completion_tokens",
+    "model_tokens_retained",
+    "observation_tokens_retained",
+    "model_completion_truncated",
+    "model_completion_truncation_source",
+}
+TRANSPORT_INVALID_COMPLETION_FIELDS = (
+    "completion_token_budget_exhausted",
+    "context_limit_reached",
+    "tool_iteration_limit_reached",
+    "unresolved_tool_call",
+    "framework_loop_abnormal_end",
+    "model_completion_truncated",
+)
+
+
+def transport_invalid_reasons(payload: dict[str, Any] | None) -> list[str]:
+    """Return transport failures that make a rollout unsafe for optimization."""
+
+    if payload is None:
+        return ["missing_completion_telemetry"]
+    return [field for field in TRANSPORT_INVALID_COMPLETION_FIELDS if payload[field]]
+
+
+def _canonical_sha256(payload: Any) -> str:
+    serialized = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest().upper()
+
+
+def _environment_state(environment: Any) -> dict[str, Any]:
+    state: dict[str, Any] = {}
+    if environment.tools is not None and environment.tools.db is not None:
+        state["agent"] = environment.tools.db.model_dump(mode="json")
+    if environment.user_tools is not None and environment.user_tools.db is not None:
+        state["user"] = environment.user_tools.db.model_dump(mode="json")
+    return state
+
+
+def _state_diff(before: Any, after: Any, path: str = "") -> list[dict[str, Any]]:
+    if isinstance(before, dict) and isinstance(after, dict):
+        rows: list[dict[str, Any]] = []
+        for key in sorted(set(before) | set(after)):
+            child = f"{path}.{key}" if path else str(key)
+            if key not in before:
+                rows.append({"path": child, "before": None, "after": after[key]})
+            elif key not in after:
+                rows.append({"path": child, "before": before[key], "after": None})
+            else:
+                rows.extend(_state_diff(before[key], after[key], child))
+        return rows
+    if isinstance(before, list) and isinstance(after, list):
+        return (
+            []
+            if before == after
+            else [{"path": path, "before": before, "after": after}]
+        )
+    return [] if before == after else [{"path": path, "before": before, "after": after}]
+
+
+def _tool_trace(messages: list[Any]) -> list[dict[str, Any]]:
+    results: dict[str, Any] = {}
+    for message in messages:
+        message_id = getattr(message, "id", None)
+        if getattr(message, "role", None) == "tool" and message_id:
+            results[str(message_id)] = message
+
+    trace: list[dict[str, Any]] = []
+    for message_index, message in enumerate(messages):
+        for call in list(getattr(message, "tool_calls", None) or []):
+            result = results.get(str(call.id))
+            trace.append(
+                {
+                    "message_index": message_index,
+                    "call_id": str(call.id),
+                    "name": str(call.name),
+                    "arguments": deepcopy(call.arguments),
+                    "result": (
+                        {
+                            "content": getattr(result, "content", None),
+                            "error": bool(getattr(result, "error", False)),
+                        }
+                        if result is not None
+                        else None
+                    ),
+                }
+            )
+    return trace
+
+
+def _message_payload(message: Any) -> dict[str, Any]:
+    if hasattr(message, "model_dump"):
+        return dict(message.model_dump(mode="json"))
+    return {
+        "role": getattr(message, "role", None),
+        "content": getattr(message, "content", None),
+        "id": getattr(message, "id", None),
+        "error": bool(getattr(message, "error", False)),
+        "tool_calls": [
+            {
+                "id": str(call.id),
+                "name": str(call.name),
+                "arguments": deepcopy(call.arguments),
+            }
+            for call in list(getattr(message, "tool_calls", None) or [])
+        ],
+    }
 
 
 def load_reward_config() -> dict[str, Any]:
@@ -58,13 +222,26 @@ def load_reward_config() -> dict[str, Any]:
     configured = json.loads(raw) if raw else {}
     if not isinstance(configured, dict):
         raise RuntimeError(f"{REWARD_CONFIG_ENV} must contain a JSON object")
-    unknown = sorted(set(configured) - set(DEFAULT_REWARD_CONFIG))
+    allowed_keys = set(DEFAULT_REWARD_CONFIG)
+    if configured.get("process_reward_mode") == TIERED_TERMINAL_PROCESS_MODE:
+        allowed_keys.add("staged_reward_spec")
+    unknown = sorted(set(configured) - allowed_keys)
     if unknown:
         raise RuntimeError(f"Unknown Agentic RL reward keys: {unknown}")
     reward = {**DEFAULT_REWARD_CONFIG, **configured}
-    if reward["process_reward_mode"] != "one_to_one_required_action_progress":
+    if reward["process_reward_mode"] not in {
+        "one_to_one_required_action_progress",
+        "terminal_environment_state",
+        TIERED_TERMINAL_PROCESS_MODE,
+    }:
         raise RuntimeError("Unsupported Agentic RL process_reward_mode")
-    if reward["environment_state_action_progress_gate"] != "multiply":
+    expected_gate = (
+        "none"
+        if reward["process_reward_mode"]
+        in {"terminal_environment_state", TIERED_TERMINAL_PROCESS_MODE}
+        else "multiply"
+    )
+    if reward["environment_state_action_progress_gate"] != expected_gate:
         raise RuntimeError("Unsupported environment-state action-progress gate")
     for key in (
         "environment_state_weight",
@@ -81,23 +258,199 @@ def load_reward_config() -> dict[str, Any]:
         reward[key] = float(reward[key])
         if reward[key] < 0:
             raise RuntimeError(f"Reward field {key} must be non-negative")
-    if sum(
-        reward[key]
-        for key in (
-            "environment_state_weight",
-            "required_action_weight",
-            "communication_weight",
+    if (
+        reward["process_reward_mode"] != TIERED_TERMINAL_PROCESS_MODE
+        and sum(
+            reward[key]
+            for key in (
+                "environment_state_weight",
+                "required_action_weight",
+                "communication_weight",
+            )
         )
-    ) <= 0:
-        raise RuntimeError("At least one positive reward component weight is required")
-    for key in (
-        "llm_judge_used",
-        "policy_guard_used_as_reward",
-        "confirmation_signal_used_as_reward",
+        <= 0
     ):
+        raise RuntimeError("At least one positive reward component weight is required")
+    if reward["process_reward_mode"] == TIERED_TERMINAL_PROCESS_MODE:
+        _validate_staged_reward_spec(reward.get("staged_reward_spec"))
+    for key in ("llm_judge_used", "policy_guard_used_as_reward"):
         if reward[key] is not False:
             raise RuntimeError(f"Agentic RL v1 requires {key}=false")
+    expected_confirmation_reward = (
+        reward["process_reward_mode"] == TIERED_TERMINAL_PROCESS_MODE
+        and _staged_reward_uses_confirmation(reward.get("staged_reward_spec"))
+    )
+    if reward["confirmation_signal_used_as_reward"] is not expected_confirmation_reward:
+        raise RuntimeError(
+            "confirmation_signal_used_as_reward must match the staged reward "
+            "composition mode"
+        )
     return reward
+
+
+def _validate_staged_reward_spec(spec: Any) -> None:
+    if not isinstance(spec, dict):
+        raise RuntimeError("tiered_terminal_process_v2 requires staged_reward_spec")
+    if not isinstance(spec.get("reward"), dict) or not isinstance(
+        spec.get("tasks"), dict
+    ):
+        raise RuntimeError("staged_reward_spec requires reward and tasks objects")
+    composition_mode = str(spec["reward"].get("composition_mode") or "")
+    required_reward_fields = {
+        "terminal_incomplete_communication_cap",
+        "nonterminal_component_weights",
+        "normalize_active_nonterminal_weights_to",
+        "unexpected_write_hard_cap",
+    }
+    if composition_mode in {
+        "hierarchical_state_authorization_v5",
+        "hierarchical_state_authorization_review_v6",
+    }:
+        required_reward_fields.update(
+            {
+                "additive_component_weights",
+                "no_verified_write_cap",
+            }
+        )
+        if composition_mode == "hierarchical_state_authorization_v5":
+            required_reward_fields.add("unauthorized_write_hard_cap")
+        else:
+            required_reward_fields.update(
+                {
+                    "authorization_review_value",
+                    "authorization_review_cap",
+                    "authorization_fail_hard_cap",
+                }
+            )
+    elif composition_mode in {
+        "additive_terminal_process_v3",
+        "additive_terminal_process_confirmation_v4",
+    }:
+        required_reward_fields.update(
+            {"additive_component_weights", "no_correct_write_cap"}
+        )
+    else:
+        required_reward_fields.update(
+            {
+                "no_correct_write_cap",
+                "terminal_complete_success_score",
+                "complete_success_efficiency_penalty_cap",
+            }
+        )
+    missing = sorted(required_reward_fields - set(spec["reward"]))
+    if missing:
+        raise RuntimeError(f"staged_reward_spec reward fields missing: {missing}")
+
+
+def _staged_reward_uses_confirmation(spec: Any) -> bool:
+    return bool(
+        isinstance(spec, dict)
+        and isinstance(spec.get("reward"), dict)
+        and spec["reward"].get("composition_mode")
+        in {
+            "additive_terminal_process_confirmation_v4",
+            "hierarchical_state_authorization_v5",
+            "hierarchical_state_authorization_review_v6",
+        }
+    )
+
+
+def is_tiered_reward_config(reward: Any) -> bool:
+    if not isinstance(reward, dict):
+        return False
+    if reward.get("process_reward_mode") != TIERED_TERMINAL_PROCESS_MODE:
+        return False
+    if set(reward) - (set(DEFAULT_REWARD_CONFIG) | {"staged_reward_spec"}):
+        return False
+    try:
+        configured = {**DEFAULT_REWARD_CONFIG, **reward}
+        if configured["environment_state_action_progress_gate"] != "none":
+            return False
+        if any(
+            configured[key] is not False
+            for key in ("llm_judge_used", "policy_guard_used_as_reward")
+        ):
+            return False
+        if configured["confirmation_signal_used_as_reward"] is not (
+            _staged_reward_uses_confirmation(configured.get("staged_reward_spec"))
+        ):
+            return False
+        _validate_staged_reward_spec(configured.get("staged_reward_spec"))
+    except RuntimeError:
+        return False
+    return True
+
+
+def terminal_environment_reward(
+    environment_state_reward: float, *, user_stopped: bool
+) -> float:
+    """Return the binary terminal outcome for the controlled GRPO arm.
+
+    The signal intentionally ignores reference actions, tool-path quality,
+    policy findings, and communication checks.  It is valid only for tasks
+    whose business outcome is represented by the final environment state.
+    """
+
+    return 1.0 if user_stopped and float(environment_state_reward) == 1.0 else 0.0
+
+
+def tiered_terminal_process_reward(
+    *,
+    task_id: str,
+    messages: list[Any],
+    action_progress: dict[str, Any],
+    environment_payload: dict[str, Any],
+    communication_payload: dict[str, Any],
+    environment_state_reward: float,
+    user_stopped: bool,
+    completion: dict[str, Any],
+    staged_reward_spec: dict[str, Any],
+) -> dict[str, Any]:
+    """Score one online rollout with the frozen v2 offline formula."""
+
+    from src.evaluation.staged_reward_shadow import score_rollout
+
+    task_id = str(task_id)
+    if task_id not in staged_reward_spec["tasks"]:
+        raise RuntimeError(f"No staged reward specification for task {task_id}")
+    terminal_value = terminal_environment_reward(
+        environment_state_reward,
+        user_stopped=user_stopped,
+    )
+    evidence = {
+        "task_id": task_id,
+        "tool_trace": _tool_trace(messages),
+        "terminal_evaluator": {
+            "reward": terminal_value,
+            "user_stopped": user_stopped,
+            "action_progress": deepcopy(action_progress),
+            "tau2": {
+                "environment": deepcopy(environment_payload),
+                "communication": deepcopy(communication_payload),
+            },
+        },
+        "completion": deepcopy(completion),
+    }
+    evidence_sha256 = _canonical_sha256(evidence)
+    evidence["evidence_sha256"] = evidence_sha256
+    raw = {
+        "task_id": task_id,
+        "messages": [_message_payload(message) for message in messages],
+        "evidence_sha256": evidence_sha256,
+    }
+    confirmation = (
+        confirmation_diagnostics(messages)
+        if _staged_reward_uses_confirmation(staged_reward_spec)
+        else None
+    )
+    score = score_rollout(
+        raw,
+        evidence,
+        staged_reward_spec,
+        confirmation_diagnostic=confirmation,
+    )
+    score["terminal_environment_reward"] = terminal_value
+    return score
 
 
 def _normalized_action_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -117,8 +470,10 @@ def _normalized_action_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
             normalized.pop("item_ids")
             normalized.pop("new_item_ids")
             normalized["item_pairs"] = sorted(
-                ([str(item_id), str(new_item_id)]
-                 for item_id, new_item_id in zip(item_ids, new_item_ids, strict=True)),
+                (
+                    [str(item_id), str(new_item_id)]
+                    for item_id, new_item_id in zip(item_ids, new_item_ids, strict=True)
+                ),
                 key=lambda pair: (pair[0], pair[1]),
             )
     elif isinstance(item_ids, list):
@@ -134,11 +489,9 @@ def _tool_signature(name: str, arguments: dict[str, Any]) -> str:
 def _action_matches(action: Any, call: Any) -> bool:
     if action.compare_with_tool_call(call):
         return True
-    return (
-        action.name == call.name
-        and _normalized_action_arguments(dict(action.arguments))
-        == _normalized_action_arguments(dict(call.arguments))
-    )
+    return action.name == call.name and _normalized_action_arguments(
+        dict(action.arguments)
+    ) == _normalized_action_arguments(dict(call.arguments))
 
 
 def gate_environment_state_reward(
@@ -169,10 +522,7 @@ def one_to_one_action_progress(
             action
             for action in (criteria.actions or [])
             if action.requestor == "assistant"
-            and (
-                expected_action_names is None
-                or action.name in expected_action_names
-            )
+            and (expected_action_names is None or action.name in expected_action_names)
         ]
         if criteria is not None
         else []
@@ -239,7 +589,14 @@ def one_to_one_action_progress(
 
 
 _CONFIRM_QUESTION = re.compile(
-    r"\b(confirm|confirmation|yes\s*/\s*no|proceed|go ahead)\b|确认|是否继续",
+    r"(?:^|[.!?]\s*)confirm(?:ing)?\b"
+    r"|\b(?:do|can|could|would)\s+you\s+confirm\b"
+    r"|\bplease\s+confirm\b"
+    r"|\bbefore\s+i\s+proceed[\s\S]{0,500}?\bconfirm\b"
+    r"|\bwould\s+you\s+like\s+me\s+to\s+proceed\b"
+    r"|\bis\s+(?:that|this)\s+correct\b"
+    r"|\byes\s*/\s*no\b"
+    r"|请确认|是否确认|是否继续",
     re.IGNORECASE,
 )
 _AFFIRMATIVE = re.compile(
@@ -248,6 +605,14 @@ _AFFIRMATIVE = re.compile(
 )
 
 _CONFIRMATION_PARAMETER_FIELDS = {
+    "modify_user_address": (
+        "address1",
+        "address2",
+        "city",
+        "state",
+        "country",
+        "zip",
+    ),
     "cancel_pending_order": ("order_id", "reason"),
     "exchange_delivered_order_items": (
         "order_id",
@@ -342,7 +707,9 @@ def _payment_aliases_before_write(
                     isinstance(payment, dict)
                     and payment.get("transaction_type") == "payment"
                 ):
-                    original_payment_ids.add(str(payment.get("payment_method_id") or ""))
+                    original_payment_ids.add(
+                        str(payment.get("payment_method_id") or "")
+                    )
 
     if expected in original_payment_ids:
         aliases.add("original payment method")
@@ -413,7 +780,9 @@ def confirmation_parameter_binding(
                     _literal_occurrences(text, old_item)
                     and _literal_occurrences(text, new_item)
                 )
-            elif pairs and len(set(old_items + new_items)) == len(old_items + new_items):
+            elif pairs and len(set(old_items + new_items)) == len(
+                old_items + new_items
+            ):
                 positions = []
                 for old_item, new_item in pairs:
                     for role, value in (("old", old_item), ("new", new_item)):
@@ -429,8 +798,7 @@ def confirmation_parameter_binding(
                     observed_pairs = [
                         (ordered[index][2], ordered[index + 1][2])
                         for index in range(0, len(ordered), 2)
-                        if ordered[index][1] == "old"
-                        and ordered[index + 1][1] == "new"
+                        if ordered[index][1] == "old" and ordered[index + 1][1] == "new"
                     ]
                     if Counter(observed_pairs) == Counter(
                         (str(old), str(new)) for old, new in pairs
@@ -500,6 +868,7 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
 
     confirmed_after = -1
     confirmation_text = ""
+    confirmation_prompt_text = ""
     confirmation_user_index = -1
     authorized_write_count = 0
     authorized_signatures: set[str] = set()
@@ -512,6 +881,7 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
             if index > confirmation_user_index:
                 confirmed_after = -1
                 confirmation_text = ""
+                confirmation_prompt_text = ""
                 confirmation_user_index = -1
                 authorized_write_count = 0
                 authorized_signatures.clear()
@@ -527,10 +897,11 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
             if affirmative and prior_asks:
                 confirmed_after = max(prior_asks)
                 confirmation_user_index = index
+                confirmation_prompt_text = str(
+                    getattr(messages[confirmed_after], "content", "") or ""
+                ).lower()
                 confirmation_text = (
-                    str(getattr(messages[confirmed_after], "content", "") or "")
-                    + " "
-                    + content
+                    confirmation_prompt_text + " " + content
                 ).lower()
                 authorized_signatures.clear()
         if role != "assistant":
@@ -547,13 +918,15 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
         ]
         for call in write_calls:
             signature = _tool_signature(call.name, dict(call.arguments))
-            order_id = str(
-                getattr(call, "arguments", {}).get("order_id") or ""
-            ).lower()
-            confirmed = has_confirmation and (
-                (len(write_calls) == 1 and authorized_write_count == 0)
-                or (all(order_ids) and order_id in confirmation_text)
-            ) and signature not in authorized_signatures
+            order_id = str(getattr(call, "arguments", {}).get("order_id") or "").lower()
+            confirmed = (
+                has_confirmation
+                and (
+                    (len(write_calls) == 1 and authorized_write_count == 0)
+                    or (all(order_ids) and order_id in confirmation_text)
+                )
+                and signature not in authorized_signatures
+            )
             checks.append(
                 {
                     "tool_call_id": str(call.id),
@@ -562,7 +935,7 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
                     "parameter_binding": confirmation_parameter_binding(
                         call.name,
                         dict(call.arguments),
-                        confirmation_text,
+                        confirmation_prompt_text,
                         value_aliases=_payment_aliases_before_write(
                             messages,
                             index,
@@ -581,7 +954,7 @@ def confirmation_diagnostics(messages: list[Any]) -> dict[str, Any]:
         "confirmed_write_count": sum(item["confirmed"] for item in checks),
         "missing_confirmation_count": sum(not item["confirmed"] for item in checks),
         "checks": checks,
-        "diagnostic_version": "v2_batch_confirmation_scope",
+        "diagnostic_version": "v3_prompt_bound_confirmation_scope",
         "used_as_reward": False,
     }
 
@@ -630,9 +1003,7 @@ def identity_authentication_stage_reward(
         * action_progress["unexpected_write_count"],
     )
     unfinished_penalty = (
-        0.0
-        if stage_complete
-        else reward_config["unfinished_interaction_penalty"]
+        0.0 if stage_complete else reward_config["unfinished_interaction_penalty"]
     )
     reward = max(
         0.0,
@@ -725,6 +1096,7 @@ class RetailAgenticEnvironment:
         self._user_factory = user_factory
         self._evaluator = evaluator
         self._environment: Any | None = None
+        self._initial_environment_state: dict[str, Any] = {}
         self._task: Any | None = None
         self._user: Any | None = None
         self._user_state: Any | None = None
@@ -737,9 +1109,13 @@ class RetailAgenticEnvironment:
         self._policy_findings: list[dict[str, Any]] = []
         self._last_reward_info: dict[str, Any] | None = None
         self._reward_config = load_reward_config()
-        self._rollout_stage = os.environ.get(
-            ROLLOUT_STAGE_ENV, FULL_TASK_STAGE
-        ).strip()
+        transport_gate = os.environ.get(REQUIRE_TRANSPORT_COMPLETE_ENV, "0").strip()
+        if transport_gate not in {"0", "1"}:
+            raise RuntimeError(
+                f"{REQUIRE_TRANSPORT_COMPLETE_ENV} must be exactly '0' or '1'"
+            )
+        self._require_transport_complete = transport_gate == "1"
+        self._rollout_stage = os.environ.get(ROLLOUT_STAGE_ENV, FULL_TASK_STAGE).strip()
         if self._rollout_stage not in SUPPORTED_ROLLOUT_STAGES:
             raise RuntimeError(
                 f"Unsupported Agentic RL rollout stage: {self._rollout_stage}"
@@ -750,6 +1126,8 @@ class RetailAgenticEnvironment:
         )
         self._max_tool_calls = int(os.environ.get("POLICYAGENT_MAX_TOOL_CALLS", "32"))
         self._reward_persisted = False
+        self._trainer_completion_telemetry: dict[str, Any] | None = None
+        self._runtime_stop_signals: list[str] = []
 
     def reset(
         self,
@@ -807,6 +1185,7 @@ class RetailAgenticEnvironment:
         )
         opening = UserMessage(role="user", content=str(initial_user_message).strip())
         self._environment = environment
+        self._initial_environment_state = _environment_state(environment)
         self._task = task
         self._messages = [hello, opening]
         self._user_dialogue = [hello, opening]
@@ -817,6 +1196,8 @@ class RetailAgenticEnvironment:
         self._policy_findings = []
         self._last_reward_info = None
         self._reward_persisted = False
+        self._trainer_completion_telemetry = None
+        self._runtime_stop_signals = []
         self._customer_turns = 0
         self._user, self._user_state = self._build_user()
         return None
@@ -831,6 +1212,15 @@ class RetailAgenticEnvironment:
         """
 
         self._require_ready()
+        if self._require_transport_complete:
+            invalid_reasons = transport_invalid_reasons(
+                self._trainer_completion_telemetry
+            )
+            if invalid_reasons:
+                raise RuntimeError(
+                    "Transport-invalid rollout rejected before reward: "
+                    + ", ".join(invalid_reasons)
+                )
         if self._evaluator is not None:
             reward_info = self._evaluator(self._task, deepcopy(self._messages))
         else:
@@ -851,22 +1241,164 @@ class RetailAgenticEnvironment:
         self._persist_rollout(payload)
         return reward
 
+    def _set_trainer_completion_telemetry(self, payload: dict[str, Any]) -> None:
+        """Bind trainer-observed termination evidence before reward persistence."""
+
+        self._require_ready()
+        if self._last_reward_info is not None or self._reward_persisted:
+            raise RuntimeError("Completion telemetry must be bound before reward")
+        if self._trainer_completion_telemetry is not None:
+            raise RuntimeError("Completion telemetry is already bound")
+        if (
+            not isinstance(payload, dict)
+            or set(payload) != GUARDED_COMPLETION_TELEMETRY_KEYS
+        ):
+            raise ValueError("Unexpected guarded completion telemetry schema")
+        if payload["stop_reason"] not in GUARDED_PRIMARY_STOP_REASONS:
+            raise ValueError("Unsupported guarded primary stop reason")
+        if payload["stop_reason_source"] != "guarded_grpo_trainer_v1":
+            raise ValueError("Unsupported guarded stop-reason source")
+        if payload["model_completion_truncation_source"] != "guarded_grpo_trainer_v1":
+            raise ValueError("Unsupported guarded truncation source")
+        flags = payload["stop_flags"]
+        if (
+            not isinstance(flags, list)
+            or any(not isinstance(flag, str) or not flag for flag in flags)
+            or len(flags) != len(set(flags))
+        ):
+            raise ValueError("stop_flags must be unique non-empty strings")
+        if not set(flags).issubset(GUARDED_STOP_FLAGS):
+            raise ValueError("stop_flags contain an unsupported guarded stop reason")
+        if not set(self._runtime_stop_signals).issubset(flags):
+            raise ValueError(
+                "Trainer telemetry omitted a causal environment stop signal"
+            )
+        bool_fields = {
+            "model_ended",
+            "model_eos_observed",
+            "completion_token_budget_exhausted",
+            "context_limit_reached",
+            "tool_iteration_limit_reached",
+            "unresolved_tool_call",
+            "framework_loop_abnormal_end",
+            "model_completion_truncated",
+        }
+        if any(type(payload[name]) is not bool for name in bool_fields):
+            raise ValueError("Guarded completion booleans must be explicit bool values")
+        count_fields = {
+            "prompt_tokens",
+            "completion_tokens",
+            "model_tokens_retained",
+            "observation_tokens_retained",
+        }
+        if any(
+            type(payload[name]) is not int or payload[name] < 0 for name in count_fields
+        ):
+            raise ValueError(
+                "Guarded completion token counts must be non-negative ints"
+            )
+        if (
+            payload["model_tokens_retained"] + payload["observation_tokens_retained"]
+            != payload["completion_tokens"]
+        ):
+            raise ValueError("Guarded completion token counts do not conserve length")
+        expected_flags = {
+            "completion_token_budget_exhausted": {
+                "TOOL_RESULT_BUDGET_EXCEEDED",
+                "COMPLETION_BUDGET_EXHAUSTED",
+            },
+            "context_limit_reached": {"CONTEXT_LIMIT"},
+            "tool_iteration_limit_reached": {"TOOL_ITERATION_LIMIT"},
+            "unresolved_tool_call": {"UNRESOLVED_TOOL_CALL"},
+            "model_completion_truncated": {"COMPLETION_BUDGET_EXHAUSTED"},
+        }
+        for field, causes in expected_flags.items():
+            if payload[field] is not bool(causes.intersection(flags)):
+                raise ValueError(f"Guarded completion {field} contradicts stop_flags")
+        stop_reason = payload["stop_reason"]
+        primary_flag_reasons = {
+            "TOOL_RESULT_BUDGET_EXCEEDED",
+            "CONTEXT_LIMIT",
+            "COMPLETION_BUDGET_EXHAUSTED",
+            "TOOL_ITERATION_LIMIT",
+            "UNRESOLVED_TOOL_CALL",
+            "MODEL_END_WITHOUT_EOS",
+        }
+        if stop_reason in primary_flag_reasons and stop_reason not in flags:
+            raise ValueError("Guarded primary stop reason is absent from stop_flags")
+        if stop_reason == "USER_STOP_AND_MODEL_EOS" and (
+            not payload["model_eos_observed"] or not self._user_stopped
+        ):
+            raise ValueError("USER_STOP_AND_MODEL_EOS contradicts runtime state")
+        if stop_reason == "MODEL_EOS_BEFORE_USER_STOP" and (
+            not payload["model_eos_observed"] or self._user_stopped
+        ):
+            raise ValueError("MODEL_EOS_BEFORE_USER_STOP contradicts runtime state")
+        if stop_reason == "MODEL_END_WITHOUT_EOS" and payload["model_eos_observed"]:
+            raise ValueError("MODEL_END_WITHOUT_EOS contradicts EOS telemetry")
+        self._trainer_completion_telemetry = deepcopy(payload)
+
     def _persist_rollout(self, reward_payload: dict[str, Any]) -> None:
-        """Append one raw rollout record when the runner configured a log path."""
+        """Append one raw record and its rollout-bound evidence sidecar."""
 
         path_value = os.environ.get(ROLLOUT_LOG_ENV)
         if not path_value or self._reward_persisted:
             return
+        evidence_path_value = os.environ.get(ROLLOUT_EVIDENCE_LOG_ENV)
+        if not evidence_path_value:
+            raise RuntimeError(
+                f"{ROLLOUT_EVIDENCE_LOG_ENV} is required when {ROLLOUT_LOG_ENV} is set"
+            )
         path = Path(path_value).expanduser().resolve()
+        evidence_path = Path(evidence_path_value).expanduser().resolve()
         path.parent.mkdir(parents=True, exist_ok=True)
+        evidence_path.parent.mkdir(parents=True, exist_ok=True)
         messages = [
             message.model_dump(mode="json")
             if hasattr(message, "model_dump")
             else str(message)
             for message in self._messages
         ]
+        final_state = _environment_state(self._environment)
+        state_evidence = {
+            "initial_state": deepcopy(self._initial_environment_state),
+            "final_state": final_state,
+            "state_diff": _state_diff(self._initial_environment_state, final_state),
+            "state_hashes": {
+                "initial_sha256": _canonical_sha256(self._initial_environment_state),
+                "final_sha256": _canonical_sha256(final_state),
+            },
+        }
+        completion = {
+            "user_stopped": self._user_stopped,
+            "customer_turn_limit_reached": (
+                self._customer_turns >= self._max_customer_turns
+                and not self._user_stopped
+            ),
+            "tool_call_limit_reached": self._tool_counter >= self._max_tool_calls,
+            "model_completion_truncated": None,
+            "model_completion_truncation_source": "trainer_metrics_only",
+        }
+        if self._trainer_completion_telemetry is not None:
+            completion.update(deepcopy(self._trainer_completion_telemetry))
+        terminal_evaluator = deepcopy(reward_payload)
+        if reward_payload.get("reward_mode") == TIERED_TERMINAL_PROCESS_MODE:
+            terminal_evaluator["reward"] = reward_payload["terminal_environment_reward"]
+        evidence = {
+            "schema_version": "retail-agentic-rollout-evidence-v1",
+            "task_id": str(self._task.id),
+            "rollout_stage": self._rollout_stage,
+            "user_seed": self._seed,
+            **state_evidence,
+            "tool_trace": _tool_trace(self._messages),
+            "terminal_evaluator": terminal_evaluator,
+            "completion": completion,
+            "hidden_user_scenario_persisted": False,
+        }
+        evidence_sha256 = _canonical_sha256(evidence)
+        evidence["evidence_sha256"] = evidence_sha256
         record = {
-            "schema_version": "retail-agentic-rollout-v1",
+            "schema_version": "retail-agentic-rollout-v2",
             "task_id": str(self._task.id),
             "rollout_stage": self._rollout_stage,
             "user_seed": self._seed,
@@ -875,8 +1407,12 @@ class RetailAgenticEnvironment:
             "tool_calls": self._tool_counter,
             "messages": messages,
             "reward": deepcopy(reward_payload),
+            "completion": completion,
+            "evidence_sha256": evidence_sha256,
             "hidden_user_scenario_persisted": False,
         }
+        with evidence_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(evidence, ensure_ascii=False, default=str) + "\n")
         with path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
         self._reward_persisted = True
@@ -923,8 +1459,120 @@ class RetailAgenticEnvironment:
 
         reward_config = self._reward_config
         environment_state_raw = float(env_info.reward)
-        environment_state_value, environment_state_gate = (
-            gate_environment_state_reward(environment_state_raw, action_recall)
+        if reward_config["process_reward_mode"] == "terminal_environment_state":
+            reward = terminal_environment_reward(
+                environment_state_raw,
+                user_stopped=self._user_stopped,
+            )
+            return {
+                "reward": reward,
+                "components": {
+                    "terminal_environment_state": {
+                        "weight": 1.0,
+                        "value": reward,
+                    }
+                },
+                "tool_error_count": sum(
+                    bool(getattr(message, "error", False)) for message in trajectory
+                ),
+                "tool_error_penalty": 0.0,
+                "repeated_call_penalty": 0.0,
+                "unexpected_write_penalty": 0.0,
+                "unfinished_interaction_penalty": 0.0,
+                "user_stopped": self._user_stopped,
+                "rollout_stage": FULL_TASK_STAGE,
+                "stage_complete": None,
+                "termination_basis": "user_stopped_and_environment_state",
+                "action_progress": action_progress,
+                "environment_state_diagnostics": {
+                    "raw_value": environment_state_raw,
+                    "action_progress_gate": None,
+                    "gated_value": environment_state_raw,
+                    "gate_mode": "none",
+                },
+                "confirmation_diagnostics": confirmation_diagnostics(trajectory),
+                "reward_config": deepcopy(reward_config),
+                "nl_assertions_used": False,
+                "communication_used_as_reward": False,
+                "policy_guard_used_as_reward": False,
+                "tau2": {
+                    "environment": env_info.model_dump(mode="json"),
+                    "communication": communication_info.model_dump(mode="json"),
+                },
+            }
+        if reward_config["process_reward_mode"] == TIERED_TERMINAL_PROCESS_MODE:
+            environment_payload = env_info.model_dump(mode="json")
+            communication_payload = communication_info.model_dump(mode="json")
+            completion = {
+                "user_stopped": self._user_stopped,
+                "customer_turn_limit_reached": (
+                    self._customer_turns >= self._max_customer_turns
+                    and not self._user_stopped
+                ),
+                "tool_call_limit_reached": self._tool_counter >= self._max_tool_calls,
+            }
+            score = tiered_terminal_process_reward(
+                task_id=str(self._task.id),
+                messages=trajectory,
+                action_progress=action_progress,
+                environment_payload=environment_payload,
+                communication_payload=communication_payload,
+                environment_state_reward=environment_state_raw,
+                user_stopped=self._user_stopped,
+                completion=completion,
+                staged_reward_spec=reward_config["staged_reward_spec"],
+            )
+            return {
+                "reward": score["staged_reward"],
+                "reward_mode": TIERED_TERMINAL_PROCESS_MODE,
+                "terminal_environment_reward": score["terminal_environment_reward"],
+                "components": deepcopy(score["components"]),
+                "effective_component_values": deepcopy(
+                    score["effective_component_values"]
+                ),
+                "normalized_weights": deepcopy(score["normalized_weights"]),
+                "process_score_before_penalties": score[
+                    "process_score_before_penalties"
+                ],
+                "penalties": deepcopy(score["penalties"]),
+                "total_penalty_applied": score["total_penalty_applied"],
+                "terminal_success": score["terminal_success"],
+                "complete_success": score["complete_success"],
+                "communication_complete": score["communication_complete"],
+                # Preserve the historical rollout-evidence field while the scorer
+                # uses the more precise name: a bound non-error write is verified,
+                # not its business or policy correctness.
+                "no_correct_write_cap_applied": score[
+                    "no_verified_write_cap_applied"
+                ],
+                "no_verified_write_cap_applied": score[
+                    "no_verified_write_cap_applied"
+                ],
+                "tool_error_count": score["tool_error_count"],
+                "repeated_call_count": score["repeated_call_count"],
+                "unexpected_write_count": score["unexpected_write_count"],
+                "user_stopped": self._user_stopped,
+                "rollout_stage": FULL_TASK_STAGE,
+                "stage_complete": None,
+                "termination_basis": "tiered_terminal_plus_process_v2",
+                "action_progress": action_progress,
+                "environment_state_diagnostics": {
+                    "raw_value": environment_state_raw,
+                    "terminal_value": score["terminal_environment_reward"],
+                    "gate_mode": "tiered_formula",
+                },
+                "confirmation_diagnostics": confirmation_diagnostics(trajectory),
+                "reward_config": deepcopy(reward_config),
+                "nl_assertions_used": False,
+                "communication_used_as_reward": True,
+                "policy_guard_used_as_reward": False,
+                "tau2": {
+                    "environment": environment_payload,
+                    "communication": communication_payload,
+                },
+            }
+        environment_state_value, environment_state_gate = gate_environment_state_reward(
+            environment_state_raw, action_recall
         )
         weighted: list[tuple[str, float, float]] = [
             (
@@ -1002,9 +1650,7 @@ class RetailAgenticEnvironment:
                 "raw_value": environment_state_raw,
                 "action_progress_gate": environment_state_gate,
                 "gated_value": environment_state_value,
-                "gate_mode": reward_config[
-                    "environment_state_action_progress_gate"
-                ],
+                "gate_mode": reward_config["environment_state_action_progress_gate"],
             },
             "confirmation_diagnostics": confirmation_diagnostics(trajectory),
             "reward_config": deepcopy(reward_config),
@@ -1033,6 +1679,8 @@ class RetailAgenticEnvironment:
         from tau2.user.user_simulator import UserSimulator
 
         if self._customer_turns >= self._max_customer_turns:
+            if "CUSTOMER_TURN_LIMIT" not in self._runtime_stop_signals:
+                self._runtime_stop_signals.append("CUSTOMER_TURN_LIMIT")
             raise RuntimeError("Maximum customer turns reached for this rollout")
         assistant = AssistantMessage(role="assistant", content=str(message).strip())
         if not assistant.content:
@@ -1363,7 +2011,9 @@ class RetailAgenticEnvironment:
         try:
             llm_args = json.loads(raw_args)
         except json.JSONDecodeError as exc:
-            raise RuntimeError("POLICYAGENT_USER_LLM_ARGS_JSON is invalid JSON") from exc
+            raise RuntimeError(
+                "POLICYAGENT_USER_LLM_ARGS_JSON is invalid JSON"
+            ) from exc
         user = build_user(
             "user_simulator",
             self._environment,
@@ -1381,6 +2031,8 @@ class RetailAgenticEnvironment:
         from tau2.data_model.message import AssistantMessage, ToolCall
 
         if self._tool_counter >= self._max_tool_calls:
+            if "TOOL_CALL_LIMIT" not in self._runtime_stop_signals:
+                self._runtime_stop_signals.append("TOOL_CALL_LIMIT")
             raise RuntimeError("Maximum Retail tool calls reached for this rollout")
         self._tool_counter += 1
         call = ToolCall(

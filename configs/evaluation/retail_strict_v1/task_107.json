@@ -1,0 +1,241 @@
+{
+  "schema_version": "retail-strict-task-rubric-v1",
+  "task_id": "107",
+  "domain": "retail",
+  "description": "The user requests exchanges for hiking boots and a jigsaw puzzle in two delivered orders. Retail policy forbids exchanging an item to the identical variant, so the boots must use the user's fallback size-9 leather waterproof variant. The puzzle must use the confirmed 1000-piece fantasy intermediate variant. Each order receives exactly one separately confirmed write using PayPal.",
+  "required_capability_groups": [
+    "evaluation_integrity",
+    "final_state_correctness",
+    "required_task_execution",
+    "invalid_action_avoidance",
+    "protocol_compliance",
+    "intent_alignment",
+    "evidence_consistency"
+  ],
+  "predicates": [
+    {
+      "predicate_id": "identity_lookup_observed",
+      "predicate_type": "required_action",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "The user does not remember the email address, so authentication uses name and zip code."
+    },
+    {
+      "predicate_id": "identity_lookup_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "find_user_id_by_name_zip"},
+      "description": "Authentication must have an explicit successful result."
+    },
+    {
+      "predicate_id": "user_details_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"name": "get_user_details", "argument_path": ["user_id"], "expected": "yara_ito_8499", "quantifier": "any"},
+      "description": "PayPal availability must be grounded in the authenticated profile."
+    },
+    {
+      "predicate_id": "user_details_read_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_user_details"},
+      "description": "User-details evidence must come from explicit successful results."
+    },
+    {
+      "predicate_id": "boots_order_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {"name": "get_order_details", "argument_path": ["order_id"], "expected": "#W1304208", "quantifier": "any"},
+      "description": "The delivered hiking-boots order must be inspected."
+    },
+    {
+      "predicate_id": "puzzle_order_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {"name": "get_order_details", "argument_path": ["order_id"], "expected": "#W8353027", "quantifier": "any"},
+      "description": "The delivered puzzle order must be inspected."
+    },
+    {
+      "predicate_id": "order_reads_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_order_details"},
+      "description": "Every observed order read must have an explicit successful result."
+    },
+    {
+      "predicate_id": "boots_product_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"name": "get_product_details", "argument_path": ["product_id"], "expected": "7363354090", "quantifier": "any"},
+      "description": "The fallback boots variant must be resolved from the product inventory."
+    },
+    {
+      "predicate_id": "puzzle_product_read",
+      "predicate_type": "action_argument_equals",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"name": "get_product_details", "argument_path": ["product_id"], "expected": "1808611083", "quantifier": "any"},
+      "description": "The requested puzzle variant must be resolved from product inventory."
+    },
+    {
+      "predicate_id": "product_reads_succeeded",
+      "predicate_type": "tool_result_success",
+      "capability_group": "evaluation_integrity",
+      "required": true,
+      "parameters": {"name": "get_product_details"},
+      "description": "Variant evidence must come from explicit successful product results."
+    },
+    {
+      "predicate_id": "exactly_two_exchange_writes",
+      "predicate_type": "action_cardinality",
+      "capability_group": "required_task_execution",
+      "required": true,
+      "parameters": {"name": "exchange_delivered_order_items", "action_class": "write", "min_count": 2, "max_count": 2},
+      "description": "The two delivered orders require exactly two exchange writes in total."
+    },
+    {
+      "predicate_id": "both_writes_confirmed_after_final_selection",
+      "predicate_type": "write_after_confirmation",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"name": "exchange_delivered_order_items", "require_after_latest_revision": true},
+      "description": "Both writes must be covered by confirmation after the valid boots fallback, puzzle variant, and PayPal are finalized."
+    },
+    {
+      "predicate_id": "boots_exchange_transition",
+      "predicate_type": "action_state_transition_consistent",
+      "capability_group": "final_state_correctness",
+      "required": true,
+      "parameters": {
+        "name": "exchange_delivered_order_items",
+        "selector_checks": [{"path": ["order_id"], "expected": "#W1304208"}],
+        "argument_checks": [
+          {"path": ["order_id"], "expected": "#W1304208"},
+          {"path": ["payment_method_id"], "expected": "paypal_1679017"}
+        ],
+        "paired_arguments": {"left_argument_path": ["item_ids"], "right_argument_path": ["new_item_ids"], "expected_pairs": [["1615379700", "8106223139"]]},
+        "required_initial_fields": [
+          {"path": ["orders", "#W1304208", "status"], "expected": "delivered"}
+        ],
+        "expected_final_fields": [
+          {"path": ["orders", "#W1304208", "status"], "expected": "exchange requested"},
+          {"path": ["orders", "#W1304208", "exchange_items"], "expected": ["1615379700"]},
+          {"path": ["orders", "#W1304208", "exchange_new_items"], "expected": ["8106223139"]},
+          {"path": ["orders", "#W1304208", "exchange_payment_method_id"], "expected": "paypal_1679017"},
+          {"path": ["orders", "#W1304208", "exchange_price_difference"], "expected": -4.77}
+        ]
+      },
+      "description": "The boots call must bind the original item to the available size-9 leather waterproof fallback. Same-item exchange is a model policy failure even if the tool accepts it."
+    },
+    {
+      "predicate_id": "puzzle_exchange_transition",
+      "predicate_type": "action_state_transition_consistent",
+      "capability_group": "final_state_correctness",
+      "required": true,
+      "parameters": {
+        "name": "exchange_delivered_order_items",
+        "selector_checks": [{"path": ["order_id"], "expected": "#W8353027"}],
+        "argument_checks": [
+          {"path": ["order_id"], "expected": "#W8353027"},
+          {"path": ["payment_method_id"], "expected": "paypal_1679017"}
+        ],
+        "paired_arguments": {"left_argument_path": ["item_ids"], "right_argument_path": ["new_item_ids"], "expected_pairs": [["6245746168", "3112842858"]]},
+        "required_initial_fields": [
+          {"path": ["orders", "#W8353027", "status"], "expected": "delivered"}
+        ],
+        "expected_final_fields": [
+          {"path": ["orders", "#W8353027", "status"], "expected": "exchange requested"},
+          {"path": ["orders", "#W8353027", "exchange_items"], "expected": ["6245746168"]},
+          {"path": ["orders", "#W8353027", "exchange_new_items"], "expected": ["3112842858"]},
+          {"path": ["orders", "#W8353027", "exchange_payment_method_id"], "expected": "paypal_1679017"},
+          {"path": ["orders", "#W8353027", "exchange_price_difference"], "expected": 3.1}
+        ]
+      },
+      "description": "The puzzle call must bind the 1500-piece animals item to the available 1000-piece fantasy intermediate variant using PayPal."
+    },
+    {
+      "predicate_id": "no_unrelated_mutation",
+      "predicate_type": "no_unrelated_mutation",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {"allowed_paths": [
+        ["orders", "#W1304208", "status"], ["orders", "#W1304208", "exchange_items"], ["orders", "#W1304208", "exchange_new_items"], ["orders", "#W1304208", "exchange_payment_method_id"], ["orders", "#W1304208", "exchange_price_difference"],
+        ["orders", "#W8353027", "status"], ["orders", "#W8353027", "exchange_items"], ["orders", "#W8353027", "exchange_new_items"], ["orders", "#W8353027", "exchange_payment_method_id"], ["orders", "#W8353027", "exchange_price_difference"]
+      ]},
+      "description": "Only the two intended order-exchange fields may change."
+    },
+    {
+      "predicate_id": "no_unnecessary_transfer",
+      "predicate_type": "forbidden_action",
+      "capability_group": "invalid_action_avoidance",
+      "required": true,
+      "parameters": {"name": "transfer_to_human_agents"},
+      "description": "Both exchanges are supported by Retail tools."
+    },
+    {
+      "predicate_id": "one_tool_call_each_turn",
+      "predicate_type": "one_tool_call_per_turn",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {"max_calls": 1},
+      "description": "The two exchange writes must occur in separate assistant turns; Retail permits at most one tool call per turn."
+    },
+    {
+      "predicate_id": "message_tool_separation",
+      "predicate_type": "message_tool_exclusivity",
+      "capability_group": "protocol_compliance",
+      "required": true,
+      "parameters": {},
+      "description": "An assistant turn must either address the user or call a tool, not both."
+    },
+    {
+      "predicate_id": "boots_exchange_summary_truthful",
+      "predicate_type": "final_claim_matches_state",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {"claim_id": "boots_exchange_summary"},
+      "description": "The final answer must report the valid fallback boots exchange and $4.77 price decrease, not a same-item replacement."
+    },
+    {
+      "predicate_id": "puzzle_exchange_summary_truthful",
+      "predicate_type": "final_claim_matches_state",
+      "capability_group": "intent_alignment",
+      "required": true,
+      "parameters": {"claim_id": "puzzle_exchange_summary"},
+      "description": "The final answer must report the 1000-piece fantasy intermediate puzzle and $3.10 price increase."
+    },
+    {
+      "predicate_id": "payment_summary_truthful",
+      "predicate_type": "final_claim_matches_state",
+      "capability_group": "evidence_consistency",
+      "required": true,
+      "parameters": {"claim_id": "payment_summary"},
+      "description": "Both exchange price differences must be bound to PayPal without inventing a netted single transaction."
+    }
+  ],
+  "metadata": {
+    "task_source": "D:/tau2-bench/data/tau2/domains/retail/tasks.json",
+    "task_source_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+    "database_source": "D:/tau2-bench/data/tau2/domains/retail/db.json",
+    "database_source_sha256": "DBDE692E380BB4AD17F9F7841172CF1E69BEBAD2DAA405628CCDC52A42B3B9B0",
+    "upstream_tools_source": "D:/tau2-bench/src/tau2/domains/retail/tools.py",
+    "upstream_tools_source_sha256": "B40CEEFD87B428792E2FDCE545B0156131273BE6E3AD36E29093763F5DD370F4",
+    "frozen_baseline_task_snapshot": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/task_107/task.json",
+    "frozen_baseline_task_snapshot_sha256": "3424D969D1E47859192C4AF4FBF63351FB0B39826D89BDA329BD94FE39D98480",
+    "known_baseline_result": "Tau2 reward 0.0. The puzzle exchange matched static gold, but the agent performed the policy-invalid boots mapping 1615379700 -> 1615379700 and issued both writes in one assistant turn.",
+    "known_tool_gap": "The frozen exchange tool checks product membership and availability but does not reject old_item_id == new_item_id. Tool success is therefore insufficient policy evidence.",
+    "variant_authority": {
+      "boots": {"old": "1615379700", "new": "8106223139", "options": {"size": "9", "material": "leather", "waterproof": "yes"}, "available": true, "price_difference": -4.77},
+      "puzzle": {"old": "6245746168", "new": "3112842858", "options": {"pieces": "1000", "theme": "fantasy", "difficulty level": "intermediate"}, "available": true, "price_difference": 3.1}
+    },
+    "path_policy": "Read order and exchange-write order are not unique. Each order must have exactly one correctly bound write; the two writes must be separate turns and may share one final confirmation that covers both complete exchange summaries."
+  }
+}
