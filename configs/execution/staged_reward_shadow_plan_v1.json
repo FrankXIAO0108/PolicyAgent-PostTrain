@@ -1,0 +1,2067 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "staged-reward-offline-shadow-v1",
+  "created_at": "2026-08-26",
+  "status": "S11_TASK95_COMPLIANT_REPLAY_DRAFT_WAITING_OWNER_APPROVAL",
+  "current_task": "S11_TASK95_COMPLIANT_REPLAY_DRAFT",
+  "objective": "Freeze and audit the staged reward, then complete one bounded GRPO engineering closure before any larger or business-effect experiment.",
+  "rl_eligibility_gates": {
+    "review_path": "output/20260827-rl-eligibility-review-v1/report.json",
+    "review_sha256": "81D1A2685BCB38FFE6C98246C5CF08990983FE1A3D37C7E79461DD1774B326B3",
+    "task_suitability": "PASS",
+    "exact_checkpoint_greedy_pass_at_1": "1/2_ON_TASKS_43_72_DIAGNOSTIC_ONLY",
+    "exact_checkpoint_stochastic_pass_at_k": "PASS_MINIMUM_EXPLORATION_AND_REWARD_SEPARABILITY_DIAGNOSTIC_ONLY",
+    "correct_write_coverage": "FAIL_ON_S4",
+    "terminal_success_coverage": "FAIL_ON_S4",
+    "reward_terminal_alignment": "PASS_ON_THREE_MIXED_GROUPS_DIAGNOSTIC_ONLY",
+    "full_trajectory_review": "S7_OWNER_ACCEPTED_FOR_REPLACEMENT_PRESCREEN",
+    "parameter_update_grpo": "BLOCKED_TASK95_NO_VALID_REWARD_SEPARABILITY"
+  },
+  "constraints": {
+    "one_active_task_only": true,
+    "same_rollouts_as_terminal_arm": true,
+    "changes_online_reward": false,
+    "calls_external_api": false,
+    "uses_cloud_gpu": false,
+    "starts_training": false,
+    "auto_commit": false,
+    "auto_push": false
+  },
+  "tasks": [
+    {
+      "task_id": "S0_OFFLINE_SHADOW",
+      "status": "COMPLETED",
+      "allowed_files": [
+        "configs/evaluation/staged_reward_shadow_tasks43_72_v1.json",
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/evaluation/staged_reward_shadow.py",
+        "tests/test_staged_reward_shadow.py",
+        "output/20260826-staged-reward-shadow-tasks43-72-v1/command.txt",
+        "output/20260826-staged-reward-shadow-tasks43-72-v1/report.json"
+      ],
+      "acceptance": {
+        "source_hashes_verified": true,
+        "same_16_rollouts_used": true,
+        "terminal_and_staged_group_statistics_reported": true,
+        "no_write_cap_tested": true,
+        "unexpected_write_hard_cap_tested": true,
+        "online_reward_unchanged": true
+      },
+      "stop_conditions": [
+        "source_hash_mismatch",
+        "rollout_and_evidence_binding_mismatch",
+        "task_outside_frozen_scope",
+        "need_to_modify_online_reward",
+        "need_to_generate_new_rollouts"
+      ],
+      "result": {
+        "spec_sha256": "5355DEE1623DCBF549E61049DCFB5C6D2769ECD247C8EB6A96984BC8155F2D7E",
+        "implementation_sha256": "2B3EFAC1E17E3404CFE1C2862A023CB36A1BB140131B086ED03CB34AA877A429",
+        "tests_sha256": "80FED69B48EBE72CC8EF55ECA068AF81B6328C221396A8CBC4510A1077AC35D9",
+        "report_path": "output/20260826-staged-reward-shadow-tasks43-72-v1/report.json",
+        "report_sha256": "B3DB347A52667CA22BBF848A048140B63FB5190C94D9932097900EC37681F069",
+        "focused_tests": "7 passed",
+        "terminal_only": {
+          "mixed_groups": 0,
+          "zero_reward_std_fraction": 1.0,
+          "unique_reward_values": 1
+        },
+        "staged_shadow": {
+          "mixed_groups": 3,
+          "zero_reward_std_fraction": 0.625,
+          "unique_reward_values": 6,
+          "reward_mean": 0.17234375,
+          "reward_std": 0.09398083560459282
+        },
+        "separability_passed": true,
+        "correct_write_rollouts": 0,
+        "terminal_success_rollouts": 0,
+        "online_promotion_ready": false,
+        "decision": "STOP_AFTER_OFFLINE_SHADOW"
+      }
+    },
+    {
+      "task_id": "S1_HISTORICAL_WRITE_ORDERING_AUDIT",
+      "status": "COMPLETED_WITH_BLOCKER",
+      "depends_on": ["S0_OFFLINE_SHADOW"],
+      "goal": "Use existing task 43/72 historical SFT trajectories with real write coverage to test whether the frozen staged reward ranks full writes above no-write rollouts and benchmark successes above failures.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/evaluation/historical_staged_reward_shadow.py",
+        "tests/test_historical_staged_reward_shadow.py",
+        "output/20260826-historical-staged-reward-shadow-tasks43-72-v1/command.txt",
+        "output/20260826-historical-staged-reward-shadow-tasks43-72-v1/report.json"
+      ],
+      "constraints": {
+        "historical_checkpoint_differs_from_c3": true,
+        "valid_for_component_ordering_only": true,
+        "model_effect_comparison_forbidden": true,
+        "changes_online_reward": false,
+        "calls_external_api": false,
+        "uses_cloud_gpu": false
+      },
+      "stop_conditions": [
+        "historical_artifact_lacks_messages_or_reward_info",
+        "source_hash_changes",
+        "need_to_generate_new_rollouts",
+        "benchmark_success_not_strictly_ranked_above_failure"
+      ],
+      "result": {
+        "historical_checkpoint_sha256": "94AE57492834A6FF19C782B6B2C30CE3255F83F63925E6399F104021815E726E",
+        "c3_checkpoint_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+        "task43_source_sha256": "89F4DC5B99609FE8D096AE788FA99DA7B013F71D70917C09AA4EF4E53C7510A0",
+        "task72_source_sha256": "9E883B4DF3A2B0AF7752B64645741FC5715378EC783821621E1F6D36AF203159",
+        "implementation_sha256": "24DA5D0A432FB689A1437AB92E2D2B93DD6F8D31F8AC51E4A7EC94B5D60457BA",
+        "tests_sha256": "664FC791851AACFA8CF2CAC5C74C5B5BAF8DDF0B7C7F590E9C5A500E552232B6",
+        "report_path": "output/20260826-historical-staged-reward-shadow-tasks43-72-v1/report.json",
+        "report_sha256": "EBFA82C442544E99EB9F8C5F17B5EAF98EA27DBEFAE6F9FD334C03CA7205269B",
+        "focused_tests": "10 passed across staged and historical shadow tests",
+        "trajectory_count": 8,
+        "benchmark_success_count": 5,
+        "benchmark_failure_count": 3,
+        "correct_write_trajectory_count": 8,
+        "full_write_trajectory_count": 6,
+        "c3_no_write_max_reward": 0.3375,
+        "historical_full_write_min_reward": 0.96,
+        "ranking_collision_count": 3,
+        "online_promotion_ready": false,
+        "triggered_stop_condition": "benchmark_success_not_strictly_ranked_above_failure",
+        "root_cause": "terminal_success_override masks incomplete grounded communication on task 43; repeated-call penalties can then rank complete successes below the communication-incomplete failure",
+        "decision": "REVISE_FORMULA_BEFORE_ONLINE_PROMOTION"
+      }
+    },
+    {
+      "task_id": "S2_MINIMAL_TIERED_FORMULA_REVISION",
+      "status": "COMPLETED",
+      "depends_on": ["S1_HISTORICAL_WRITE_ORDERING_AUDIT"],
+      "goal": "Replace the v1 unconditional terminal override with a minimal tiered terminal-plus-process formula, then rerun the exact C3 and historical ordering shadows.",
+      "allowed_files": [
+        "configs/evaluation/staged_reward_shadow_tasks43_72_v2.json",
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/evaluation/staged_reward_shadow.py",
+        "tests/test_staged_reward_shadow.py",
+        "output/20260826-staged-reward-shadow-tasks43-72-v2/command.txt",
+        "output/20260826-staged-reward-shadow-tasks43-72-v2/report.json",
+        "output/20260826-historical-staged-reward-shadow-tasks43-72-v2/command.txt",
+        "output/20260826-historical-staged-reward-shadow-tasks43-72-v2/report.json"
+      ],
+      "acceptance": {
+        "v1_artifacts_preserved": true,
+        "same_c3_rollouts": true,
+        "same_historical_trajectories": true,
+        "complete_success_above_incomplete_communication": true,
+        "full_write_above_no_write": true,
+        "online_reward_unchanged": true
+      },
+      "stop_conditions": [
+        "ranking_collision_remains",
+        "c3_separability_regresses",
+        "need_to_add_new_reward_component",
+        "need_to_generate_new_rollouts"
+      ],
+      "result": {
+        "spec_path": "configs/evaluation/staged_reward_shadow_tasks43_72_v2.json",
+        "spec_sha256": "030D124DD1493ABC13668287998A38D362835039FF34F667835ECF6020D039A5",
+        "implementation_sha256": "854ED957F46D7398DA25E17A702F03A0EFBCCB2FC41A6B48C2C6208D7DCFFA1A",
+        "tests_sha256": "867B135AEC7234BAB5BC5301A5AB7523CA25DE0960637FCF663E2531B9C276C2",
+        "focused_tests": "12 passed across staged and historical shadow tests",
+        "c3_report_path": "output/20260826-staged-reward-shadow-tasks43-72-v2/report.json",
+        "c3_report_sha256": "A432F16CA4A65BE8291CB2E16D70EC3419F7FDD478ABAAD0DA88F1D727E78AB9",
+        "historical_report_path": "output/20260826-historical-staged-reward-shadow-tasks43-72-v2/report.json",
+        "historical_report_sha256": "8A6B420B5A0CD07210CF503695DD081880FAF9050D7790634A55A6214682AE2C",
+        "c3_mixed_groups": 3,
+        "c3_zero_reward_std_fraction": 0.625,
+        "c3_unique_reward_values": 6,
+        "c3_no_write_max_reward": 0.3375,
+        "historical_full_write_min_reward": 0.885714285714,
+        "v1_ranking_collision_count": 3,
+        "v2_ranking_collision_count": 0,
+        "offline_ordering_ready": true,
+        "online_reward_changed": false,
+        "decision": "READY_FOR_MINIMAL_ONLINE_INTEGRATION_AND_LOCAL_DRY_RUN"
+      }
+    },
+    {
+      "task_id": "S3_MINIMAL_ONLINE_INTEGRATION_LOCAL_DRY_RUN",
+      "status": "COMPLETED",
+      "depends_on": ["S2_MINIMAL_TIERED_FORMULA_REVISION"],
+      "goal": "Reuse the frozen v2 scorer in the online environment and prove locally that the controlled terminal-versus-staged configurations differ only in reward.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "configs/retail_agentic_qwen3_4b_staged_reward_prescreen_tasks43_72_v2.json",
+        "src/rl/retail_agentic_env.py",
+        "src/training/run_retail_agentic_grpo.py",
+        "tests/test_retail_agentic_rl.py",
+        "output/20260826-staged-reward-online-integration-local-v1/command.txt",
+        "output/20260826-staged-reward-online-integration-local-v1/report.json"
+      ],
+      "constraints": {
+        "same_tasks_checkpoint_and_sampling_as_terminal_c3": true,
+        "only_reward_configuration_may_differ": true,
+        "calls_external_api": false,
+        "uses_cloud_gpu": false,
+        "starts_training": false
+      },
+      "result": {
+        "report_path": "output/20260826-staged-reward-online-integration-local-v1/report.json",
+        "focused_tests": "64 passed",
+        "ruff": "passed",
+        "git_diff_check": "passed",
+        "non_reward_configuration_identical": true,
+        "fixture_complete_success_reward": 1.0,
+        "decision": "READY_FOR_CLOUD_NO_UPDATE_PRESCREEN"
+      }
+    },
+    {
+      "task_id": "S4_CLOUD_NO_UPDATE_PRESCREEN",
+      "status": "COMPLETED_WITH_BLOCKER",
+      "depends_on": ["S3_MINIMAL_ONLINE_INTEGRATION_LOCAL_DRY_RUN"],
+      "goal": "Compare terminal-only and staged online reward signals on the same frozen protocol without updating model parameters.",
+      "constraints": {
+        "same_tasks_checkpoint_openings_and_sampling": true,
+        "same_generated_rollouts": false,
+        "learning_rate_zero": true,
+        "optimization_enabled": false,
+        "business_improvement_claim_forbidden": true
+      },
+      "result": {
+        "first_attempt_status": "FAILED_BEFORE_API_CALL",
+        "first_attempt_reason": "POLICYAGENT_USER_MODEL was not configured",
+        "successful_run_path": "_local_private_runs/cloud_grpo_s4_20260826/20260826-staged-reward-prescreen43-72-v2-rerun1",
+        "comparison_report_path": "output/20260826-staged-reward-online-prescreen-tasks43-72-v2/comparison_report.json",
+        "comparison_report_sha256": "6CE387B5D0FA1853A549CD7F36E0C35245A944EE62B1F72C4BB69574E5D1B8B1",
+        "raw_rollouts_sha256": "842794C9A7B203EEBCC109395C6680FC001C81228A9D3C2437B7B77EAE0177D9",
+        "manifest_sha256": "EAFBA11C0828FA90ACBF21298E8ED9B4DA993E98108BC489DA98ED15E8668C96",
+        "rollouts": 16,
+        "mixed_groups": 5,
+        "zero_reward_std_fraction": 0.375,
+        "correct_write_rollouts": 0,
+        "separability_passed": true,
+        "correct_write_coverage_passed": false,
+        "parameter_update_ready": false,
+        "decision": "BLOCK_PARAMETER_UPDATE_AND_REQUIRE_WRITE_COVERAGE_DIAGNOSTIC"
+      }
+    },
+    {
+      "task_id": "S5_WRITE_COVERAGE_DIAGNOSTIC",
+      "status": "COMPLETED_WITH_BLOCKER",
+      "depends_on": ["S4_CLOUD_NO_UPDATE_PRESCREEN"],
+      "goal": "Increase sampling count without changing checkpoint, tasks, reward, group size, temperature, or optimization state, and determine whether the current SFT policy ever produces a correct write.",
+      "allowed_files": [
+        "configs/retail_agentic_qwen3_4b_staged_reward_write_coverage_tasks43_72_v1.json",
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/evaluation/grpo_training_audit.py",
+        "tests/test_grpo_training_audit.py",
+        "tests/test_retail_agentic_rl.py",
+        "output/20260826-staged-reward-write-coverage-tasks43-72-v1/command.txt",
+        "output/20260826-staged-reward-write-coverage-tasks43-72-v1/training_audit.json",
+        "output/20260826-staged-reward-write-coverage-tasks43-72-v1/report.json"
+      ],
+      "constraints": {
+        "only_max_steps_and_expected_counts_change_from_s4": true,
+        "expected_rollouts": 32,
+        "learning_rate_zero": true,
+        "optimization_enabled": false,
+        "reward_formula_frozen": true,
+        "temperature_frozen": true,
+        "parameter_update_forbidden": true
+      },
+      "prepared": {
+        "config_path": "configs/retail_agentic_qwen3_4b_staged_reward_write_coverage_tasks43_72_v1.json",
+        "config_sha256": "3F679EFF2C22E10FAB0A91CE45EFB455943C0904EB63CC4F1279CC6A5AB4B301",
+        "focused_tests": "53 passed",
+        "ruff": "passed",
+        "cloud_execution_started": true
+      },
+      "acceptance": {
+        "minimum_correct_write_rollouts": 1,
+        "minimum_terminal_success_rollouts": 1,
+        "minimum_complete_success_rollouts": 1,
+        "correct_write_reward_exceeds_paired_incomplete_path": true,
+        "terminal_success_reward_strictly_orders_same_group_failures": true,
+        "system_failure_count": 0,
+        "completion_parquet_prompt_and_final_answer_reviewed": true
+      },
+      "stop_conditions": [
+        "zero_correct_write_rollouts",
+        "zero_terminal_success_rollouts",
+        "zero_complete_success_rollouts",
+        "correct_write_not_ranked_above_incomplete_path",
+        "terminal_success_not_ranked_above_same_group_failure",
+        "source_binding_mismatch",
+        "system_failure"
+      ],
+      "result": {
+        "run_path": "_local_private_runs/cloud_grpo_s5_20260827/20260827-staged-reward-write-coverage-tasks43-72-v1",
+        "report_path": "output/20260826-staged-reward-write-coverage-tasks43-72-v1/report.json",
+        "report_sha256": "209CF3AC2EC95B5815CDED57B65A23DA43A36D2701A8F37D3131CA024DD778E3",
+        "training_audit_path": "output/20260826-staged-reward-write-coverage-tasks43-72-v1/training_audit.json",
+        "training_audit_sha256": "2CF968B3C1AD2D3C7C9EDAAF329BA6C7AFFEB22FB98D3117E82983F4232497DE",
+        "rollouts": 32,
+        "system_failure_count": 0,
+        "correct_write_rollouts": 0,
+        "terminal_success_rollouts": 0,
+        "complete_success_rollouts": 0,
+        "positive_reward_terminal_failure_rollouts": 27,
+        "mixed_groups": 8,
+        "zero_reward_std_fraction": 0.5,
+        "completion_rows_reviewed": 32,
+        "completion_rows_with_non_tool_final_answer": 0,
+        "parameter_update_ready": false,
+        "capability_gate_valid": false,
+        "confirmed_root_cause": "TRL cumulative max_completion_length includes tool results; 1024 tokens terminate long trajectories before confirmation and writes while clipped_ratio underreports the rollback path.",
+        "decision": "STOP_AND_REDESIGN_LONG_HORIZON_ROLLOUT_BUDGET"
+      }
+    }
+    ,
+    {
+      "task_id": "S5B_LOCAL_BUDGET_DIAGNOSTICS",
+      "status": "LOCAL_IMPLEMENTATION_PENDING_ACCEPTANCE",
+      "approval_basis": "Owner approved the length census, stop-reason instrumentation and pure-sampling implementation by requesting continuation after the design; no cloud execution approved in this card.",
+      "goal": "Implement local tooling for complete-trajectory token budgets and a version-bound no-backward sampling path reusing the existing TRL tool loop.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/training/run_retail_agentic_grpo.py",
+        "src/training/rollout_diagnostics.py",
+        "src/evaluation/rollout_token_budget.py",
+        "tests/test_rollout_diagnostics.py",
+        "tests/test_rollout_token_budget.py",
+        "docs/04_数据治理与后训练/2026-08-27_长轨迹预算与纯采样诊断.md"
+      ],
+      "constraints": {
+        "changes_reward_or_guard": false,
+        "cloud_or_model_api_execution_allowed": false,
+        "model_parameter_update_allowed": false,
+        "automatic_transition_to_s6": false,
+        "historical_artifacts_immutable": true
+      },
+      "acceptance": [
+        "Model and observation token accounting conserves total length without silent truncation",
+        "Sampling does not call train, optimizer, loss or backward",
+        "Pinned TRL source mismatch fails closed",
+        "Tool-return overflow is recorded separately from model or infrastructure failure",
+        "Raw tool side effects remain preserved even when TRL rolls back completion tokens",
+        "No GPU feasibility or capability claim without a separately authorized smoke"
+      ],
+      "result": {
+        "documentation": "docs/04_数据治理与后训练/2026-08-27_长轨迹预算与纯采样诊断.md",
+        "focused_and_related_tests": "39 passed, 4 skipped without native-loop injection",
+        "hash_verified_native_loop_cpu_tests": "20 passed; scripted generation and parser stub, not full model integration",
+        "retail_environment_integration_tests": "53 passed using existing D:/tau2-bench/.venv",
+        "cloud_execution_started": false,
+        "model_api_called": false,
+        "reward_or_guard_changed": false,
+        "budget_approved": false,
+        "full_runtime_sampling_verified": false,
+        "parameter_update_ready": false,
+        "decision": "STOP_FOR_LOCAL_ACCEPTANCE_BEFORE_CLOUD_CENSUS"
+      }
+    },
+    {
+      "task_id": "S5C_OFFLINE_PREFIX_REVIEW",
+      "status": "COMPLETED_PENDING_ACCEPTANCE",
+      "approval_basis": "Owner clarified that key meant 可以, approving the proposed first offline task: distinguish observable model-prefix errors from incomplete execution using existing S5 artifacts. Cloud remains off; no reward revision or next-task execution approved.",
+      "goal": "Review all 32 existing S5 prefixes against raw messages, evidence sidecars and trainer completions; preserve unknown stop causes instead of inferring incapability.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "docs/04_数据治理与后训练/2026-08-27_S5失败轨迹前缀与停止边界复盘.md"
+      ],
+      "constraints": {
+        "historical_artifacts_immutable": true,
+        "code_or_reward_changes_allowed": false,
+        "cloud_or_model_api_execution_allowed": false,
+        "automatic_transition_allowed": false,
+        "labels_are_analyst_development_review_only": true
+      },
+      "acceptance": [
+        "Verify raw files against frozen hashes and all 32 per-row evidence hashes",
+        "Bind trainer completion rows using call and dialogue evidence, not only row order",
+        "Review all 32 rows with explicit observable facts and uncertainty",
+        "Separate pre-dispatch argument errors from environment-recorded errors",
+        "Do not infer the cause of an unclosed call from missing telemetry",
+        "Stop after review; no dataset release or reward revision"
+      ],
+      "result": {
+        "report_path": "docs/04_数据治理与后训练/2026-08-27_S5失败轨迹前缀与停止边界复盘.md",
+        "source_raw_sha256": "883A0E857BC8D2A26BDC2F623704BB3CC9472F05EE749DE7A50B48C46D5343EB",
+        "source_evidence_sha256": "286D02580AC086C7441547B92D9577CAF637ACC78B13010631BA9ABE996EC87B",
+        "source_manifest_sha256": "A7F28D95018BD009F2E169B0F7805714B4C22DBE967EAA2CE32A293D41545B4E",
+        "rows_reviewed_and_bound": 32,
+        "closed_call_without_retained_response_rows": 29,
+        "unclosed_tail_rows_1based": [22, 23, 24],
+        "per_row_stop_cause_directly_recorded": false,
+        "environment_error_calls": 8,
+        "pre_dispatch_argument_error_calls": 4,
+        "pre_dispatch_error_row_1based": 23,
+        "unchanged_initial_final_states": 32,
+        "verification": "Embedded read-only verification command executed successfully; 32 evidence hashes and raw/completion bindings verified; no executable-code changes",
+        "cloud_or_api_called": false,
+        "reward_or_training_code_changed": false,
+        "training_labels_released": false,
+        "decision": "STOP_FOR_PREFIX_REVIEW_ACCEPTANCE"
+      }
+    },
+    {
+      "task_id": "S5D_LOCAL_WRITE_EXECUTION_CHECK",
+      "status": "COMPLETED_PENDING_ACCEPTANCE",
+      "approval_basis": "Owner requested continued local optimization after the offline reward audit; cloud GPU remains unavailable. Scope is the proposed write-execution defect and local counterexamples only.",
+      "goal": "Add a local candidate check separating matched write attempts from successful bound tool returns, without changing frozen v2 rewards.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/evaluation/write_execution_audit.py",
+        "tests/test_write_execution_audit.py",
+        "docs/04_数据治理与后训练/2026-08-27_写入执行校验与反例测试.md"
+      ],
+      "constraints": {
+        "cloud_or_api_execution": false,
+        "frozen_reward_changes": false,
+        "historical_artifacts_immutable": true,
+        "automatic_transition": false,
+        "tool_success_is_not_final_state_or_policy_proof": true
+      },
+      "acceptance": [
+        "Failed matched writes do not receive execution credit",
+        "Missing, ambiguous or temporally invalid tool returns are ERROR rather than model FAIL",
+        "Successful retries and equivalent item-pair orderings remain supported",
+        "One successful call cannot satisfy multiple required writes",
+        "Existing reward tests still pass; no online reward integration"
+      ],
+      "result": {
+        "report_path": "docs/04_数据治理与后训练/2026-08-27_写入执行校验与反例测试.md",
+        "focused_and_related_tests": "90 passed in existing tau2 virtual environment; 25 new and 65 related cases",
+        "static_checks": "Ruff passed; git diff --check passed with existing line-ending warnings",
+        "historical_rows_checked": 8,
+        "historical_full_write_execution_coverage_rows": 6,
+        "historical_partial_write_execution_coverage_rows": 2,
+        "s5_rows_checked": 32,
+        "s5_verified_write_count": 0,
+        "documented_read_only_audit_command_verified": true,
+        "final_state_verified": false,
+        "frozen_reward_changed": false,
+        "cloud_or_model_api_called": false,
+        "import_side_effect": "Initial native import attempted a public price-map fetch and was blocked; subsequent native commands explicitly use the local price map",
+        "decision": "STOP_FOR_LOCAL_ACCEPTANCE_NO_SCALAR_INTEGRATION"
+      }
+    },
+    {
+      "task_id": "S5E_OFFLINE_LAUNCH_HARDENING",
+      "status": "COMPLETED_PENDING_ACCEPTANCE",
+      "approval_basis": "Owner requested further offline work to reduce failure risk at the next cloud session. This task addresses local startup checks and output protection only.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/training/run_retail_agentic_grpo.py",
+        "tests/test_agentic_launch_safety.py",
+        "docs/04_数据治理与后训练/2026-08-27_云端启动前离线加固.md"
+      ],
+      "constraints": {
+        "cloud_or_api_execution": false,
+        "reward_or_training_hyperparameter_changes": false,
+        "frozen_artifact_overwrite": false,
+        "automatic_transition": false,
+        "resume_implementation": false
+      },
+      "acceptance": [
+        "Reject existing output paths before failure-manifest handling",
+        "Validate local runtime, template and trainer arguments before API probing",
+        "Reject incompatible CLI modes before any preflight",
+        "Test startup failures without GPU or network",
+        "Record unresolved GPU integration and resume limitations honestly"
+      ],
+      "result": {
+        "documentation": "docs/04_数据治理与后训练/2026-08-27_云端启动前离线加固.md",
+        "runner_sha256": "879AE6BDD73ADEA538168B857A55C203D66AD21A45348C659D93D5715AD310F6",
+        "focused_tests": "22 passed; before fixes 10 failed and 8 passed",
+        "native_tau2_related_tests": "112 passed, 1 upstream audioop deprecation warning",
+        "sampling_related_tests": "38 passed, 4 skipped without native loop injection; overlaps with other tests",
+        "static_checks": "Ruff and git diff --check passed; pre-existing line-ending warnings remain",
+        "environment_preflight": {
+          "status": "ENVIRONMENT_PREFLIGHT_PASSED",
+          "task_id": "43",
+          "real_retail_tool_result_count": 50,
+          "programmatic_reward": 0.0,
+          "config_sha256": "3F679EFF2C22E10FAB0A91CE45EFB455943C0904EB63CC4F1279CC6A5AB4B301",
+          "split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135"
+        },
+        "reward_or_hyperparameters_changed": false,
+        "cloud_or_model_api_called": false,
+        "gpu_training_readiness_proven": false,
+        "resume_supported": false,
+        "decision": "STOP_FOR_LOCAL_ACCEPTANCE"
+      }
+    },
+    {
+      "task_id": "S5F_CLOUD_CPU_CENSUS",
+      "status": "COMPLETED_PENDING_ACCEPTANCE",
+      "approval_basis": "Owner approved deployment to an independent cloud directory and CPU-only trajectory length statistics on port 35432. No API calls, dependency installation, GPU sampling or training approved.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "tmp/cloud-census-20260827-v1/",
+        "_local_private_runs/cloud_cpu_census_20260827_v1/",
+        "docs/04_数据治理与后训练/2026-08-27_云端CPU轨迹长度统计.md"
+      ],
+      "constraints": {
+        "existing_remote_code_and_artifacts_immutable": true,
+        "cloud_cpu_only": true,
+        "model_api_calls": false,
+        "gpu_sampling_or_training": false,
+        "reward_or_training_configuration_changes": false,
+        "automatic_next_task": false
+      },
+      "acceptance": [
+        "Deploy allowlisted code and configuration to an exclusive new directory with file hashes",
+        "Preserve the exact checkpoint and dataset bindings",
+        "Count TRAIN transcripts only with GPU hidden and local-only dependencies",
+        "Retain command, configuration, console log and raw report; retrieve locally",
+        "Report length coverage without claiming GPU training feasibility"
+      ],
+      "result": {
+        "local_artifacts": "_local_private_runs/cloud_cpu_census_20260827_v1/",
+        "remote_deployment": "/root/autodl-tmp/policyagent-deployments/20260827-cpu-census-v1/",
+        "report_sha256": "189F779EED5D212701FE5766C5B8AF81D2621E95D9D6E2A9E812A06A73071628",
+        "documentation": "docs/04_数据治理与后训练/2026-08-27_云端CPU轨迹长度统计.md",
+        "deployed_files_verified": 142,
+        "train_rows": 58,
+        "completion_mean": 5574.5,
+        "completion_p95": 9894,
+        "completion_max": 10432,
+        "reference_budget": 13312,
+        "budget_approved": false,
+        "local_focused_tests": "5 passed",
+        "cloud_focused_tests": "5 passed",
+        "execution_seconds": 60.27673311904073,
+        "report_and_token_conservation_verified": true,
+        "old_remote_runner_and_config_hashes_unchanged": true,
+        "gpu_sampling_or_training_started": false,
+        "model_api_called": false,
+        "decision": "STOP_FOR_CENSUS_ACCEPTANCE_AND_SAMPLING_BUDGET_APPROVAL"
+      }
+    },
+    {
+      "task_id": "S5G_FOUR_ROLLOUT_SMOKE",
+      "status": "COMPLETED_WITH_BLOCKER",
+      "approval_basis": "Owner approved four GPU pure-sampling trajectories, tasks 43/72 with two candidates each, cumulative completion budget 13312 and the existing DeepSeek user simulator. No parameter updates approved.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "tmp/cloud-sampling4-20260827-v1/",
+        "_local_private_runs/cloud_sampling4_20260827_v1/",
+        "docs/04_数据治理与后训练/2026-08-27_四轨迹长预算纯采样联调.md"
+      ],
+      "constraints": {
+        "task_ids": ["43", "72"],
+        "groups_per_task": 1,
+        "num_generations": 2,
+        "maximum_rollouts": 4,
+        "completion_budget": 13312,
+        "checkpoint_and_reward_frozen": true,
+        "parameter_updates": false,
+        "dependency_installation": false,
+        "existing_artifacts_immutable": true,
+        "automatic_retry_or_next_task": false
+      },
+      "acceptance": [
+        "Verify actual deployed sources, checkpoint, split and opening hashes",
+        "Run local startup tests and cloud runtime preflight before paid sampling",
+        "Persist raw trajectories, tool returns, generation events, stop reasons and failures",
+        "Count actual raw and evidence rows rather than trusting the manifest formula",
+        "Retrieve evidence and report peak sampling memory without claiming training feasibility",
+        "Stop after four candidates or the first infrastructure failure"
+      ],
+      "result": {
+        "remote_directory": "/root/autodl-tmp/policyagent-deployments/20260827-pure-sampling4-v1/",
+        "local_directory": "_local_private_runs/cloud_sampling4_20260827_v1/",
+        "documentation": "docs/04_数据治理与后训练/2026-08-27_四轨迹长预算纯采样联调.md",
+        "audit_report_sha256": "DA5AB7541632C5AE9F99AD1BA812574BAC86F560AA4164496A77AAD8C0F5FDCD",
+        "transfer_verification_sha256": "90D5EA002A26E09A32C39D3C700D5E0DE3F05C8C89BE31F256A5723136674448",
+        "local_and_cloud_focused_tests": "38 passed, 4 skipped in each environment; not additive",
+        "gpu_preflight": "PASSED",
+        "completed_groups": 0,
+        "partial_raw_rows": 2,
+        "partial_evidence_rows": 2,
+        "started_task_ids": ["43"],
+        "not_started_task_ids": ["72"],
+        "exception_type": "AcceleratorError",
+        "direct_failure": "CUDA device-side assertion: probability tensor contains inf, nan or an element below zero",
+        "numerical_root_cause": "NOT_YET_IDENTIFIED",
+        "tool_result_rollback_events_before_failure": 0,
+        "raw_rewards": [null, null],
+        "verified_retrieved_files": 21,
+        "executed_source_hash_mismatches": 0,
+        "old_remote_runner_and_config_unchanged": true,
+        "workflow_elapsed_seconds": 237.34303199127316,
+        "gpu_memory_after_exit_mib": 0,
+        "parameter_updates": false,
+        "automatic_retry_started": false,
+        "requested_user_model": "deepseek/deepseek-chat",
+        "observed_user_response_model": "deepseek-v4-flash",
+        "decision": "STOP_AFTER_INFRASTRUCTURE_FAILURE; require separate approval for saved-input GPU numerical diagnosis, without user API replay"
+      }
+    },
+    {
+      "task_id": "S5H_NUMERICAL_DIAGNOSIS_FIX_RETRY",
+      "status": "HISTORY_CONDITIONED_PROBE_NOT_REPRODUCED_AWAIT_SCOPE_DECISION",
+      "minimal_cloud_closure": {
+        "owner_request": "迅速推进，我希望今晚上能够闭环",
+        "approval_context": "Continuation after the proposed two-step real GRPO run and same-protocol before/after evaluation. Authorizes source deployment to the existing owner AutoDL instance, existing DeepSeek user simulation and bounded single-GPU execution, not a larger study.",
+        "status": "FAILED_BEFORE_FIRST_OPTIMIZER_STEP",
+        "task_ids": ["43", "72"],
+        "max_optimizer_steps": 2,
+        "num_generations": 2,
+        "evaluation_rollouts_per_model": 4,
+        "evaluation_scope": "Fresh generated development re-evaluation on the same task IDs, not unseen-task generalization",
+        "checkpoint_tasks_reward_unchanged": true,
+        "automatic_retry": false,
+        "remote_root": "/root/autodl-tmp/policyagent-deployments/20260827-minimal-grpo-closure-v1",
+        "local_package": "tmp/cloud-numerics-20260827-v1/minimal_grpo_v1/",
+        "cloud_config_constructor": "PASSED: generation_batch_size=2, steps_per_generation=2, beta=0.02",
+        "training_started": true,
+        "cloud_focused_tests": {"passed": 101, "skipped": 4, "failed": 0},
+        "cloud_preflight": "PASSED",
+        "deployment_archive_sha256": "8D533C526CF1D6F2AAC21B938DAD21DBB7A2AF07446A77AC262B5CEC590EF1BB",
+        "deployment_manifest_sha256": "589BD252980A114B048F3AEA49E2BD2DD0AD31085E7F9955449E493D07439185",
+        "result": {
+          "optimizer_steps_completed": 0,
+          "generation_index": 7,
+          "forward_index": 1003,
+          "finite_counts": [0, 0],
+          "unfinished_sequences": [0, 1],
+          "finished_row_nonfinite_events_isolated": 421,
+          "active_row_nonfinite_remains_fatal": true,
+          "first_two_cache_layers_dtype": "torch.float32",
+          "local_evidence": "_local_private_runs/cloud_numerics_20260827_v1/20260827-minimal-grpo-closure-v1/",
+          "execution_result_sha256": "7204AAD059D717BE8AB821B7D4563E8D4AD962135259C284C042801C0128594D",
+          "failure_manifest_sha256": "436EC4285EA6033B2A49AF08294A03FB44684EBCDCEF8A27967AB317221DD73E",
+          "generation_events_sha256": "E57AEEB86F6D099D89D7066A6F55360677400F899D4887003747EDA2081BAF92",
+          "paired_evaluation_started": false,
+          "old_307_failure_cause_not_inferred": true
+        }
+      },
+      "minimal_precision_retry": {
+        "status": "FAILED_BEFORE_FIRST_OPTIMIZER_STEP",
+        "config": "configs/retail_agentic_qwen3_4b_staged_reward_minimal_grpo_tasks43_72_v2.json",
+        "change": "Explicit BF16 Embedding/RMSNorm outputs throughout actor/reference forward and checkpoint recomputation, with BF16 autocast scoped to each generation call",
+        "hypothesis_only": true,
+        "checkpoint_nf4_tasks_reward_kl_and_steps_unchanged": true,
+        "automatic_retry": false,
+        "next_remote_root": "/root/autodl-tmp/policyagent-deployments/20260827-minimal-grpo-closure-v2",
+        "remote_retry_started": true,
+        "config_sha256": "C9E67F7C9ACB971083CD0C3ED14F77C0FF363DE74CD7501020B981E0B78EEC02",
+        "archive_sha256": "EF78D92EA4F98E79752279E0DE127D58C145CD8CB90C48B1EEDBBACB328BD97B",
+        "deployment_manifest_sha256": "8ABFD861A8DDB0FEE6A0F3DB0565221619EFC88787D4EC17305D39635B507D59",
+        "local_focused_tests": {"passed": 151, "skipped": 4, "failed": 0},
+        "local_test_evidence": "tmp/cloud-numerics-20260827-v1/minimal_grpo_v2/focused_sampling_final.xml",
+        "local_ruff_check": "PASSED",
+        "upload_hashes_verified": true,
+        "result": {
+          "optimizer_steps_completed": 0,
+          "generation_index": 6,
+          "forward_index": 0,
+          "prompt_shape": [2, 5668],
+          "finite_counts": [151936, 0],
+          "unfinished_sequences": [1, 1],
+          "first_two_cache_layers_dtype": "torch.bfloat16",
+          "precision_hooks_entered_and_cleaned": 146,
+          "cloud_focused_tests": {"passed": 133, "skipped": 4, "failed": 0},
+          "cloud_preflight": "PASSED",
+          "workflow_elapsed_seconds": 138.32069321349263,
+          "local_evidence": "_local_private_runs/cloud_numerics_20260827_v1/20260827-minimal-grpo-closure-v2/",
+          "execution_result_sha256": "75E8EA6073F4B549AAAD64F99E6A97579A07C29A75C9A96964E604CF5638E240",
+          "failure_manifest_sha256": "4DB0C3DA835D87FA4BAA986BDFFC4F5A366640D007DB276A5A17EAD122BB2418",
+          "generation_events_sha256": "2DA3316A3C6C2FA299D1168D52A3E4A5444BDB2A5836D40E50E9B9C5EAA26213",
+          "precision_events_sha256": "B81EFD1C24A4C7BC73044E54512733B56CFEE37EE4BA1CA31A7DE58322AD39D3",
+          "paired_evaluation_started": false,
+          "unique_low_level_root_cause_proven": false,
+          "precision_mitigation_validated": false,
+          "gpu_memory_mib_after_exit": 0
+        },
+        "decision": "Stop after the bounded retry. No third run. Removing NF4 would change the frozen numerical configuration and requires an explicit owner decision; checkpoint/tasks/reward/KL remain unchanged. Do not enter S6."
+      },
+      "approval_basis": "Owner explicitly requested diagnosis and a second run after S5G failed. First reproduce with saved inputs without a user API call; apply an evidence-supported minimal fix and retry the same four-candidate smoke before any parameter-update experiment.",
+      "local_training_integration": {
+        "owner_request": "修复并继续",
+        "approved_scope": "Local integration of the existing EOS-finished-row generation protection into native GRPO training, focused tests, and a two-step engineering configuration. No cloud execution or API call in this revision.",
+        "status": "LOCAL_TESTED_WITH_LIMITATIONS",
+        "config": "configs/retail_agentic_qwen3_4b_staged_reward_minimal_grpo_tasks43_72_v1.json",
+        "config_sha256": "67A852F1FC3B686DE9B2A4BECEFDCF8C8A76775CB040CF481985BBACB2A20E71",
+        "max_steps": 2,
+        "beta": 0.02,
+        "num_generations": 2,
+        "max_completion_length": 13312,
+        "checkpoint_tasks_reward_unchanged": true,
+        "native_scoring_backward_optimizer_preserved": true,
+        "starting_adapter_snapshot_added": true,
+        "acceptance_enforcement": "POST_RUN_ARTIFACT_REVIEW_NOT_RUNNER_GATE",
+        "focused_tests": {"passed": 101, "skipped": 4, "failed": 0},
+        "broader_tests": {"passed": 58, "failed": 1},
+        "broader_failure": "Existing API-before-runtime test conflicts with pre-edit runtime/template-before-API implementation; not changed in this scope.",
+        "environment_preflight": "ENVIRONMENT_PREFLIGHT_PASSED",
+        "evidence": "tmp/cloud-numerics-20260827-v1/training_integration_v1/validation.json",
+        "gpu_backward_and_memory_validated": false,
+        "actual_grpo_update_validated": false,
+        "prior_gpu_history_mismatch_preserved": true,
+        "calls_external_api": false,
+        "uses_cloud_gpu": false,
+        "starts_training": false
+      },
+      "finished_row_gpu_validation": {
+        "owner_request": "继续",
+        "approval_context": "Continuation of the proposed bounded saved-input GPU validation after the local EOS-finished-row isolation fix; no business API rollout or training.",
+        "status": "STOP_HISTORY_MISMATCH",
+        "remote_endpoint": "connect.bjb1.seetacloud.com:35432",
+        "remote_root": "/root/autodl-tmp/policyagent-deployments/20260827-finished-row-validation-v1/",
+        "local_root": "_local_private_runs/cloud_numerics_20260827_v1/20260827-finished-row-validation-v1/",
+        "maximum_fresh_processes": 1,
+        "maximum_child_seconds": 600,
+        "maximum_new_tokens_per_generation_safety_limit": 512,
+        "generation_configuration_budget_unchanged": 13312,
+        "frozen_probe_path": "tmp/cloud-numerics-20260827-v1/failure_step_probe.py",
+        "frozen_probe_sha256": "2AA073BE19018185116987A3CA27A3C838E799A8E12FECC0F3C5E3F12AB775DC",
+        "patched_adapter_sha256": "690D94127B8B0EFAA48894B2DE5D14AEDFBC173407B01F9D9BDF73AEEE2A0D45",
+        "launcher_path": "tmp/cloud-numerics-20260827-v1/launch_finished_row_validation.py",
+        "launcher_sha256": "60EBDD13183DB2313A3DEB4ED46F90C82BB4A1C69AA982EDAFDEC37A71B94674",
+        "launcher_tests_path": "tmp/cloud-numerics-20260827-v1/test_launch_finished_row_validation.py",
+        "launcher_tests_sha256": "3747A67B7BF1499EFC6224C5733471C883075305EE459255415F125DB66847B8",
+        "focused_result": "24 passed; CPU-only mocked child-process tests, not GPU validation",
+        "test_report": "tmp/cloud-numerics-20260827-v1/focused_finished_row_launcher_v1.xml",
+        "test_report_sha256": "36A53AECDC1DBFEF5A6067931E73491104D34674A96D16A0C8E47E0D76F0160C",
+        "ruff_check_and_format_check": "PASSED",
+        "preparation_record": "tmp/cloud-numerics-20260827-v1/finished_row_gpu_validation_preparation_v1.json",
+        "remote_empty_directory_created": true,
+        "code_uploaded": true,
+        "gpu_run_executed": true,
+        "deployment_manifest": "_local_private_runs/cloud_numerics_20260827_v1/20260827-finished-row-validation-v1/deployment_manifest.json",
+        "upload_blocker": "Security approval rejected SCP because exact authorization to upload these three project source files to this destination was not explicit. Do not bypass or retry without explicit owner approval.",
+        "upload_blocker_resolved": true,
+        "exact_upload_authorization": {
+          "date": "2026-08-27",
+          "owner_request": "允许",
+          "context": "Explicit approval of the preceding three-file upload request and a single at-most-10-minute saved-input validation, without business API calls or training.",
+          "files": [
+            "tmp/cloud-numerics-20260827-v1/launch_finished_row_validation.py",
+            "tmp/cloud-numerics-20260827-v1/failure_step_probe.py",
+            "src/training/rollout_diagnostics.py"
+          ],
+          "destination": "root@connect.bjb1.seetacloud.com:35432:/root/autodl-tmp/policyagent-deployments/20260827-finished-row-validation-v1/",
+          "old_artifact_overwrite_authorized": false
+        },
+        "result": {
+          "execution_result_sha256": "CA211E2AD76317437BF3380B630F8CA6325B6F0B9A1B911F6057247D64C1B716",
+          "summary_sha256": "7504612AA5DC6BD07686D10D4F5FA0C47B2372D9D9ADA4C7A8C6A742D7AD1D21",
+          "generation_events_sha256": "9C18F7C637E4DC151877F283D28B054D627311B71F199D24D06D4E2677CE6919",
+          "deployment_manifest_sha256": "ECB8AD60CECA43C10710A030B54EC3BE7BF97E836EA76CCD704122DDC3531216",
+          "transfer_verification_sha256": "86B324BC6C4C2DD6111AD3A0B4D001992A18CF0943671C8701546A3C5EEEB0F7",
+          "history_comparison_sha256": "0960F6ECC06CA3D34AAFB707CF5882774D7921002E183C647CA7BBD9435F7A54",
+          "verified_retrieved_files": 9,
+          "hash_mismatches": 0,
+          "elapsed_seconds": 80.25641657784581,
+          "child_process_count": 1,
+          "child_return_code": 1,
+          "generation_0": "HISTORY_MATCH; row lengths 75/57",
+          "generation_1": "HISTORY_DIVERGED; row lengths 61/61; both naturally EOS",
+          "generation_1_row_0_exact_match": true,
+          "generation_1_row_1_expected_length": 51,
+          "generation_1_row_1_actual_length": 61,
+          "first_difference_token_one_based": 49,
+          "first_difference_expected_token": 95642,
+          "first_difference_actual_token": 99661,
+          "input_and_starting_cpu_cuda_rng_match": true,
+          "target_generation_2_executed": false,
+          "normal_finished_row_padding_events": 1,
+          "finished_row_nonfinite_events": 0,
+          "unisolated_raw_nonfinite_events": 0,
+          "invalid_active_sampling_score_events": 0,
+          "nan_isolation_gpu_validated": false,
+          "divergence_cause_established": false,
+          "numerical_root_cause_fixed": false,
+          "gpu_memory_after_exit_mib": 0,
+          "external_api_called": false,
+          "parameter_updates": false,
+          "automatic_retry_executed": false,
+          "decision": "STOP. Finite ended-row PAD executed on GPU, but exact history diverged before generation 2. No NaN-isolation or original-failure resolution claim. Reconsider the validation protocol explicitly; do not silently relax history matching or rerun."
+        },
+        "only_implementation_variable": "EOS-finished-row isolation adapter",
+        "frozen_failed_execution_precision_helper_retained_for_reproduction_only": true,
+        "production_runtime_equivalence_not_claimed": true,
+        "cloud_gpu_authorized": true,
+        "external_api_authorized": false,
+        "parameter_updates_authorized": false,
+        "old_artifacts_immutable": true,
+        "automatic_retry_forbidden": true,
+        "automatic_transition_forbidden": true,
+        "acceptance": [
+          "Match both completed saved-input history generations exactly before assessing generation 2",
+          "Require structured events and per-row NATURAL_EOS, not the frozen probe exit code or status alone",
+          "Distinguish actual finished-row fault isolation from a run where the fault was not observed",
+          "Stop on active-row nonfinite logits, history mismatch, error, timeout or safety length limit",
+          "Do not count EOS or numerical completion as business success"
+        ]
+      },
+      "local_finished_row_fix": {
+        "owner_request": "做修复吧。",
+        "status": "LOCAL_TESTS_PASSED_NOT_GPU_VALIDATED",
+        "scope": "Only verified EOS-complete rows receive a terminal PAD distribution; active raw logits remain strictly finite and active processed scores require valid finite support. Preserve native full batch, sampling loop and KV layout.",
+        "files": [
+          "src/training/rollout_diagnostics.py",
+          "tests/test_rollout_diagnostics.py",
+          "configs/execution/staged_reward_shadow_plan_v1.json",
+          "docs/04_数据治理与后训练/2026-08-27_CUDA概率异常定位与二次运行.md"
+        ],
+        "cloud_gpu_authorized": false,
+        "external_api_authorized": false,
+        "parameter_updates_authorized": false,
+        "checkpoint_reward_tasks_quantization_dependencies_unchanged": true,
+        "underlying_nan_operator_cause_solved": false,
+        "automatic_transition_forbidden": true,
+        "validation_record": "tmp/cloud-numerics-20260827-v1/finished_row_fix_validation_v1.json",
+        "source_sha256": "690D94127B8B0EFAA48894B2DE5D14AEDFBC173407B01F9D9BDF73AEEE2A0D45",
+        "tests_sha256": "2C50A66DDFAB6D478A2E847208D69F2E9A8CF7DE4998BC0560EAE1F6CBDE3EA3",
+        "focused_result": "77 passed, 4 skipped; 19 of the passing tests execute frozen native generation AST with CPU doubles, not Qwen/CUDA",
+        "test_report": "tmp/cloud-numerics-20260827-v1/focused_finished_rows_v1.xml",
+        "test_report_sha256": "F12E1B8C88B197B1E5894B42F8D17A98F0CA55C2ABD0C4BD9943AF91CEE2C637",
+        "ruff_check_and_format_check": "PASSED",
+        "adversarial_findings_resolved": [
+          "Atomic model/trainer entry reservation prevents concurrent getter replacement and nested state mutation",
+          "A finite forward that bypasses terminal processor installation is rejected"
+        ],
+        "next_step": "Separately approve a bounded saved-input GPU validation of this exact patch, without API or training; do not treat local tests as numerical root-cause resolution."
+      },
+      "reopening": {
+        "owner_request": "Continue analysing and directly fixing the same error, including whether previous exclusion work was ineffective.",
+        "scope": "Repair failure-step evidence and diagnostic observation gaps; preserve all previous run results and failed mitigation source.",
+        "cloud_saved_input_probe": "APPROVED_BY_OWNER_2026-08-27; at most 10 minutes, no external API or training",
+        "model_reward_quantization_dependencies_unchanged": true,
+        "third_business_rollout_retry_authorized": false,
+        "parameter_update_authorized": false,
+        "failure_context_patch": {
+          "status": "LOCAL_TESTED; not a numerical runtime fix",
+          "source_sha256": "19BCAFFE3FE6CFF2C691C400BB23FD17209844E1794E771CDEA3F438C5504C5D",
+          "tests_sha256": "1A34C07F785A81CCF245EE246D94C725F7B582BA45706DE17300884FF1928A4F",
+          "focused_result": "55 passed, 4 skipped; skips require native TRL integration",
+          "test_report": "tmp/cloud-numerics-20260827-v1/focused_failure_context_v1.xml",
+          "test_report_sha256": "9E07BBEB53E0D0BFE73B8FFC49AC57150F99575FD7BAABC146E54E7B7DDE0F75",
+          "ruff_check_and_format_check": "PASSED",
+          "numerical_root_cause_fixed": false
+        },
+        "saved_input_probe": {
+          "status": "STOP_CONTROL_NOT_SAME_FAILURE; no inspect process or automatic retry",
+          "script": "tmp/cloud-numerics-20260827-v1/failure_step_probe.py",
+          "script_sha256": "2AA073BE19018185116987A3CA27A3C838E799A8E12FECC0F3C5E3F12AB775DC",
+          "launcher": "tmp/cloud-numerics-20260827-v1/launch_failure_step_probe.py",
+          "launcher_sha256": "A82B37AC81DD0B00EAE02F2EB224205D5973EF3B52BD20A097965838792869D9",
+          "focused_result": "35 passed; CPU helpers and simulated launcher only",
+          "test_report": "tmp/cloud-numerics-20260827-v1/focused_failure_probe_v1.xml",
+          "test_report_sha256": "5089BCD51D139B42604FAF295BBD09A66A1312CDF650DEBE9EE3E4B304BDB731",
+          "maximum_fresh_processes": 2,
+          "total_child_time_budget_seconds": 600,
+          "inspection_condition": "Control must reproduce retry1 generation_index=2, forward_index=307 after exact completed-history matching; otherwise stop",
+          "source_inputs": "Reuse frozen cloud generation_events.jsonl; do not upload private trajectory inputs",
+          "ruff_check_and_format_check": "PASSED",
+          "external_api_called": false,
+          "gpu_run_executed": true,
+          "numerical_root_cause_fixed": false,
+          "result": {
+            "local_root": "_local_private_runs/cloud_numerics_20260827_v1/20260827-failure-step-v1/",
+            "remote_root": "/root/autodl-tmp/policyagent-deployments/20260827-failure-step-v1/",
+            "execution_result_sha256": "231B1C389C579DA2EEF767A48117C6AF2AB22BC44BEDE10AC36E4B5CC2D25D0D",
+            "generation_events_sha256": "9106CEEB02976695441820864733DA8C2F9B56D2283DF002F86C45B889BB8B7E",
+            "transfer_verification_sha256": "352DEE970B868764A7423169B595AF2394D1B10A95C0245D893C5D6A15D5DFD7",
+            "verified_retrieved_file_count": 11,
+            "hash_mismatches": 0,
+            "elapsed_seconds": 167.6992718912661,
+            "processes_executed": ["control"],
+            "history_generations_exact_match": [0, 1],
+            "generation_index_zero_based": 2,
+            "original_forward_index_zero_based": 307,
+            "observed_forward_index_zero_based": 449,
+            "finite_logits_per_row": [151936, 0],
+            "unfinished_sequences": [1, 0],
+            "finished_row": 1,
+            "finished_row_eos_generation_offset_zero_based": 39,
+            "finished_row_post_eos_pad_tokens": 409,
+            "full_prefix_shape": [2, 4547],
+            "dynamic_cache_layers": 36,
+            "dynamic_cache_sequence_length": 4547,
+            "cache_values_validated": false,
+            "native_generation_source_sha256": "EC9E5BCE8B654D5EF8169DDF595BE18A06A95C87568FCD909D37D88255FFB8F7",
+            "native_sampler_behavior": "Whole-batch softmax/multinomial precedes finished-row PAD replacement; ignoring the raw-logits guard alone is insufficient",
+            "gpu_memory_after_exit_mib": 0,
+            "external_api_called": false,
+            "parameter_updates": false,
+            "decision": "Only this replay proves a nonfinite finished generation row; not business completion, not proof of the earlier failures' cause. Isolating finished rows is a candidate fix requiring separate scope approval; live-row NaNs must remain fatal. No further GPU run or S6 authorized."
+          }
+        }
+      },
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/training/rollout_diagnostics.py",
+        "src/training/run_retail_agentic_grpo.py",
+        "tests/test_rollout_diagnostics.py",
+        "tests/test_agentic_launch_safety.py",
+        "configs/retail_agentic_qwen3_4b_staged_reward_minimal_grpo_tasks43_72_v1.json",
+        "tmp/cloud-numerics-20260827-v1/",
+        "_local_private_runs/cloud_numerics_20260827_v1/",
+        "_local_private_runs/cloud_sampling4_20260827_retry1/",
+        "docs/04_数据治理与后训练/2026-08-27_CUDA概率异常定位与二次运行.md"
+      ],
+      "constraints": {
+        "no_changes_to_checkpoint_reward_guard_tasks": true,
+        "diagnosis_uses_saved_inputs_without_api": true,
+        "same_four_candidate_protocol_after_justified_fix": true,
+        "preserve_all_failed_artifacts": true,
+        "no_dependency_installation_or_upgrade": true,
+        "no_parameter_updates_until_runtime_and_training_configuration_ready": true,
+        "no_unbounded_retries": true
+      },
+      "acceptance": [
+        "Locate nonfinite values using raw logits and probability checks before CUDA sampling",
+        "Compare exact saved inputs under a single controlled implementation change",
+        "Add focused regression tests for any accepted runtime fix",
+        "Run the same bounded four-candidate protocol only after numerical checks pass",
+        "Report remaining blockers honestly; do not label sampling as training"
+      ],
+      "numerical_diagnosis": {
+        "local_root": "_local_private_runs/cloud_numerics_20260827_v1/",
+        "rounds_completed": 7,
+        "verified_retrieved_files": 146,
+        "external_api_called": false,
+        "first_evidenced_failure": "Nonfinite raw model logits during forward, before sampling or reward; exact first eight generations reproduced",
+        "autocast_only_fix": "REJECTED_BY_V4",
+        "empty_cache_fix": "REJECTED_BY_V6",
+        "serial_generation_causality": "NOT_ESTABLISHED_BY_V5",
+        "v7_summary_sha256": "3572721F7EDBE17A9EF97E7AED1F2391582E593A454D61A2DEB75B9A0486571C",
+        "v7_actual_sdpa_qkv_dtype": "torch.bfloat16 in both treatment cases; torch.float32 in controls",
+        "v7_treatment_generated_lengths": [252, 186],
+        "v7_treatment_repeats_passed": 2,
+        "v7_original_control_again_passed": true,
+        "numerical_root_cause_uniquely_identified": false,
+        "candidate_mitigation": "Pure sampling BF16 autocast plus Qwen3 embedding and RMSNorm output conversion; no parameter or NF4 configuration changes",
+        "candidate_mitigation_status": "REJECTED_AFTER_FULL_RETRY_FAILURE; withdrawn from current local runtime, attempted source preserved in immutable retry_package",
+        "diagnostic_guard": "Persist input/RNG before generation; reject nonfinite raw logits before multinomial; never mask NaNs or automatically retry",
+        "candidate_version_focused_tests": "53 passed, 4 skipped both locally and on cloud; not proof of GPU numerical correctness",
+        "local_focused_tests": "46 passed, 4 skipped after withdrawing failed precision mitigation; Ruff check and format check passed",
+        "bounded_retry_status": "FAILED_NONFINITE_RAW_MODEL_LOGITS",
+        "parameter_updates": false
+      },
+      "history_conditioned_probe": {
+        "owner_request": "继续干活; then supplied the restarted AutoDL SSH endpoint",
+        "status": "FAILURE_NOT_REPRODUCED",
+        "scope": "Execute saved generation 0..5 prompts and RNG in one fresh process, then stop generation 6 after its first prefill. This is model-call history, not Agent/tool/user-simulator replay.",
+        "remote_root": "/root/autodl-tmp/policyagent-deployments/20260829-history-prefill-v1/",
+        "local_raw_root": "_local_private_runs/cloud_numerics_20260827_v1/20260829-history-prefill-v1/",
+        "report": "tmp/cloud-numerics-20260827-v1/20260829_历史条件Prefill复现结果_v1.md",
+        "report_sha256": "D55CB92FEFE2EC7C8473501783E24CD493C7CC27C33A69BECF5BE04D8F1066BE",
+        "local_execution_manifest_sha256": "882EF03B6C44AC11ACC39E4FC1322B51564CAA046A60651A0A4F3952DDEA0BE7",
+        "transfer_verification_sha256": "FFD502A94E58495745DA4201F126133E9A71D1706CAD2F9965783B0270E3545E",
+        "raw_summary_sha256": "12DEB9D4CD2681546EA6989F73E13F41B7B9060BA263153F1392F97D0521A5EB",
+        "script_sha256": "1E1CAD1863DB244438D08399E4CB5DBEC4848B63A1081E942792DC6B05BCF515",
+        "focused_tests": "76 passed; local CPU/fake tests",
+        "frozen_artifact_validation": "VALIDATED",
+        "independent_adversarial_review": "APPROVE",
+        "external_timeout_seconds": 600,
+        "elapsed_seconds": 88.99482368305326,
+        "history_generation_calls_completed": 6,
+        "guard_generation_indices_completed": [0, 1, 2, 3, 4, 5],
+        "target_generation_index": 6,
+        "native_inputs_match": true,
+        "source_failure_finite_counts": [151936, 0],
+        "observed_finite_counts": [151936, 151936],
+        "nonfinite_raw_logits_events": 0,
+        "trainable_peft_parameter_fingerprint_unchanged": true,
+        "parameter_updates": false,
+        "external_api_called": false,
+        "history_outputs_validated_against_source": false,
+        "previous_agent_turns_replayed": false,
+        "history_inspect_executed": false,
+        "numerical_fix_proven": false,
+        "decision": "STOP_AFTER_CONTROL. Prior model-call history alone did not reproduce the generation-6 failure. Do not run history-inspect or another same-class probe. Full Trainer/environment/API execution remains the only untested path and requires a separate scope decision; do not enter S6 automatically."
+      },
+      "result": {
+        "local_root": "_local_private_runs/cloud_sampling4_20260827_retry1/",
+        "remote_root": "/root/autodl-tmp/policyagent-deployments/20260827-pure-sampling4-retry1/",
+        "deployment_manifest_sha256": "090F11E3948BE909BE929528B91BD21A2B166E15CA34022B9F916F869283BAB7",
+        "execution_result_sha256": "B6FD8490E64545B601E9551BC1533C8BA91ABA30D81A0A77955E8FA859F0F6A5",
+        "audit_report_sha256": "96A4CC935B9627179BEC721D7CA96C1BBECA768C08F7B8CA30C1FDB697AEE46A",
+        "transfer_verification_sha256": "CBEDEFE3B67DA34B930D172E58E244083FE86F4C5B0C82EF06754EA90685079A",
+        "generation_events_sha256": "0A29605DD58933ACA87155D38BCAE07871E1D8FCB99A3500B6D60C75C0464729",
+        "verified_retrieved_files": 21,
+        "execution_source_hash_mismatches": 0,
+        "status": "FAILED_INFRASTRUCTURE; sampling exit code 1 after passing tests and preflight",
+        "raw_run_state_status": "STARTED is stale; terminal failure_manifest and execution_result establish FAILED; raw artifacts preserved",
+        "task_id": "43",
+        "generation_index_zero_based": 2,
+        "forward_index_zero_based": 307,
+        "logits_shape": [2, 1, 151936],
+        "finite_logits_per_row": [151936, 0],
+        "completed_groups": 0,
+        "partial_raw_rows": 2,
+        "partial_evidence_rows": 2,
+        "partial_rewards": [null, null],
+        "task72_started": false,
+        "workflow_elapsed_seconds": 152.32263735681772,
+        "original_cloud_worktree_files_unchanged": true,
+        "gpu_memory_at_retrieval_mib": 0,
+        "parameter_updates": false,
+        "retained_guard_source_sha256": "A5D242E5FCB6B7C845A70703E1BE5F0F21865D609F93A849AFE00DE592F6B5FE",
+        "retained_tests_sha256": "8CC0C51CEC27379CAF161D3B5B29AD444E7121B1EC92F353057214623A2D4361",
+        "final_test_report": "tmp/cloud-numerics-20260827-v1/focused_final.xml",
+        "decision": "STOP. Numerical fault reproduced but unique operator root cause unresolved; retain evidence guard only. Another GPU/quantization/runtime comparison requires a separately approved scope; no third retry or parameter-update training authorized by this task."
+      }
+    },
+    {
+      "task_id": "S5I_BF16_MINIMAL_GRPO_ENGINEERING_CLOSURE",
+      "status": "COMPLETED_ENGINEERING_CLOSURE",
+      "depends_on": ["S5H_NUMERICAL_DIAGNOSIS_FIX_RETRY"],
+      "goal": "Complete one bounded real GRPO engineering loop after the NF4 numerical failures, without claiming long-horizon or business improvement.",
+      "authorized_changes": {
+        "quantization": "4bit_nf4_to_nonquantized_bf16_lora",
+        "max_completion_length": "13312_to_1024_engineering_budget",
+        "steps_per_generation": "explicitly_frozen_to_2",
+        "max_steps": "unchanged_at_2",
+        "num_generations": "unchanged_at_2",
+        "beta": "unchanged_at_0.02",
+        "checkpoint_tasks_reward_seed_lora": "unchanged"
+      },
+      "config": "configs/retail_agentic_qwen3_4b_staged_reward_minimal_grpo_bf16_lora_2step_v3.json",
+      "result": {
+        "completed_at_unix": 1787984987.8210258,
+        "remote_run_dir": "/root/autodl-tmp/policyagent-deployments/20260829-bf16-grpo-closure-v1/training_result",
+        "local_evidence_dir": "_local_private_runs/cloud_grpo_s5i_20260829/evidence",
+        "run_manifest_sha256": "9DD8FFCEAD801C171CBB12832702E486E35CA88B31A143E82CD31B62113808FD",
+        "optimization_evidence_sha256": "EB5AD609D4A3C08D8EA37030596C398389518A51F3927D9517AF3551CEB6CAAD",
+        "training_audit_sha256": "A2C113E0A769CC6371165BE227921863D7B79C93FE66CE045723E0B1CA41BC87",
+        "starting_adapter_weights_sha256": "081B6352F8AEC3F0C433730AB7375B5333D5C5A80B49D68A98334D30538EC5B1",
+        "final_adapter_weights_sha256": "FF1AA1FA168BE283D9890BC186B8BE385259C166BA8DD870B4B850E000B6A313",
+        "final_adapter_directory_sha256": "64D693C9F52615FB7C6FBE644C01170F8CAC79D2415782BD12522CA9F96DA08C",
+        "merged_model_directory_sha256": "C7039B99FD1CEFC9DD42F88A3C1D29266305AF522DA41611797CE38C69B5EC3B",
+        "actual_optimizer_steps": 2,
+        "actual_rollouts": 4,
+        "actual_task_ids": [
+          "43",
+          "72"
+        ],
+        "changed_trainable_tensor_count": 252,
+        "optimization_evidence_status": "PASSED",
+        "training_audit_schema": "retail-agentic-grpo-training-audit-v4",
+        "terminal_success_rollouts": 0,
+        "effective_reward_groups": 1,
+        "claim": "REAL_GRPO_ENGINEERING_CLOSURE_ONLY",
+        "behavior_improvement_assessed": false,
+        "next_task_authorized": false
+      },
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "configs/retail_agentic_qwen3_4b_staged_reward_minimal_grpo_bf16_lora_2step_v3.json",
+        "src/training/run_retail_agentic_grpo.py",
+        "src/evaluation/grpo_training_audit.py",
+        "tests/test_training_precision.py",
+        "tests/test_agentic_launch_safety.py",
+        "tests/test_grpo_training_audit.py"
+      ],
+      "constraints": {
+        "same_checkpoint_tasks_reward_seed_lora": true,
+        "preserve_beta_0_02": true,
+        "expected_optimizer_steps": 2,
+        "expected_rollouts": 4,
+        "no_automatic_retry": true,
+        "no_dependency_upgrade": true,
+        "no_long_horizon_claim": true,
+        "no_business_improvement_claim": true,
+        "all_raw_artifacts_must_be_preserved": true
+      },
+      "acceptance": [
+        "actual trainer global_step equals 2",
+        "four raw rollouts cover task 43 and task 72",
+        "finite KL values are present in log_history",
+        "starting and final trainable-parameter hashes differ",
+        "all final trainable parameters are finite",
+        "final adapter and merged model are saved with hashes",
+        "reward components and evaluator evidence are retained"
+      ],
+      "claim_limits": {
+        "engineering_loop_only": true,
+        "completion_budget_is_truncated": true,
+        "long_horizon_rl_validated": false,
+        "business_improvement_assessed": false
+      }
+    },
+    {
+      "task_id": "S5J_REWARD_SEMANTICS_AUDIT",
+      "status": "COMPLETED_ACCEPTED",
+      "depends_on": ["S5I_BF16_MINIMAL_GRPO_ENGINEERING_CLOSURE"],
+      "approval_basis": "Owner explicitly requested continuation after accepting the S5I review. Scope is offline Reward semantics only; no online Reward, API, cloud or training change.",
+      "goal": "Separate reference-call progress from business facts proven by tool results, and audit ordering on the four S5I rollouts plus eight historical trajectories before any scalar Reward revision.",
+      "allowed_files": [
+        "configs/evaluation/staged_reward_semantics_tasks43_72_v3_candidate.json",
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/evaluation/reward_semantics_audit.py",
+        "tests/test_reward_semantics_audit.py",
+        "output/20260829-reward-semantics-audit-tasks43-72-v3-candidate/report.json"
+      ],
+      "constraints": {
+        "frozen_v2_reward_unchanged": true,
+        "candidate_is_not_online_scalar_reward": true,
+        "cloud_or_api_execution": false,
+        "training_or_parameter_update": false,
+        "cross_checkpoint_use_is_ordering_only": true,
+        "automatic_next_task": false
+      },
+      "result": {
+        "candidate_spec_sha256": "287A5B66EBF51EF76D8BE5CCDE4A744EFF897A0FB5DA5DC07F68E4B1EE4D711E",
+        "implementation_sha256": "55368CDFB6C38C192F1D1C9646591A29988E9F604BD1A94FDA19DF2620B1AA22",
+        "tests_sha256": "6DA8BEBD26771C7E4172181B7B3DAC6BBEABFFC4F4EBE7DCB2AF8AAFA051AE0A",
+        "report_path": "output/20260829-reward-semantics-audit-tasks43-72-v3-candidate/report.json",
+        "report_sha256": "8D047ADE0765179789EB4B1B46EDD563099636509D1AF4FF0C602AF1CD61CA1C",
+        "focused_tests": "17 passed",
+        "trajectory_count": 12,
+        "s5i_trajectory_count": 4,
+        "historical_trajectory_count": 8,
+        "complete_success_count": 5,
+        "full_write_count": 6,
+        "no_write_count": 4,
+        "unexpected_write_count": 1,
+        "complete_success_above_incomplete_within_task": true,
+        "full_write_above_no_write_within_task": true,
+        "task43_wrong_order_prefix_has_no_business_result_evidence": true,
+        "unexpected_write_below_safe_nonmutating_evidence": true,
+        "task72_future_intent_binding_ready": false,
+        "scalar_online_promotion_ready": false,
+        "decision": "STOP_FOR_ACCEPTANCE; candidate semantics clarify evidence strength but task 72 needs a structured dialogue-stage binding before scalar integration"
+      }
+    },
+    {
+      "task_id": "S5K_GUARDED_STOP_TELEMETRY",
+      "status": "COMPLETED_ACCEPTED",
+      "depends_on": [
+        "S5J_REWARD_SEMANTICS_AUDIT"
+      ],
+      "approval_basis": "Owner returned and explicitly requested work to continue. Scope is local stop-reason telemetry only; no Reward, Verifier, API, cloud or training change.",
+      "goal": "Record causal whole-trajectory stop reasons on the actual guarded GRPO path before environment reward persistence, while preserving native generation outputs, tool execution, reward, KL, loss and optimizer behavior.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "src/training/rollout_diagnostics.py",
+        "src/rl/retail_agentic_env.py",
+        "tests/test_rollout_diagnostics.py",
+        "tests/test_retail_agentic_rl.py"
+      ],
+      "constraints": {
+        "changes_reward_or_verifier": false,
+        "changes_sampling_or_tool_behavior": false,
+        "calls_external_api": false,
+        "uses_cloud_gpu": false,
+        "starts_training": false,
+        "historical_artifacts_immutable": true,
+        "automatic_next_task": false
+      },
+      "acceptance": [
+        "Telemetry is injected after native full-trajectory generation and before environment get_reward persistence",
+        "Tool-result budget rollback is distinguished from model EOS and generation-budget exhaustion",
+        "Customer and tool limits are causal only when an over-limit attempt is observed",
+        "Native generation tuple, tool functions, reward, KL, loss, backward and optimizer paths are unchanged",
+        "Raw rollout and evidence sidecar carry identical hash-bound completion telemetry",
+        "Legacy paths without telemetry preserve null truncation metadata",
+        "Focused tests and formatting checks pass"
+      ],
+      "stop_conditions": [
+        "Implementation requires replacing native GRPO scoring or optimizer methods",
+        "Telemetry cannot be bound to original rollout rows",
+        "Observer changes RNG, generated tokens, tool arguments, tool results or rewards",
+        "Need for API, cloud GPU or a training run"
+      ],
+      "result": {
+        "implementation_sha256": {
+          "src/training/rollout_diagnostics.py": "537DF81648F700A8EA038AEA5C2278FE9526CD4BAC66B3853F03E1D41409824D",
+          "src/rl/retail_agentic_env.py": "957AA2547272438EF4EBC1F13D5BC82F5B0595E40DD231C35DDD68CD279319C0"
+        },
+        "tests_sha256": {
+          "tests/test_rollout_diagnostics.py": "ABF672CA8CAD498EEED936E08656016B72AD625866FA07A6F302B1563A0E7263",
+          "tests/test_retail_agentic_rl.py": "EDAD569D07CA972CCA810C2DC49BD6AE0F1BC700F0CE6967E30CFB52B0A74ED1"
+        },
+        "rollout_diagnostics_tests": "68 passed, 4 skipped optional native-loop injection cases",
+        "retail_environment_tests": "57 passed",
+        "ruff_check": "passed",
+        "ruff_format_check": "passed",
+        "primary_stop_reason_policy": "Customer/tool over-limit attempts remain causal incident flags; they do not override a later native EOS, budget stop, or tool-iteration stop",
+        "unsupported_protocol_policy": "A tool suffix that cannot be bound to an original rollout row completes native generation but fails closed before reward and parameter update",
+        "native_training_path_tested": true,
+        "raw_and_evidence_completion_match_tested": true,
+        "reward_or_verifier_changed": false,
+        "cloud_or_api_called": false,
+        "training_started": false,
+        "decision": "STOP_FOR_OWNER_ACCEPTANCE; do not enter S6, Reward integration, cloud/API execution or training automatically"
+      }
+    },
+    {
+      "task_id": "S6_EXACT_CHECKPOINT_GREEDY_BASELINE",
+      "status": "COMPLETED_OWNER_ACCEPTED",
+      "depends_on": ["S5_WRITE_COVERAGE_DIAGNOSTIC"],
+      "goal": "Measure true greedy pass@1 for the exact RL starting checkpoint under the same Agentic environment and retain prompt, tool trajectory, final answer, reward components, and evaluator result.",
+      "approval_basis": "Owner explicitly approved S6 after accepting S5K. This activation covers local implementation and tests only; cloud GPU and external API execution still require separate confirmation.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "configs/retail_agentic_qwen3_4b_exact_checkpoint_greedy_tasks43_72_v1.json",
+        "src/training/run_retail_agentic_grpo.py",
+        "src/training/rollout_diagnostics.py",
+        "src/evaluation/grpo_training_audit.py",
+        "tests/test_rollout_diagnostics.py",
+        "tests/test_agentic_launch_safety.py",
+        "tests/test_grpo_training_audit.py",
+        "tests/test_retail_agentic_rl.py"
+      ],
+      "constraints": {
+        "current_checkpoint_only": true,
+        "same_task_scope": true,
+        "true_greedy_required": true,
+        "near_zero_temperature_must_not_be_labeled_greedy": true,
+        "parameter_update_forbidden": true,
+        "local_phase_calls_external_api": false,
+        "local_phase_uses_cloud_gpu": false,
+        "automatic_transition_forbidden": true
+      },
+      "result": {
+        "local_implementation_status": "PASSED",
+        "config_sha256": "756853E3636C5B018882F97FDEBEC8722B9E250E610860985B09513F3CA9B1A2",
+        "split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+        "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+        "sft_manifest_binding": "DERIVED",
+        "true_greedy_runtime_binding_implemented": true,
+        "direct_merged_checkpoint_without_peft_implemented": true,
+        "training_update_path_forbidden_and_tested": true,
+        "raw_and_evidence_hash_chain_implemented": true,
+        "pure_sampling_audit_without_fake_training_metrics_implemented": true,
+        "frozen_completion_budget_enforced": true,
+        "user_simulator_model_and_nonsecret_args_bound": true,
+        "partial_failure_artifacts_hash_bound": true,
+        "focused_tests": {
+          "local_no_tau2": "153 passed, 4 skipped",
+          "tau2_environment": "57 passed, 1 deprecation warning",
+          "ruff": "PASSED"
+        },
+        "cloud_execution_status": "PASSED",
+        "cloud_runtime": {
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.13.0+cu130",
+          "transformers": "5.14.1",
+          "trl": "1.9.0",
+          "precision": "bf16",
+          "elapsed_seconds": 107.0246368041262,
+          "peak_allocated_bytes": 10137810944,
+          "peak_reserved_bytes": 14310965248
+        },
+        "run_artifacts": {
+          "path": "output/20260830-s6-exact-greedy-tasks43-72-v1",
+          "run_manifest_sha256": "E77E4F92EF7C14A88924BC4AB085353A621547D65BF7BFFA7846FE6F8C2D3716",
+          "run_state_sha256": "67D00C7FD5FC6D6DDBF6AC9E3C9EBF81A9110F93FECD1AF1D20AC58677B3851F",
+          "raw_rollouts_sha256": "9FBFFDADD6839CFA3BBEADED029ECDD88630CA0501BC44E3C6EF053E69FC7099F",
+          "manifest_bound_artifact_hash_mismatches_after_transfer": 0
+        },
+        "pure_sampling_audit": {
+          "path": "output/20260830-s6-exact-greedy-tasks43-72-v1-pure-sampling-audit.json",
+          "sha256": "79159EC3EE5116F313D5878D62CC980C56FEE3645071A5A534D7A9BDC81E4A0E",
+          "status": "PASSED",
+          "scope": "PURE_SAMPLING_CAPABILITY_AND_TRAJECTORY_AUDIT_ONLY",
+          "all_release_criteria_passed": true
+        },
+        "cloud_tests": {
+          "verified_trl_native_loop": "79 passed, 1 warning",
+          "s6_targeted_regression": "27 passed, 1 deprecation warning",
+          "uploaded_file_hash_mismatches": 0
+        },
+        "capability_result": {
+          "task_count": 2,
+          "rollout_count": 2,
+          "greedy_terminal_pass_at_1": 0.5,
+          "terminal_success_rollouts": 1,
+          "complete_success_rollouts": 1,
+          "mean_tool_calls_per_rollout": 7.5,
+          "claim_scope": "TWO_TASK_DIAGNOSTIC_ONLY",
+          "task_43": {
+            "terminal_success": true,
+            "complete_success": true,
+            "staged_reward": 0.98,
+            "tool_calls": 7,
+            "stop_reason": "USER_STOP_AND_MODEL_EOS",
+            "confirmation_diagnostic_missing_count": 1,
+            "confirmation_signal_used_as_reward": false,
+            "repeated_call_count": 1
+          },
+          "task_72": {
+            "terminal_success": false,
+            "complete_success": false,
+            "staged_reward": 0.3375,
+            "tool_calls": 8,
+            "stop_reason": "MODEL_EOS_BEFORE_USER_STOP",
+            "required_write_actions_matched": 0,
+            "required_write_actions_expected": 2,
+            "completion_budget_exhausted": false,
+            "context_limit_reached": false,
+            "tool_call_limit_reached": false
+          }
+        },
+        "user_simulator_model": "deepseek/deepseek-chat",
+        "cloud_or_api_called": true,
+        "external_api_called": true,
+        "training_started": false,
+        "parameter_update_observed": false,
+        "business_improvement_assessed": false,
+        "business_improvement_claim_allowed": false,
+        "owner_review": {
+          "status": "ACCEPTED",
+          "task_43": {
+            "label": "BUSINESS_SUCCESS_CORRECTION_REQUIRED",
+            "basis": "The environment goal was achieved, but strict pre-write confirmation was incomplete.",
+            "repeated_get_order_details": "JUSTIFIED_USER_REQUESTED_DOUBLE_CHECK",
+            "repeated_call_penalty_assessment": "FALSE_POSITIVE_DIAGNOSTIC"
+          },
+          "task_72": {
+            "label": "VALID_AGENT_FAILURE",
+            "basis": "The model ended before confirmation, both required writes, and final resolution without a transport, context, tool, or budget limit."
+          },
+          "reward_assessment": {
+            "terminal_labels": "ACCEPTED_FOR_BUSINESS_FINAL_STATE_ON_THESE_TWO_TRAJECTORIES",
+            "staged_ordering_direction": "ACCEPTED_AS_DIAGNOSTIC_ONLY",
+            "known_blind_spot": "STRICT_CONFIRMATION_NOT_REWARD_AUTHORITY",
+            "known_false_positive": "TASK_43_REPEATED_CALL_PENALTY",
+            "calibration_claim_allowed": false
+          }
+        },
+        "remaining": []
+      }
+    },
+    {
+      "task_id": "S7_EXACT_CHECKPOINT_STOCHASTIC_PASS_K",
+      "status": "COMPLETED_OWNER_ACCEPTED",
+      "depends_on": ["S6_EXACT_CHECKPOINT_GREEDY_BASELINE"],
+      "goal": "Measure whether the exact SFT checkpoint can sample successful full-task trajectories when greedy decoding fails, while preserving the future GRPO group size and recording reward separability diagnostics.",
+      "approval_basis": "Owner accepted all three S6 review judgments and approved continuation. This activation is local-only; cloud GPU and external API execution remain separately gated.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "configs/retail_agentic_qwen3_4b_exact_checkpoint_stochastic_passk_tasks43_72_v1.json",
+        "src/training/run_retail_agentic_grpo.py",
+        "src/training/rollout_diagnostics.py",
+        "src/evaluation/grpo_training_audit.py",
+        "tests/test_rollout_diagnostics.py",
+        "tests/test_agentic_launch_safety.py",
+        "tests/test_grpo_training_audit.py"
+      ],
+      "constraints": {
+        "exact_s6_checkpoint_and_hash": true,
+        "same_tasks_split_openings_and_user_seeds": true,
+        "same_rollout_limits_and_reward": true,
+        "direct_bf16_merged_checkpoint_without_peft": true,
+        "parameter_update_forbidden": true,
+        "sampled_pass_at_1_must_not_be_called_greedy": true,
+        "task_43_terminal_success_must_not_be_called_full_policy_compliance": true,
+        "local_phase_calls_external_api": false,
+        "local_phase_uses_cloud_gpu": false,
+        "automatic_transition_forbidden": true
+      },
+      "sampling_design": {
+        "task_ids": ["43", "72"],
+        "num_generations_per_group": 2,
+        "groups_per_task": 2,
+        "samples_per_task": 4,
+        "total_samples": 8,
+        "temperature": 0.8,
+        "top_p": 1.0,
+        "top_k": 0,
+        "max_completion_length": 13312,
+        "seed": 20260826,
+        "pass_at_4_interpretation": "COMBINATORIAL_ESTIMATE_OVER_FOUR_SAME_TASK_DRAWS; ACTUAL_GROUP_HIT_RATE_REMAINS_PASS_AT_2"
+      },
+      "acceptance": [
+        "Explicit stochastic decode contract is runtime-bound",
+        "Pure sampling uses the direct merged checkpoint without LoRA or PEFT",
+        "No train, loss, backward, optimizer, or parameter update path is reachable",
+        "Two groups per task and all eight rollouts are hash- and index-bound",
+        "Terminal and staged reward variation are reported separately",
+        "Per-task raw n/c, sampled success rate, pass curve, actual group hit rate, stop reasons, lengths, and invalid counts are reported",
+        "Transport-invalid or censored rows are excluded from capability denominators and block release"
+      ],
+      "stop_conditions": [
+        "Checkpoint, task, opening, user-seed, rollout-limit, or reward drift",
+        "Sampling path creates or applies a PEFT adapter",
+        "Any training or parameter-update method is reached",
+        "Group-to-raw/evidence index binding is incomplete",
+        "Cloud memory failure would require quantization, checkpoint, or group-size drift",
+        "Need for cloud GPU or external API before separate owner authorization"
+      ],
+      "result": {
+        "local_implementation_status": "PASSED",
+        "config": "configs/retail_agentic_qwen3_4b_exact_checkpoint_stochastic_passk_tasks43_72_v1.json",
+        "config_sha256": "C26E30FEFA53739A8A181693355669E5F0657266B5010743392E2C7DFEDFB8D8",
+        "source_sha256": {
+          "src/training/run_retail_agentic_grpo.py": "2DE5009059570C999FA8533C77D2B02AB369006110B23FF0A0A5539C911F27F2",
+          "src/training/rollout_diagnostics.py": "1C7FBF9DF64D158D436862F4D122AD7C82CDADC13F7A39DB1FD6FAE2D1078F0C",
+          "src/evaluation/grpo_training_audit.py": "A723BFEF13C0365E14CB173236A315879F02BFEF207D9CBCD8532BFF557AD2A9"
+        },
+        "test_sha256": {
+          "tests/test_rollout_diagnostics.py": "B04558B8A488213D1918AE498527D57651012A1B14254EE01C1A3824540AEFB6",
+          "tests/test_agentic_launch_safety.py": "15EB119964D0DC476AB6B8ADD157CC8C542D5AFE3EA32E237746460342E37714",
+          "tests/test_grpo_training_audit.py": "F017BE48713970C07FE5E8029CB5DCACBD5A9F72CAC033FD532F5AD41D182D6F"
+        },
+        "focused_tests": {
+          "passed": 168,
+          "skipped": 4,
+          "subtests_passed": 22,
+          "failed": 0
+        },
+        "tau2_environment_regression": {
+          "passed": 57,
+          "failed": 0,
+          "python": "D:/tau2-bench/.venv/Scripts/python.exe"
+        },
+        "s6_real_artifact_regression": {
+          "status": "PASSED",
+          "greedy_terminal_pass_at_1": 0.5,
+          "failed_release_criteria": 0,
+          "group_completion_messages_not_in_environment_log": 2,
+          "allowed_unconsumed_terminal_model_messages": 2,
+          "rejected_completion_suffixes": 0
+        },
+        "adversarial_gates_added": [
+          "Frozen config equals effective config except explicit sampling adapter fields",
+          "Runtime and manifest decode contracts bind temperature, top_p, and top_k",
+          "Derived group size, groups per task, rollout counts, constructor group size, and unused max_steps are cross-bound to the frozen diagnostic contract",
+          "Censored rollouts are excluded from capability metrics and close release",
+          "Group IDs, observational rewards, prompts, completions, raw rows, and evidence rows are bound",
+          "Completion suffixes are limited to two enumerated single-message terminal transport cases; arbitrary, multi-message, structured-tool, or stop-drift suffixes close release"
+        ],
+        "cloud_or_api_called": true,
+        "cloud_gpu_used": true,
+        "training_started": false,
+        "parameter_update_observed": false,
+        "remote_execution": {
+          "status": "PASSED",
+          "run_status": "COMPLETED",
+          "execution_mode": "STOCHASTIC_GROUP_SAMPLING",
+          "project_commit": "5be4b9803588aafe25b2436c140f09cc54145d55",
+          "project_worktree_dirty": true,
+          "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+          "starting_model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+          "user_simulator_model": "deepseek/deepseek-chat",
+          "user_simulator_preflight": "PASSED",
+          "external_api_called": true,
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.13.0+cu130",
+          "transformers": "5.14.1",
+          "trl": "1.9.0",
+          "elapsed_seconds": 419.979037457146,
+          "peak_allocated_bytes": 11482169344,
+          "peak_reserved_bytes": 17349738496,
+          "optimization_enabled": false,
+          "backward_called": false,
+          "optimizer_created": false,
+          "loss_computed": false
+        },
+        "artifacts": {
+          "local_run_dir": "output/20260830-s7-exact-stochastic-passk-tasks43-72-v1",
+          "local_sidecar_dir": "output/20260830-s7-exact-stochastic-passk-tasks43-72-v1-sidecars",
+          "run_manifest_sha256": "B537C8C7E79763D81A7CEC8709100708D34BB07D0C582DBB940ADF564398887A",
+          "raw_rollouts_sha256": "906057291D7146E2D1412A9A39A83FF4E87DD126A1D6CE63B5899FB08EBC5712",
+          "rollout_evidence_sha256": "58FB09F51234C0EC027079F1B467278794503C42D3481DC129B3C2856215957E",
+          "generation_events_sha256": "64DD25114D76A1AF3E619EC9356D889DD60737F6B9EBC3DF648BF571EA75EB0A",
+          "sampling_groups_sha256": "6B7EF733D1A6C4768D594BA7CCB0B7FEB94FA7687EB4760FEA28BD5C22F8FE0C",
+          "audit_schema": "retail-agentic-pure-sampling-audit-v1",
+          "audit_status": "PASSED",
+          "audit_sha256": "6E85F3D024431531CDA88B25B36D53E98D8C9BDD8A00D69456E9FE0ABB0F418C",
+          "all_local_hashes_match_remote_evidence": true
+        },
+        "capability": {
+          "rollouts": 8,
+          "valid_terminal_rollouts": 8,
+          "terminal_success_rollouts": 5,
+          "complete_success_rollouts": 5,
+          "correct_write_rollouts": 6,
+          "sampled_terminal_success_rate": 0.625,
+          "macro_sampled_terminal_pass_at_k": {
+            "1": 0.625,
+            "2": 0.9166666666666667,
+            "4": 1.0
+          },
+          "actual_group_any_terminal_success": {
+            "valid_groups": 4,
+            "groups_with_any_success": 4,
+            "rate": 1.0
+          },
+          "per_task": {
+            "43": {
+              "terminal_success_rollouts": 3,
+              "rollouts": 4,
+              "sampled_terminal_success_rate": 0.75,
+              "sampled_terminal_pass_at_k": {"1": 0.75, "2": 1.0, "4": 1.0}
+            },
+            "72": {
+              "terminal_success_rollouts": 2,
+              "rollouts": 4,
+              "sampled_terminal_success_rate": 0.5,
+              "sampled_terminal_pass_at_k": {"1": 0.5, "2": 0.8333333333333334, "4": 1.0}
+            }
+          },
+          "greedy_pass_at_1_assessed": false,
+          "pass_at_k_is_small_sample_diagnostic_only": true
+        },
+        "group_signal": {
+          "groups": 4,
+          "valid_groups": 4,
+          "invalid_groups": 0,
+          "all_correct_groups": 1,
+          "all_wrong_groups": 0,
+          "mixed_groups": 3,
+          "terminal_binary_zero_std_groups": 1,
+          "staged_reward_zero_std_groups": 1,
+          "zero_std_group_rate": 0.25,
+          "terminal_binary_mean_group_population_std": 0.375,
+          "staged_reward_mean_group_population_std": 0.28812499999999996,
+          "same_group_comparable_pairs": 3,
+          "same_group_correctly_ordered_pairs": 3,
+          "same_group_ties": 0,
+          "same_group_inversions": 0,
+          "strict_ordering_rate": 1.0,
+          "minimum_reward_separability_gate": "PASSED",
+          "staged_reward_incremental_value_over_terminal_binary": "NOT_ESTABLISHED"
+        },
+        "trajectory": {
+          "valid_transport_rollouts": 8,
+          "transport_invalid_rollouts": 0,
+          "censored_rollouts": 0,
+          "stop_reason_counts": {
+            "USER_STOP_AND_MODEL_EOS": 5,
+            "MODEL_EOS_BEFORE_USER_STOP": 3
+          },
+          "mean_completion_tokens": 4383.375,
+          "mean_model_tokens_retained": 1428.875,
+          "mean_observation_tokens_retained": 2954.5,
+          "mean_tool_calls_per_rollout": 6.5,
+          "unique_action_pattern_count": 6,
+          "allowed_unconsumed_terminal_model_messages": 8,
+          "rejected_completion_suffixes": 0
+        },
+        "technical_review": {
+          "status": "OWNER_ACCEPTED_FOR_REPLACEMENT_PRESCREEN",
+          "task_43": {
+            "terminal_success": "3/4",
+            "correct_write": "4/4",
+            "valid_failure": "43:1/c0 skipped required identity lookup and ended before user STOP despite a correct write",
+            "success_quality_blind_spots": [
+              "43:0/c0 contains unsupported product and return-status claims",
+              "43:0/c1 first denies tablet evidence and later self-corrects",
+              "43:1/c1 recovers from one failed identity query and receives reward 0.98"
+            ]
+          },
+          "task_72": {
+            "terminal_success": "2/4",
+            "correct_write": "2/4",
+            "valid_failures": "72:0/c1 and 72:1/c0 stop after product lookup before final selection, confirmation, writes, and resolution",
+            "benchmark_policy_conflict": "Both terminal-success trajectories trigger blocking major policy.one_shot_order_mutation after modify_pending_order_items followed by modify_pending_order_address on the same order",
+            "policy_findings_used_as_reward": false
+          }
+        },
+        "claim_limits": {
+          "pure_sampling_only": true,
+          "parameter_update_observed": false,
+          "behavior_improvement_assessed": false,
+          "business_improvement_claim_allowed": false,
+          "staged_reward_superiority_claim_allowed": false,
+          "cross_task_generalization_claim_allowed": false,
+          "terminal_success_must_not_be_called_gold_or_policy_safe": true,
+          "owner_review_required_before_transition": true
+        }
+      }
+    },
+    {
+      "task_id": "S8_TASK95_TERMINAL_PRESCREEN",
+      "status": "COMPLETED_PRESCREEN_REJECTED",
+      "depends_on": ["S7_EXACT_CHECKPOINT_STOCHASTIC_PASS_K"],
+      "goal": "Determine whether the exact SFT checkpoint produces mixed terminal outcomes on policy-consistent development Task95 before any GRPO update is allowed.",
+      "approval_basis": "After receiving the S7 status and replacement-task evidence, the owner instructed continuation. This authorizes local preparation only; cloud GPU and external API execution remain separately gated.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "configs/retail_agentic_qwen3_4b_exact_checkpoint_terminal_prescreen_task95_v1.json",
+        "data/retail_agentic_rl_v2/terminal_only_prescreen_task95_initial_user_message.jsonl",
+        "data/retail_agentic_rl_v2/terminal_only_prescreen_task95_initial_user_message_manifest.json",
+      "src/training/rollout_diagnostics.py",
+      "src/training/run_retail_agentic_grpo.py",
+      "src/evaluation/grpo_training_audit.py",
+      "tests/test_rollout_diagnostics.py",
+      "tests/test_agentic_launch_safety.py",
+      "tests/test_grpo_training_audit.py",
+      "_local_private_runs/s8_task95_terminal_prescreen_20260830_v1/**"
+      ],
+      "constraints": {
+        "exact_s7_checkpoint_and_hash": true,
+        "task_ids": ["95"],
+        "train_subset": "development_audit",
+        "terminal_reward_only": true,
+        "same_s7_sampling_and_rollout_limits": true,
+        "groups_per_task": 2,
+        "num_generations": 2,
+        "total_rollouts": 4,
+        "parameter_update_forbidden": true,
+        "task95_sft_entity_overlap_disclosed": true,
+        "verifier_informed_selection_disclosed": true,
+        "unseen_generalization_claim_forbidden": true,
+        "local_phase_calls_external_api": false,
+        "local_phase_uses_cloud_gpu": false,
+        "automatic_transition_forbidden": true
+      },
+      "acceptance": [
+        "Config, task split, opening, model, and source manifests are hash-bound",
+        "Pure sampling uses the exact direct BF16 merged checkpoint without PEFT",
+        "All four rollouts are transport-valid and uncensored",
+        "Terminal outcomes and strict correct-write evidence are reported separately",
+        "At least one mixed group or other defensible within-task non-constant terminal signal is observed before Task95 can enter a GRPO task card"
+      ],
+      "stop_conditions": [
+        "Checkpoint, task, opening, seed, sampling, rollout-limit, or terminal-reward drift",
+        "Any train, loss, backward, optimizer, adapter, or parameter-update path is reached",
+        "All groups are terminal-constant",
+        "Task95 reveals a benchmark-policy conflict",
+        "Need for cloud GPU or external API before separate owner authorization"
+      ],
+      "local_result": {
+        "status": "PASSED",
+        "git_head": "d01e5e0b827dd0c4ccdca442015f2e7a6f24c55c",
+        "git_worktree_clean": false,
+        "development_execution_only": true,
+        "frozen_execution_binding": {
+          "config_sha256": "C7DD051AC5623BB802B202B58CA59BC3D87EA9C5905D9EF470E4E6EDC641F782",
+          "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+          "opening_sha256": "E8C895D39D13D2A3C623777DF0D2D297D883154B7CBEEC7214205B9FBDDBF8A9",
+          "opening_manifest_sha256": "BD0944CA22DF341937D02BBC2614F6B8543906AC6C0A7BE1D7D6BC876D235B37",
+          "model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+          "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+          "upstream_tasks_sha256": "F44563D8F36362E2DC58282BB02CFB85010D22F27D9439808758D3E9B2BC16D2",
+          "upstream_policy_sha256": "4313D3FEF8ACF919F555FA17FBCE929CC3ED1CEF2DD8F0D35FF5C8C3364DE176",
+          "upstream_db_sha256": "DBDE692E380BB4AD17F9F7841172CF1E69BEBAD2DAA405628CCDC52A42B3B9B0",
+          "task_ids": ["95"],
+          "reward": "terminal_environment_state",
+          "sampling": {
+            "temperature": 0.8,
+            "top_p": 1.0,
+            "top_k": 0,
+            "groups_per_task": 2,
+            "num_generations": 2,
+            "total_rollouts": 4
+          },
+          "rollout_limits": {
+            "max_completion_length": 13312,
+            "max_customer_turns": 8,
+            "max_tool_calls": 32,
+            "max_tool_calling_iterations": 40
+          }
+        },
+        "source_sha256": {
+          "src/training/run_retail_agentic_grpo.py": "7F50DA5DE3DEB0B14CE51E3F19B2042A13C21F53DB2BE9A91324BBDB0B0C0CA1",
+          "src/training/rollout_diagnostics.py": "15589ACBAD05D94DF381CD8CE5EB60F7825CDB837AAC55AD40AD749B8E0CF350"
+        },
+        "test_sha256": {
+          "tests/test_agentic_launch_safety.py": "98CD210850D9D56A76F8E6B8D1E6E6152B39A2D52D6334CEAB03628128DD2FF4",
+          "tests/test_rollout_diagnostics.py": "A5CD764300E132D363EC03C728313774BF2CE02559AFA4081222BDBC1C091B3A"
+        },
+        "tests": {
+          "new_focused": "5 passed",
+          "launch_safety_module": "59 passed",
+          "combined_local_non_torch_coverage": "83 passed, 4 skipped",
+          "torch_dependent_tests_unavailable_in_local_tau2_venv": 54
+        },
+        "post_run_acceptance_audit": {
+          "status": "PASSED_LOCAL_IMPLEMENTATION",
+          "source_sha256": "EFD0F3978B7857EB4F0558D5A087EC379F52300D39395BE086B34AAD177A5D13",
+          "tests_sha256": "50BE4CE657B0FF7E67EF40F4D92AFD813FFB5363D121DF1DAAA5C5E6606EBC33",
+          "focused_regression": "180 passed, 4 skipped, 22 subtests passed",
+          "gate": "A write-task GRPO prescreen passes only when the pure-sampling audit passes, all rollouts are transport-valid and uncensored, at least one terminal-mixed group exists, required-write execution labels are complete, and at least one terminal success has uniquely bound non-error required-write results with no unexpected write.",
+          "claim_limit": "This is post-run sampling eligibility only; it neither authorizes GRPO nor establishes final-state, authorization, or policy compliance."
+        },
+        "offline_validation": {
+          "config": "VALID_CONFIG",
+          "opening_contract": "VALID_OPENING_CONTRACT",
+          "terminal_eligibility": "TERMINAL_TASKS_ELIGIBLE",
+          "reward_basis": ["db", "nl_assertion"],
+          "expected_writes": ["exchange_delivered_order_items"],
+          "generation_safety": true,
+          "sampling_contract": "STOCHASTIC_GROUP_SAMPLING_2_GROUPS_X_2_CANDIDATES"
+        },
+        "policy_consistency_review": {
+          "status": "NO_BENCHMARK_POLICY_CONFLICT_FOUND",
+          "task_actions": "Two exchange_delivered_order_items calls target two distinct delivered orders; the one-call limit is per order, not per conversation.",
+          "confirmation_requirement": "Each database update still requires explicit confirmation after listing the action details; terminal reward does not verify this and policy evidence must remain a separate audit signal.",
+          "one_tool_call_per_turn_requirement": "The two approved writes must execute serially; a single assistant turn containing both tool calls is a policy violation even when final DB state is correct.",
+          "historical_reward_blind_spot": {
+            "summary_path": "experiments/20260724_111341_retail_failure4_trial2_deepseek/task_95/summary.json",
+            "summary_sha256": "B9A5D7302A736CBFBF699BA97214FAF627C53D0A6CF9A7BD58E60345DC8446CE",
+            "agent_response_path": "experiments/20260724_111341_retail_failure4_trial2_deepseek/task_95/tau2_artifacts/artifacts/task_95/sim_bc448958-7caf-4108-9e68-5434479c1495/llm_debug/20260724_111456_174_agent_response_c9e58218.json",
+            "agent_response_sha256": "04C9A01AB0BD03A4084FD1852B0A7A5EDBFB13284F00DDE62A8164FEB8E5E9E1",
+            "finding": "Historical reward=1 despite two tool calls in one assistant turn; terminal success is not policy-compliant trajectory success."
+          },
+          "policy_used_as_reward": false
+        },
+        "claim_limits": {
+          "sft_entity_overlap": true,
+          "selection_used_historical_reward_and_verifier_evidence": true,
+          "unseen_generalization_claim_allowed": false,
+          "formal_evaluation_claim_allowed": false,
+          "parameter_update_observed": false
+        },
+        "cloud_preflight_attempt": {
+          "attempted_at": "2026-08-30T22:45:50+08:00",
+          "host": "connect.bjb1.seetacloud.com",
+          "port": 13120,
+          "mode": "SSH_READ_ONLY_PREFLIGHT",
+          "result": "CONNECTION_CLOSED_BEFORE_REMOTE_COMMAND",
+          "external_api_called": false,
+          "gpu_job_started": false
+        },
+        "decision": "SUPERSEDED_BY_SEPARATELY_APPROVED_REMOTE_EXECUTION"
+      },
+      "remote_result": {
+        "status": "REJECTED",
+        "executed_at": "2026-08-31",
+        "host": "connect.bjb1.seetacloud.com",
+        "port": 11200,
+        "remote_run_dir": "/root/autodl-tmp/policyagent-runs/20260831-s8-task95-terminal-prescreen-v1",
+        "local_evidence_dir": "_local_private_runs/20260831-s8-task95-terminal-prescreen-v1",
+        "execution_mode": "PURE_SAMPLING",
+        "optimization_enabled": false,
+        "backward_called": false,
+        "optimizer_created": false,
+        "loss_computed": false,
+        "training_eligible": false,
+        "bindings": {
+          "remote_project_commit": "5be4b9803588aafe25b2436c140f09cc54145d55",
+          "remote_worktree_dirty": true,
+          "config_sha256": "C7DD051AC5623BB802B202B58CA59BC3D87EA9C5905D9EF470E4E6EDC641F782",
+          "starting_model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+          "run_manifest_sha256": "2CCA3B110A7C812372D3348B95DDBEC8E2FA0D7705540EA68F9DFA79BCAE7933",
+          "run_state_sha256": "1733209B06D646C33C4F0BF227800C67E61B1F7810344754A97D9B4AFAF50832",
+          "audit_sha256": "3A9F3F1DD599993E82D584855EE135D6BA451B23E0C8753069C5314E6940B8DE",
+          "raw_rollouts_sha256": "EF52C4BB0D2B1BB2CF2D0067F02954E1B969215562CBFC6C39FD82CBAFB90BF9",
+          "rollout_evidence_sha256": "E3ED59DB50F34D8EACC25174022417766C5807F8B7014CD57B0C1BF5810C3985",
+          "generation_events_sha256": "B6408CA1A596A6A1BECE12446329559F8CA73988E5EBF640A1683E138CE1D759",
+          "sampling_groups_sha256": "D876FB491D66E974298F3E32109EF30E6140D20DE7A8EDA2251B53AE304EEF86"
+        },
+        "runtime": {
+          "gpu": "NVIDIA GeForce RTX 4090",
+          "torch": "2.13.0+cu130",
+          "transformers": "5.14.1",
+          "trl": "1.9.0",
+          "elapsed_seconds": 613.8848219849169,
+          "peak_allocated_bytes": 13816150528,
+          "peak_reserved_bytes": 24530386944
+        },
+        "sampling": {
+          "groups": 2,
+          "rollouts": 4,
+          "valid_terminal_rollouts": 3,
+          "transport_invalid_rollouts": 1,
+          "censored_rollouts": 1,
+          "terminal_success_rollouts": 0,
+          "sampled_terminal_success_rate": 0.0,
+          "valid_groups": 1,
+          "invalid_groups": 1,
+          "all_correct_groups": 0,
+          "all_wrong_groups": 1,
+          "mixed_groups": 0,
+          "terminal_zero_std_groups": 1,
+          "mean_terminal_group_population_std": 0.0
+        },
+        "write_evidence": {
+          "successful_required_write_label_available": true,
+          "successful_required_write_rollouts": 0,
+          "grounded_terminal_success_rollouts": 0
+        },
+        "stop_reason_counts": {
+          "USER_STOP_AND_MODEL_EOS": 2,
+          "MODEL_EOS_BEFORE_USER_STOP": 1,
+          "TOOL_ITERATION_LIMIT": 1
+        },
+        "badcase_summary": {
+          "95:0/c0": "Two exchange writes succeeded, but the second order was changed to variant 1684786391 instead of required variant 9844888101; final amounts were also wrong.",
+          "95:0/c1": "Repeated calculate 28 excess times, hit the tool-call limit, and performed no required write.",
+          "95:1/c0": "Misread source-item availability as exchange eligibility, transferred prematurely, and was censored by the tool-iteration limit.",
+          "95:1/c1": "Invented a processor-change restriction and transferred prematurely despite an actionable target variant."
+        },
+        "acceptance": {
+          "base_sampling_audit_passed": false,
+          "all_rollouts_transport_valid_and_uncensored": false,
+          "mixed_terminal_group_observed": false,
+          "required_write_execution_labels_available": true,
+          "grounded_terminal_success_observed": false,
+          "write_task_grpo_prescreen": "BLOCKED"
+        },
+        "decision": "STOP_BEFORE_GRPO_TASK_CARD"
+      }
+    },
+    {
+      "task_id": "S9_TASK95_SAME_ROLLOUT_STAGED_SHADOW",
+      "status": "COMPLETED_REJECTED",
+      "depends_on": ["S8_TASK95_TERMINAL_PRESCREEN"],
+      "goal": "Apply the unchanged staged-reward-v2 candidate to the exact same four frozen Task95 rollouts and determine whether it adds valid within-group ordering beyond terminal reward.",
+      "approval_basis": "The owner explicitly approved the proposed offline same-rollout staged-reward comparison after reviewing the rejected S8 terminal prescreen.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "configs/evaluation/staged_reward_shadow_task95_v2.json",
+        "src/evaluation/staged_reward_shadow.py",
+        "tests/test_staged_reward_shadow.py",
+        "output/20260831-s8-task95-staged-shadow-v2/command.txt",
+        "output/20260831-s8-task95-staged-shadow-v2/report.json"
+      ],
+      "constraints": {
+        "same_model": true,
+        "same_task": true,
+        "same_four_rollouts": true,
+        "same_sampling": true,
+        "only_reward_changes": true,
+        "reward_weights_inherited_unchanged_from_tasks43_72_v2": true,
+        "transport_invalid_groups_excluded_from_group_statistics": true,
+        "all_rows_retained_for_diagnostic_scoring": true,
+        "online_reward_unchanged": true,
+        "parameter_update_forbidden": true,
+        "external_api_forbidden": true,
+        "cloud_gpu_forbidden": true,
+        "automatic_transition_forbidden": true
+      },
+      "acceptance": [
+        "Raw rollout, rollout evidence, and sampling-group hashes match the frozen S8 artifacts",
+        "The censored Task95 group is excluded from group-level reward statistics but all four trajectory scores remain visible",
+        "Unexpected writes remain hard-capped at zero",
+        "The report explicitly separates prefix-progress credit from full-trajectory acceptability",
+        "No online-promotion or GRPO claim is made"
+      ],
+      "stop_conditions": [
+        "Any source-artifact hash mismatch",
+        "Any attempt to tune reward weights after observing these four trajectories",
+        "Any API, cloud GPU, training, loss, backward, optimizer, or parameter-update path",
+        "Any attempt to count a censored group as learnable reward signal"
+      ],
+      "local_result": {
+        "status": "REJECTED_NO_VALID_SEPARABILITY_AND_SEMANTIC_RISK",
+        "executed_at": "2026-08-31",
+        "scope": {
+          "offline_shadow_only": true,
+          "same_frozen_rollouts": true,
+          "reward_weights_changed": false,
+          "external_api_called": false,
+          "cloud_gpu_used": false,
+          "training_started": false,
+          "parameter_update_observed": false
+        },
+        "artifacts": {
+          "spec_path": "configs/evaluation/staged_reward_shadow_task95_v2.json",
+          "spec_sha256": "CFC82ED7AEFAD1D9D55F8FE241F6F8D9227F83476C4F7A20238FCB403CA5F271",
+          "source_path": "src/evaluation/staged_reward_shadow.py",
+          "source_sha256": "4DD64E6C330E7E53C6C68BE71143D0F2BD46929F88FC75CE4548009E680960A1",
+          "test_path": "tests/test_staged_reward_shadow.py",
+          "test_sha256": "81BAAF8D940C5E255EB39EF0D668C1CB015C0E963BD285E4D5FC4D6EB40B7976",
+          "command_path": "output/20260831-s8-task95-staged-shadow-v2/command.txt",
+          "command_sha256": "252B9B62B955BD2E4539A6DD060125123CCC437C27378CFBA390C9DE14170F9A",
+          "report_path": "output/20260831-s8-task95-staged-shadow-v2/report.json",
+          "report_sha256": "01C46423C90605EC9EE97400EDD4B2E06A1BDEECFCDA28B0433275EA224706A4"
+        },
+        "tests": {
+          "focused": "13 passed",
+          "adversarial_review": "PASS"
+        },
+        "trajectory_scores": [
+          {
+            "rollout_index": 0,
+            "group_id": "95:0",
+            "eligible_for_group_statistics": true,
+            "terminal_reward": 0.0,
+            "staged_reward": 0.0,
+            "finding": "One required action matched, but an unexpected wrong write hard-capped the trajectory at zero."
+          },
+          {
+            "rollout_index": 1,
+            "group_id": "95:0",
+            "eligible_for_group_statistics": true,
+            "terminal_reward": 0.0,
+            "staged_reward": 0.0,
+            "finding": "Identity was not established, no write matched, and repeated calls plus the tool-call limit left the score at zero."
+          },
+          {
+            "rollout_index": 2,
+            "group_id": "95:1",
+            "eligible_for_group_statistics": false,
+            "terminal_reward": 0.0,
+            "staged_reward": 0.28,
+            "finding": "Prefix progress received positive diagnostic credit, but the trajectory was censored and the whole group was excluded."
+          },
+          {
+            "rollout_index": 3,
+            "group_id": "95:1",
+            "eligible_for_group_statistics": false,
+            "terminal_reward": 0.0,
+            "staged_reward": 0.3,
+            "finding": "The complete failure incorrectly received prefix credit before premature transfer; its peer was censored, so the whole group was excluded."
+          }
+        ],
+        "comparison": {
+          "total_groups": 2,
+          "eligible_groups": 1,
+          "excluded_groups": 1,
+          "terminal_mixed_groups": 0,
+          "staged_mixed_groups": 0,
+          "terminal_zero_std_fraction": 1.0,
+          "staged_zero_std_fraction": 1.0,
+          "terminal_unique_reward_values": 1,
+          "staged_unique_reward_values": 1,
+          "separability_passed": false,
+          "online_promotion_ready": false
+        },
+        "semantic_audit": {
+          "unexpected_wrong_write_hard_cap_worked": true,
+          "censored_group_exclusion_worked": true,
+          "premature_transfer_can_receive_positive_prefix_credit": true,
+          "required_action_match_is_not_execution_or_policy_proof": true,
+          "confirmation_and_policy_are_not_scalar_components": true,
+          "candidate_reward_safe_for_online_grpo": false
+        },
+        "decision": "STOP_BEFORE_GRPO_OR_REWARD_INTEGRATION"
+      }
+    },
+    {
+      "task_id": "S10_TASK95_REWARD_SEMANTICS_V3_OFFLINE",
+      "status": "COMPLETED_REJECTED",
+      "depends_on": ["S9_TASK95_SAME_ROLLOUT_STAGED_SHADOW"],
+      "goal": "Correct two Task95 reward semantics defects without tuning weights: bind required-write credit to real non-error tool results and prevent unjustified positive credit for premature transfer on the frozen solvable task.",
+      "approval_basis": "The owner said to continue after S9 and the announced next scope was limited to the two observed semantic defects, with no training or online integration.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "configs/evaluation/staged_reward_shadow_task95_v3.json",
+        "src/evaluation/staged_reward_shadow.py",
+        "tests/test_staged_reward_shadow.py",
+        "output/20260831-s10-task95-reward-semantics-v3/command.txt",
+        "output/20260831-s10-task95-reward-semantics-v3/report.json"
+      ],
+      "constraints": {
+        "same_four_s8_rollouts": true,
+        "same_reward_weights_as_v2": true,
+        "execution_binding_requires_unique_later_nonerror_result": true,
+        "premature_transfer_cap_is_task95_benchmark_only": true,
+        "final_state_and_policy_proof_forbidden": true,
+        "online_reward_unchanged": true,
+        "parameter_update_forbidden": true,
+        "external_api_forbidden": true,
+        "cloud_gpu_forbidden": true
+      },
+      "local_result": {
+        "status": "REJECTED_NO_VALID_WITHIN_GROUP_REWARD_SEPARABILITY",
+        "executed_at": "2026-08-31",
+        "artifacts": {
+          "spec_path": "configs/evaluation/staged_reward_shadow_task95_v3.json",
+          "spec_sha256": "3BE7FAF498D0AAA26955A9590E482D21AEFFE7F1AA8B3D30E1B9D55F74050F30",
+          "source_path": "src/evaluation/staged_reward_shadow.py",
+          "source_sha256": "061F31C87FCB62E7197A2D86148B71861E978A75F72B47BC7D6A4B6E0BEB5BD2",
+          "test_path": "tests/test_staged_reward_shadow.py",
+          "test_sha256": "A91AD99B1B163371776707F9054EA7ACB61396FA91E1735D8A4CD369E4A3CA2A",
+          "command_path": "output/20260831-s10-task95-reward-semantics-v3/command.txt",
+          "command_sha256": "5790FF860EF1F5C816C1FC4DC1FC64F1EDA0CDEE977DC10A75ED9FE0310CB69D",
+          "report_path": "output/20260831-s10-task95-reward-semantics-v3/report.json",
+          "report_sha256": "4CB530EE7E98CF1553B16E21EE4F07EFE63E9BB06513337909BF040E20670E29"
+        },
+        "tests": {
+          "focused": "17 passed",
+          "adjacent_regression": "63 passed and 22 subtests passed"
+        },
+        "trajectory_scores": [
+          {
+            "rollout_index": 0,
+            "group_id": "95:0",
+            "verified_write_fraction": 0.5,
+            "unexpected_write_count": 1,
+            "staged_reward": 0.0,
+            "finding": "One required write has a unique later non-error result, but the second write targets the wrong variant and the unexpected-write hard cap correctly forces zero."
+          },
+          {
+            "rollout_index": 1,
+            "group_id": "95:0",
+            "verified_write_fraction": 0.0,
+            "staged_reward": 0.0,
+            "finding": "No required write executed and repeated calculation reached the tool-call limit."
+          },
+          {
+            "rollout_index": 2,
+            "group_id": "95:1",
+            "verified_write_fraction": 0.0,
+            "premature_transfer": true,
+            "staged_reward": 0.0,
+            "finding": "Target evidence was complete, no tool error justified escalation, required writes were incomplete, and transfer was hard-capped; the row remains censored."
+          },
+          {
+            "rollout_index": 3,
+            "group_id": "95:1",
+            "verified_write_fraction": 0.0,
+            "premature_transfer": true,
+            "staged_reward": 0.0,
+            "finding": "The actionable task was transferred without required writes and is now hard-capped instead of receiving prefix credit."
+          }
+        ],
+        "comparison": {
+          "eligible_groups": 1,
+          "excluded_groups": 1,
+          "terminal_mixed_groups": 0,
+          "staged_mixed_groups": 0,
+          "terminal_zero_std_fraction": 1.0,
+          "staged_zero_std_fraction": 1.0,
+          "verified_write_rollouts_all": 1,
+          "terminal_success_rollouts": 0,
+          "separability_passed": false,
+          "online_promotion_ready": false
+        },
+        "historical_outcome_anchor": {
+          "source": "experiments/20260724_111341_retail_failure4_trial2_deepseek/task_95",
+          "returned_results_sha256": "09A579E33D09DF7C258874C9EE789B76F8BD7E3DA2D80DF56D5502CAA9E4107C",
+          "summary_sha256": "B9A5D7302A736CBFBF699BA97214FAF627C53D0A6CF9A7BD58E60345DC8446CE",
+          "final_response_debug_sha256": "04C9A01AB0BD03A4084FD1852B0A7A5EDBFB13284F00DDE62A8164FEB8E5E9E1",
+          "task_log_sha256": "76435EC4F6B33EC46EF51D4FBD8AC04AA155C178A6160E690C78C9D521E480E3",
+          "terminal_reward": 1.0,
+          "db_reward": 1.0,
+          "nl_assertion_reward": 1.0,
+          "required_writes_matched": "2/2",
+          "policy_compliant": false,
+          "policy_finding": "The two exchange writes were issued in one assistant turn, violating the upstream one-tool-call-at-a-time policy.",
+          "permitted_interpretation": "Business-terminal-success anchor only; not compliant GOLD and not direct SFT release evidence."
+        },
+        "decision": "STOP_BEFORE_GRPO; REQUIRE_A_VALID_SAME_TASK_GROUP_CONTAINING_BOTH_ACCEPTABLE_AND_UNACCEPTABLE_ROLLOUTS"
+      }
+    },
+    {
+      "task_id": "S11_TASK95_COMPLIANT_REPLAY_DRAFT",
+      "status": "WAITING_OWNER_APPROVAL",
+      "depends_on": ["S10_TASK95_REWARD_SEMANTICS_V3_OFFLINE"],
+      "goal": "Prepare, but do not execute, a policy-compliant Task95 environment-replay target that supplies the missing positive trajectory anchor.",
+      "allowed_files": [
+        "configs/execution/staged_reward_shadow_plan_v1.json",
+        "_local_private_runs/task95_correction_draft_20260831/correction_target_95_trial1_draft.json"
+      ],
+      "constraints": {
+        "source_is_frozen_trial1_task95": true,
+        "source_seed": 626729,
+        "seed_source": 300,
+        "tool_results_must_be_environment_generated": true,
+        "explicit_confirmation_gate_required": true,
+        "at_most_one_tool_call_per_assistant_turn": true,
+        "owner_approval_not_inferred": true,
+        "manifest_not_created_before_approval": true,
+        "external_api_forbidden_before_approval": true,
+        "cloud_gpu_forbidden_before_approval": true,
+        "training_forbidden": true
+      },
+      "draft_result": {
+        "draft_path": "_local_private_runs/task95_correction_draft_20260831/correction_target_95_trial1_draft.json",
+        "draft_sha256": "3952EBC877A394532B4EB9CD96158F5A495F6B6ACA001F921B5B798FCD5FD9AC",
+        "source_path": "experiments/20260722_110504_retail_baseline20_trial1_deepseek/task_95/returned_results.json",
+        "source_sha256": "E246810BFB0500D3854EE919B9DFB85E10A2EEA9AE43FAFE54EF38C58C5F8954",
+        "frozen_events": 22,
+        "expanded_steps": 20,
+        "structural_errors": 0,
+        "structural_warnings": 3,
+        "warning_interpretation": "Three frozen source assistant turns mixed text with one tool call; the existing replay driver intentionally emits only the tool call, so corrected messages do not retain the mixing.",
+        "replay_driver_tests": "5 passed",
+        "planned_required_writes": "2/2 sequential exchange_delivered_order_items calls",
+        "confirmation_behavior": "Explicit approval phrase required; one retry then abort; no write on unmatched confirmation.",
+        "release_status": "BLOCKED_PENDING_OWNER_APPROVAL_AND_REAL_ENVIRONMENT_REPLAY"
+      }
+    }
+  ],
+  "transition_rule": "S11 is paused for owner review. Do not create a formal manifest, call the user simulator, run environment tools, or start training until the owner approves the exact confirmation text and both sequential write arguments."
+}

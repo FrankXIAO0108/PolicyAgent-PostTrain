@@ -104,6 +104,7 @@ the project had not entered the baseline stage is superseded by the completed
 
 Before editing:
 
+0. Read [易错提醒.md](易错提醒.md) and apply its environment checks.
 1. Run `git status` and identify the current branch/commit.
 2. Read the nearest relevant config, runner, artifact, and dated decision doc.
 3. State which result or behavior the change is intended to affect.

@@ -48,6 +48,12 @@ _verifier_v1/
 # Short private run paths used to avoid Windows MAX_PATH failures
 /_r/
 
+# Local experiment outputs, caches, and generated figures
+/output/
+/tmp/
+/reports/figures/
+.pytest_*/
+
 # One-off repository inspection snapshots
 /evidence_file_search*.txt
 /project_state_check.txt

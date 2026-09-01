@@ -1,0 +1,272 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "full-task-terminal-grpo-closure-v1",
+  "created_at": "2026-08-26",
+  "status": "ACTIVE",
+  "current_task": "C3_TERMINAL_SIGNAL_PRESCREEN",
+  "objective": "Complete one evidence-bound full-task terminal-reward GRPO engineering loop from the frozen SFT protocol-bridge checkpoint, then run same-protocol evaluation and bad-case analysis. This plan does not claim business improvement and does not design the staged reward arm.",
+  "baseline": {
+    "branch": "main",
+    "head": "d01e5e0b827dd0c4ccdca442015f2e7a6f24c55c",
+    "remote_relation": "main...origin/main [ahead 33]",
+    "working_tree_clean": false,
+    "starting_model_path": "/root/autodl-tmp/policyagent-runs/20260824-sft-v3-agentic-protocol-bridge-s20-v1/teacher_sft_merged",
+    "starting_model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+    "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2"
+  },
+  "evidence_summary": {
+    "prior_terminal_prescreen": {
+      "path": "output/20260825-terminal-only-prescreen6-v1/training_audit.json",
+      "tasks": ["7", "11", "13", "15", "20", "22"],
+      "rollouts": 24,
+      "positive_rollouts": 0,
+      "mixed_groups": 0,
+      "zero_reward_std_fraction": 1.0,
+      "conclusion": "This task set cannot support a GRPO update under the observed terminal signal. It must not be reused as evidence that optimization occurred."
+    },
+    "candidate_training_tasks": {
+      "task_ids": ["43", "72"],
+      "role": "development-only terminal-signal prescreen and GRPO training",
+      "historical_sft_trials": {
+        "43": [1.0, 0.0, 1.0, 1.0],
+        "72": [0.0, 1.0, 0.0, 1.0]
+      },
+      "source": "_local_private_runs/cloud_sft_v3_20260824/eval_v3_sft_v3_full/eval_summary.json",
+      "limitation": "Historical trials used an evaluation protocol, not the current GRPO rollout grouping. Fresh same-checkpoint prescreen evidence is mandatory. Both tasks are development_audit tasks and cannot be used for the final generalization claim."
+    },
+    "frozen_validation_pool": {
+      "task_ids": ["6", "8", "14", "66", "67", "87", "104"],
+      "source": "data/retail_agentic_rl_v2/task_split.json",
+      "sft_task_overlap_count": 0,
+      "rule": "Select the evaluation subset before observing GRPO checkpoint results; run the same task IDs, openings, simulator settings, and seeds for SFT and GRPO."
+    }
+  },
+  "global_constraints": {
+    "one_active_task_only": true,
+    "human_approval_required_for_task_transition": true,
+    "plan_file_may_be_updated_for_status_and_evidence_only": true,
+    "auto_commit": false,
+    "auto_push": false,
+    "external_api_requires_approval": true,
+    "cloud_gpu_requires_approval": true,
+    "modify_frozen_artifacts": false,
+    "terminal_reward_only_in_this_plan": true,
+    "staged_reward_design_out_of_scope": true,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved": true
+  },
+  "tasks": [
+    {
+      "task_id": "C0_FREEZE_CLOSURE_SPEC",
+      "status": "COMPLETED",
+      "goal": "Freeze the starting checkpoint, task roles, terminal-signal gate, optimization guardrails, evidence contract, and stop conditions before modifying the runner or consuming cloud resources.",
+      "allowed_files": [
+        "configs/execution/full_task_grpo_closure_plan_v1.json"
+      ],
+      "acceptance": {
+        "starting_checkpoint_bound": true,
+        "training_and_validation_roles_separated": true,
+        "prior_zero-signal_run_recorded": true,
+        "fresh_prescreen_required": true,
+        "kl_required_for_optimization": true,
+        "same_protocol_evaluation_required": true,
+        "badcase_analysis_required": true
+      }
+    },
+    {
+      "task_id": "C1_ROLLOUT_EVIDENCE_SIDECARS",
+      "status": "COMPLETED",
+      "goal": "Persist rollout-bound initial state, final state, state diff, terminal evaluator payload, action trace, completion metadata, and hashes without changing reward semantics.",
+      "depends_on": ["C0_FREEZE_CLOSURE_SPEC"],
+      "allowed_files": [
+        "src/rl/retail_agentic_env.py",
+        "src/training/run_retail_agentic_grpo.py",
+        "tests/test_retail_agentic_rl.py"
+      ],
+      "required_tests": ["tests/test_retail_agentic_rl.py"],
+      "acceptance": {
+        "initial_state_persisted": true,
+        "final_state_persisted": true,
+        "state_diff_persisted": true,
+        "terminal_evaluator_payload_persisted": true,
+        "tool_trace_persisted": true,
+        "completion_and_truncation_metadata_persisted": true,
+        "artifact_hashes_bound": true,
+        "reward_semantics_unchanged": true
+      },
+      "stop_conditions": [
+        "hidden_user_scenario_would_be_persisted",
+        "need_to_change_reward_semantics",
+        "source_state_cannot_be_serialized_deterministically"
+      ],
+      "result": {
+        "raw_rollout_schema": "retail-agentic-rollout-v2",
+        "evidence_schema": "retail-agentic-rollout-evidence-v1",
+        "evidence_artifact": "rollout_evidence.jsonl",
+        "raw_to_evidence_binding": "evidence_sha256",
+        "runner_manifest_binding": "path + sha256 + row count",
+        "focused_tests": "48 passed, 1 upstream deprecation warning",
+        "static_check": "py_compile and git diff --check passed; ruff reports pre-existing F841 at run_retail_agentic_grpo.py:326",
+        "known_limit": "Per-rollout model token truncation is not observable in the environment wrapper and is recorded as null with trainer_metrics_only provenance."
+      }
+    },
+    {
+      "task_id": "C2_FREEZE_PRESCREEN_INPUTS",
+      "status": "COMPLETED",
+      "goal": "Build and hash the task 43/72 opening-message dataset and terminal-only diagnostic config from existing evidence, without calling an API.",
+      "depends_on": ["C1_ROLLOUT_EVIDENCE_SIDECARS"],
+      "acceptance": {
+        "task_ids_exact": ["43", "72"],
+        "task_role_development_only": true,
+        "openings_source_recorded": true,
+        "hidden_scenario_not_persisted": true,
+        "learning_rate_zero": true,
+        "beta_zero_for_diagnostic_only": true,
+        "full_task_rollout": true,
+        "separate_output_directory_reserved": true
+      },
+      "result": {
+        "config_path": "configs/retail_agentic_qwen3_4b_terminal_only_prescreen_tasks43_72_v1.json",
+        "config_sha256": "880224D2B1BD39880A1158CE12C65E51795BC90C2BFED52F74AE16E8C2DB9B0A",
+        "openings_path": "data/retail_agentic_rl_v2/terminal_only_prescreen_tasks43_72_initial_user_messages.jsonl",
+        "openings_sha256": "1DC60BD755C1CBF200B75267026F4D1FCEC2D5FFE18CCAA5E7968EF210C0C401",
+        "openings_manifest_sha256": "032FDD02BD5C72D1EBCDA2F19B89C33F94AD7EC5E0B310DE7739713A41715946",
+        "derived_training_manifest_sha256": "696C8DAC2796E736ACB3DDBF8A3A9B18A893428CEA146C2C36C0DFB98284B436",
+        "source_training_manifest_sha256": "59B162093E2658E68C41FA06FE0B44E3EB145FFF1F978580501FBB461AC14C2B",
+        "terminal_eligible_tasks": ["43", "72"],
+        "expected_rollouts": 16,
+        "external_api_called": false,
+        "cloud_gpu_used": false,
+        "focused_tests": "49 passed, 1 upstream deprecation warning",
+        "static_checks": "ruff excluding pre-existing F841, py_compile, and git diff --check passed"
+      }
+    },
+    {
+      "task_id": "C3_TERMINAL_SIGNAL_PRESCREEN",
+      "status": "COMPLETED",
+      "goal": "Run a no-update full-task terminal-reward prescreen on tasks 43/72 and determine whether relative reward variance exists under the exact GRPO rollout protocol.",
+      "depends_on": ["C2_FREEZE_PRESCREEN_INPUTS"],
+      "resource": {
+        "cloud_gpu": "RTX 4090 24GB",
+        "external_api": "DeepSeek user simulator"
+      },
+      "gate": {
+        "minimum_positive_rollouts": 2,
+        "minimum_negative_rollouts": 2,
+        "minimum_mixed_groups": 2,
+        "maximum_zero_reward_std_fraction": 0.75,
+        "maximum_completion_clipped_ratio": 0.25,
+        "infrastructure_failures": 0
+      },
+      "stop_conditions": [
+        "no_mixed_reward_group",
+        "gate_not_met",
+        "checkpoint_hash_mismatch",
+        "upstream_hash_mismatch",
+        "unreported_truncation",
+        "missing_sidecar"
+      ],
+      "result": {
+        "run_dir_remote": "/root/autodl-tmp/policyagent-runs/20260826-terminal-only-prescreen43-72-v1",
+        "run_dir_local": "_local_private_runs/cloud_grpo_c3_20260826/20260826-terminal-only-prescreen43-72-v1",
+        "archive_sha256": "72E2AE26CA53F588E7C0FBAB38526EEEA98A06E479CFF2ACB4749660B4760D65",
+        "run_status": "COMPLETED",
+        "rollouts": 16,
+        "groups": 8,
+        "positive_rollouts": 0,
+        "negative_rollouts": 16,
+        "mixed_groups": 0,
+        "zero_reward_std_fraction": 1.0,
+        "mean_completion_clipped_ratio": 0.125,
+        "infrastructure_failures": 0,
+        "raw_rollouts_sha256": "2AAB6CB4BC7441CEB2D9A711D231C95A77BD10B9A8AF99805AEBF7F64511843F",
+        "rollout_evidence_sha256": "491925CB557389E4616664813B1175F1B1091D480695008356584B9F2236607D",
+        "training_audit_sha256": "68D9792FD08C53E1ED5C035B5AB9152CA8C1D2F28C6D107C5E67A3AD07E171F1",
+        "gate_passed": false,
+        "triggered_stop_conditions": [
+          "no_mixed_reward_group",
+          "gate_not_met"
+        ],
+        "diagnostic_conclusion": "Terminal-only reward produced no within-group relative advantage on either task. No rollout changed the environment state, so the all-zero result is not explained by successful writes being hidden by the evaluator."
+      }
+    },
+    {
+      "task_id": "C4_SHORT_TERMINAL_GRPO",
+      "status": "BLOCKED",
+      "goal": "Run a short real parameter-update GRPO experiment only if C3 proves usable within-group terminal reward variance.",
+      "depends_on": ["C3_TERMINAL_SIGNAL_PRESCREEN"],
+      "provisional_training_guardrails": {
+        "task_ids": ["43", "72"],
+        "max_steps": 8,
+        "num_generations": 2,
+        "learning_rate": 0.000005,
+        "beta": 0.02,
+        "loss_type": "dr_grpo",
+        "max_completion_length": 1024,
+        "save_starting_and_final_adapter": true
+      },
+      "required_monitoring": [
+        "reward_mean",
+        "reward_std",
+        "frac_reward_zero_std",
+        "all_zero_groups",
+        "all_positive_groups",
+        "kl",
+        "entropy",
+        "clip_ratio",
+        "grad_norm",
+        "completion_length",
+        "truncation_ratio",
+        "rollout_time",
+        "update_time"
+      ],
+      "stop_conditions": [
+        "beta_not_positive",
+        "kl_not_logged",
+        "all_groups_uniform",
+        "non_finite_loss_or_gradient",
+        "checkpoint_or_config_hash_mismatch",
+        "sidecar_missing"
+      ],
+      "blocked_reason": "C3 failed the frozen terminal-signal gate: 0 positive rollouts, 0 mixed groups, and zero reward standard deviation on 8/8 groups."
+    },
+    {
+      "task_id": "C5_SAME_PROTOCOL_EVALUATION",
+      "status": "PENDING",
+      "goal": "Evaluate the frozen SFT checkpoint and resulting GRPO checkpoint on the same preselected validation tasks, openings, simulator configuration, seeds, and full-task terminal evaluator.",
+      "depends_on": ["C4_SHORT_TERMINAL_GRPO"],
+      "reporting": {
+        "required": [
+          "task_success",
+          "infrastructure_failure",
+          "mean_tool_calls",
+          "mean_customer_turns",
+          "completion_length",
+          "truncation",
+          "policy_and_protocol_diagnostics",
+          "per_task_paired_outcome"
+        ],
+        "forbidden": [
+          "claiming_significance_from_the_small_sample",
+          "using_training_tasks_as_validation",
+          "changing_evaluator_between_checkpoints"
+        ]
+      }
+    },
+    {
+      "task_id": "C6_BADCASE_ANALYSIS",
+      "status": "PENDING",
+      "goal": "Trace every SFT-to-GRPO outcome flip and persistent failure to raw messages, tool calls, state sidecars, terminal reward components, and infrastructure evidence.",
+      "depends_on": ["C5_SAME_PROTOCOL_EVALUATION"],
+      "required_categories": [
+        "positive_flip",
+        "negative_flip",
+        "persistent_success",
+        "persistent_failure",
+        "infrastructure_or_evaluation_error"
+      ],
+      "closure_rule": "The engineering loop is complete only when config, command, starting and final model hashes, raw rollouts, sidecars, training curves, same-protocol evaluation, and bad-case report are all present. Metric improvement is not required for closure."
+    }
+  ],
+  "transition_rule": "Only the current task may be executed. Advancing to the next task requires explicit human approval after reporting evidence and unresolved risks."
+}

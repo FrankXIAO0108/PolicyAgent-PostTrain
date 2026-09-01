@@ -1,0 +1,115 @@
+{
+  "schema_version": "short-grpo-closure-plan-v1",
+  "plan_id": "task44-short-terminal-grpo-closure-v1",
+  "status": "FROZEN_READY_FOR_CLOUD_PRESCREEN",
+  "created_at": "2026-08-31",
+  "objective": "Obtain an honest same-task development comparison on one short multi-step Retail task. First prove mixed exact-checkpoint rollouts, then run a two-step terminal-only GRPO update, then compare the frozen SFT and GRPO checkpoints under identical held-out sampling seeds.",
+  "claim_boundary": {
+    "engineering_closure_allowed": true,
+    "same_task_development_observation_allowed": true,
+    "business_improvement_claim_allowed": false,
+    "generalization_claim_allowed": false,
+    "official_test_claim_allowed": false,
+    "policy_compliance_claim_requires_separate_audit": true,
+    "statistical_significance_claim_allowed": false
+  },
+  "source_binding": {
+    "project_head": "d01e5e0b827dd0c4ccdca442015f2e7a6f24c55c",
+    "working_tree_clean": false,
+    "working_tree_policy": "Do not mutate the four bound runtime files between prescreen, training, and paired evaluation. Every remote copy and run manifest must record the hashes below.",
+    "runtime_files": {
+      "src/training/run_retail_agentic_grpo.py": "7F50DA5DE3DEB0B14CE51E3F19B2042A13C21F53DB2BE9A91324BBDB0B0C0CA1",
+      "src/rl/retail_agentic_env.py": "4EEC127237A4117F4878942C9FC2B971E7E286472CEE98DE5BDAC52C61303FAC",
+      "src/training/rollout_diagnostics.py": "54FC50A839B49D8D4E645E352B7DB8213F47B4724648FEE4DE5147FA2B2715E1",
+      "src/evaluation/grpo_training_audit.py": "EA80CAB4516CC396A3CAE3908C9497C965A90F2B0FDD457AE13871802AC6B7F0",
+      "src/guards/retail_pre_action.py": "54178A28A2E4498744CC8ACB692695C3B971A33A2DFF767BA98EF657E12627AA",
+      "src/rl/user_simulator_fail_fast.py": "E0C77DB7D716E468DE2B12DEFD62EAC0286598C6E31F4B2345F664F85A16AFA9",
+      "src/training/dirhash.py": "9180ED3A4F1E6A580509ECA8A1591C6F7BADF86A4C766864368229175191A683"
+    },
+    "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+    "starting_model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+    "opening_sha256": "A22BE366ABB27A642E95E1EE2ED6B741981CC7D85D4FA8108BC7251791D0860C",
+    "opening_manifest_sha256": "136CD65F03045693CB9484E6210989ABDC01552F0086187C5608752AE973D89B",
+    "user_simulator_args_path": "configs/execution/task44_user_simulator_args_v1.json",
+    "user_simulator_args_sha256": "B1F51B66BA819B951C93C13F1D5AAFA84B5016E5E5BCE87D1D36342EE9729093"
+  },
+  "task_selection": {
+    "task_id": "44",
+    "task_subset": "rl_train",
+    "sft_exposed": true,
+    "nominal_tool_path": [
+      "find_user_id_by_name_zip",
+      "get_order_details",
+      "get_product_details",
+      "calculate",
+      "modify_pending_order_items"
+    ],
+    "target_mutation": "Replace the pending-order Desk Lamp with the cheapest available variant and refund the price difference to the bound gift card.",
+    "terminal_reward": "Programmatic final database-state match gated by user_stop; no LLM Judge, action matching, communication score, or Guard score is used as training reward.",
+    "selection_rationale": "Task 44 is an rl_train task with a single deterministic write, a short nominal path, owner-reviewed corrected SFT trajectories, and an auditable final database state. It is intentionally a same-task behavior-shaping experiment, not a generalization test.",
+    "known_risk": "The SFT checkpoint may already be at ceiling. Historical tau2 total reward also mis-scored a correct trajectory because of a static calculate-action expression, so only the DB environment component is authorized for terminal training reward. Full tau2 and policy checks remain separate evaluation signals."
+  },
+  "phases": [
+    {
+      "phase_id": "P0_EXACT_CHECKPOINT_N4_PRESCREEN",
+      "status": "READY",
+      "config_path": "configs/retail_agentic_qwen3_4b_terminal_prescreen_task44_n4_v1.json",
+      "config_sha256": "EF2593AB870D1B3584CED97AEE95A36808CE46FD4E6DCFB79C97F5B452EDA377",
+      "agent_sampling_seed": 20260831,
+      "user_seed": 814494,
+      "rollouts": 4,
+      "entry_condition": "Bound files and model hashes match.",
+      "pass_condition": "Exactly 4/4 transport-complete, no truncation, terminal DB success count is 1 through 3, reward std is non-zero, and at least one terminal-positive trajectory has explicit confirmation before the single target write with no unrelated write or tool error.",
+      "stop_condition": "All four rewards equal, any transport/truncation failure, or all terminal-positive trajectories rely on a hard policy violation."
+    },
+    {
+      "phase_id": "P1_TWO_STEP_N4_GRPO",
+      "status": "BLOCKED_BY_P0",
+      "config_path": "configs/retail_agentic_qwen3_4b_terminal_grpo_closure_task44_n4_v1.json",
+      "config_sha256": "185E968B39763DFADACD3E697EF8C688361F66E37A51FCCDBA3D93AA692CB5AE",
+      "agent_sampling_seed": 20260901,
+      "user_seed": 814494,
+      "optimizer_steps": 2,
+      "num_generations": 4,
+      "rollouts": 8,
+      "beta": 0.02,
+      "learning_rate": 0.000005,
+      "pass_condition": "At least one mixed-reward group, finite non-zero gradient norm on an optimizer step, finite KL diagnostics, changed trainable parameters, complete raw evidence, and a merged checkpoint hash.",
+      "stop_condition": "No usable mixed group, non-finite optimization signal, no parameter change, OOM, or incomplete rollout evidence."
+    },
+    {
+      "phase_id": "P2_FROZEN_PAIRED_EVALUATION",
+      "status": "BLOCKED_BY_P1",
+      "model_sampling_seeds": [
+        20260902,
+        20260903
+      ],
+      "user_seed": 814494,
+      "rollouts_per_seed_per_checkpoint": 4,
+      "checkpoints": [
+        "BOUND_SFT_START",
+        "P1_MERGED_GRPO"
+      ],
+      "frozen_fields": "Task, opening, user seed, agent sampling seeds, temperature 0.8, top_p 1.0, top_k 0, completion limit 4096, rollout limits, user model, policy, tools, upstream commit, and evaluator must be identical. Only checkpoint path and checkpoint hash may differ.",
+      "primary_metric": "Terminal DB successes out of 8 valid rollouts.",
+      "secondary_metrics": [
+        "Full tau2 task successes out of 8",
+        "Transport completeness",
+        "Explicit-confirmation-before-write rate",
+        "Hard policy violation count",
+        "Tool-call count conditioned separately on terminal success and failure"
+      ],
+      "development_positive_rule": "GRPO terminal DB successes exceed SFT by at least 1/8, transport completeness is not worse, full tau2 success is not worse, and hard policy violations do not increase.",
+      "interpretation_if_passed": "Small same-task development improvement under two frozen seed groups; not statistical, business, policy-compliance, or generalization evidence.",
+      "anti_cherry_pick": "Do not replace seeds after seeing results. An exact-seed retry is allowed only for a recorded infrastructure failure that produced no valid rollout; preserve both attempts."
+    }
+  ],
+  "estimated_cloud_time_minutes": {
+    "prescreen": "4-7",
+    "training": "9-15",
+    "paired_evaluation": "12-16",
+    "audit_and_hashing": "5-10",
+    "total_if_no_failure": "30-48"
+  }
+}

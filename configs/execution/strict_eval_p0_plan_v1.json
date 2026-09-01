@@ -1,0 +1,501 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "strict-eval-p0-v1",
+  "created_at": "2026-08-26",
+  "status": "COMPLETED",
+  "current_task": "T11_HUMAN_REVIEW",
+  "baseline": {
+    "branch": "main",
+    "head": "d01e5e0b827dd0c4ccdca442015f2e7a6f24c55c",
+    "remote_relation": "main...origin/main [ahead 33]",
+    "working_tree_clean": false,
+    "note": "Existing GRPO, Guard, reward-audit, config, data, output, and temporary-file changes predate this plan and must not be modified or cleaned automatically."
+  },
+  "global_constraints": {
+    "one_active_task_only": true,
+    "human_approval_required_for_task_transition": true,
+    "auto_commit": false,
+    "auto_push": false,
+    "external_api_allowed": false,
+    "cloud_gpu_allowed": false,
+    "modify_frozen_artifacts": false,
+    "promote_shadow_score_to_reward": false,
+    "expand_to_baseline20": false
+  },
+  "atomic_statuses": [
+    "PASS",
+    "FAIL",
+    "REVIEW",
+    "NOT_APPLICABLE",
+    "ERROR"
+  ],
+  "capability_groups": [
+    "evaluation_integrity",
+    "final_state_correctness",
+    "required_task_execution",
+    "invalid_action_avoidance",
+    "protocol_compliance",
+    "intent_alignment",
+    "evidence_consistency"
+  ],
+  "strict_pass_rule": "evaluation_valid AND all required capability groups are PASS",
+  "tasks": [
+    {
+      "task_id": "G0_WORKTREE_FREEZE",
+      "status": "COMPLETED",
+      "goal": "Classify the existing dirty worktree and freeze a safe starting point without deleting, stashing, resetting, or modifying pre-existing work.",
+      "depends_on": [],
+      "allowed_files": [
+        "docs/00_\u5de5\u7a0b\u6cbb\u7406/2026-08-26_Codex\u6267\u884c\u8fb9\u754c\u4e0e\u504f\u79fb\u63a7\u5236.md",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "allowed_actions": [
+        "read_git_status",
+        "read_git_diff",
+        "read_git_log",
+        "classify_existing_changes",
+        "record_human_decision"
+      ],
+      "forbidden_actions": [
+        "git_stash",
+        "git_reset",
+        "git_clean",
+        "delete_files",
+        "modify_preexisting_dirty_files",
+        "create_branch_without_human_approval"
+      ],
+      "required_tests": [],
+      "acceptance": {
+        "existing_changes_classified": true,
+        "safe_start_head_recorded": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "unknown_change_ownership",
+        "need_to_modify_preexisting_work",
+        "need_for_destructive_git_action"
+      ]
+    },
+    {
+      "task_id": "T1_SCHEMA",
+      "status": "COMPLETED",
+      "goal": "Define the strict-evaluation schema only; do not implement business predicates.",
+      "depends_on": [
+        "G0_WORKTREE_FREEZE"
+      ],
+      "allowed_files": [
+        "src/evaluation/task_rubric.py",
+        "tests/test_task_rubric.py",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "forbidden_actions": [
+        "implement_business_predicates",
+        "modify_existing_reward",
+        "run_training",
+        "call_external_api"
+      ],
+      "required_tests": [
+        "tests/test_task_rubric.py"
+      ],
+      "acceptance": {
+        "valid_schema_loads": true,
+        "invalid_schema_fails_fast": true,
+        "duplicate_predicate_ids_rejected": true,
+        "review_not_counted_as_pass": true,
+        "error_not_counted_as_model_failure": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "schema_semantics_ambiguous",
+        "need_to_modify_existing_evaluator",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T2_PREDICATES",
+      "status": "COMPLETED",
+      "goal": "Implement reusable deterministic Retail atomic predicates with structured evidence.",
+      "depends_on": [
+        "T1_SCHEMA"
+      ],
+      "allowed_files": [
+        "src/evaluation/retail_predicates.py",
+        "tests/test_retail_predicates.py",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "read_only_dependencies": [
+        "src/evaluation/db_diff.py",
+        "src/guards/retail_pre_action.py",
+        "src/verifiers/policy_grounding_v2.py",
+        "src/evaluation/teacher_eval_cards.py"
+      ],
+      "required_predicates": [
+        "field_equals",
+        "field_unchanged",
+        "required_action",
+        "forbidden_action",
+        "action_cardinality",
+        "action_argument_equals",
+        "paired_action_arguments_equal",
+        "action_state_transition_consistent",
+        "write_after_confirmation",
+        "no_unrelated_mutation",
+        "tool_result_success",
+        "final_claim_matches_state",
+        "transfer_and_stop",
+        "one_tool_call_per_turn",
+        "message_tool_exclusivity"
+      ],
+      "forbidden_actions": [
+        "modify_existing_reward",
+        "treat_reference_actions_as_unique_gold_path",
+        "default_missing_evidence_to_fail",
+        "run_training"
+      ],
+      "required_tests": [
+        "tests/test_retail_predicates.py"
+      ],
+      "acceptance": {
+        "structured_evidence_returned": true,
+        "missing_evidence_returns_error": true,
+        "read_and_write_strictness_separated": true,
+        "legitimate_retry_not_always_redundant": true,
+        "retail_turn_protocol_covered": true,
+        "tau2_tool_error_compatible": true,
+        "policy_terminal_transfer_supported": true,
+        "paired_argument_order_invariant": true,
+        "environment_transition_attribution": true,
+        "latest_revision_confirmation_binding": true,
+        "scalar_state_transition_supported": true,
+        "transition_call_selector_supported": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "missing_source_evidence",
+        "policy_semantics_ambiguous",
+        "need_to_modify_read_only_dependency",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T3_TASK24_RUBRIC",
+      "status": "COMPLETED",
+      "goal": "Define and test Task 24 success semantics, including withdrawal of cancellation intent and required material answers.",
+      "depends_on": [
+        "T2_PREDICATES"
+      ],
+      "allowed_files": [
+        "configs/evaluation/retail_strict_v1/task_24.json",
+        "tests/test_retail_strict_task24.py",
+        "tests/fixtures/retail_strict_v1/task_24/",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [
+        "tests/test_retail_strict_task24.py"
+      ],
+      "acceptance": {
+        "success_model_human_approved": true,
+        "no_cancellation_required": true,
+        "database_unchanged_checked": true,
+        "materials_answer_checked": true,
+        "alternative_valid_path_tested": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "task_semantics_ambiguous",
+        "missing_task_or_policy_evidence",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T4_TASK50_RUBRIC",
+      "status": "COMPLETED",
+      "goal": "Define and test Task 50 success semantics for unsupported restoration, transfer, and termination.",
+      "depends_on": [
+        "T3_TASK24_RUBRIC"
+      ],
+      "allowed_files": [
+        "configs/evaluation/retail_strict_v1/task_50.json",
+        "tests/test_retail_strict_task50.py",
+        "tests/fixtures/retail_strict_v1/task_50/",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [
+        "tests/test_retail_strict_task50.py"
+      ],
+      "acceptance": {
+        "success_model_human_approved": true,
+        "illegal_restore_forbidden": true,
+        "transfer_required": true,
+        "stop_after_transfer_checked": true,
+        "alternative_valid_path_tested": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "task_semantics_ambiguous",
+        "transfer_protocol_unclear",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T5_TASK21_RUBRIC",
+      "status": "COMPLETED",
+      "goal": "Define and test Task 21 semantics for late user revision and atomic pending-order modification.",
+      "depends_on": [
+        "T4_TASK50_RUBRIC"
+      ],
+      "allowed_files": [
+        "configs/evaluation/retail_strict_v1/task_21.json",
+        "tests/test_retail_strict_task21.py",
+        "tests/fixtures/retail_strict_v1/task_21/",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [
+        "tests/test_retail_strict_task21.py"
+      ],
+      "acceptance": {
+        "success_model_human_approved": true,
+        "latest_revision_bound": true,
+        "atomic_write_scope_checked": true,
+        "payment_and_balance_checked": true,
+        "alternative_valid_path_tested": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "task_semantics_ambiguous",
+        "late_revision_policy_unclear",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T6_TASK59_RUBRIC",
+      "status": "COMPLETED",
+      "goal": "Define and test Task 59 semantics while explicitly handling evolving intent and static-gold conflict.",
+      "depends_on": [
+        "T5_TASK21_RUBRIC"
+      ],
+      "allowed_files": [
+        "configs/evaluation/retail_strict_v1/task_59.json",
+        "tests/test_retail_strict_task59.py",
+        "tests/fixtures/retail_strict_v1/task_59/",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [
+        "tests/test_retail_strict_task59.py"
+      ],
+      "acceptance": {
+        "success_model_human_approved": true,
+        "latest_intent_authority_recorded": true,
+        "static_gold_conflict_explicit": true,
+        "conditional_cancellation_checked": true,
+        "address_change_checked": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "gold_and_final_intent_unreconciled",
+        "task_semantics_ambiguous",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T7_TASK107_RUBRIC",
+      "status": "COMPLETED",
+      "goal": "Define and test Task 107 semantics for two-order exchanges, valid variants, payment, and one-shot writes.",
+      "depends_on": [
+        "T6_TASK59_RUBRIC"
+      ],
+      "allowed_files": [
+        "configs/evaluation/retail_strict_v1/task_107.json",
+        "tests/test_retail_strict_task107.py",
+        "tests/fixtures/retail_strict_v1/task_107/",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [
+        "tests/test_retail_strict_task107.py"
+      ],
+      "acceptance": {
+        "success_model_human_approved": true,
+        "both_orders_checked": true,
+        "variant_constraints_checked": true,
+        "payment_constraints_checked": true,
+        "one_write_per_order_checked": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "user_preference_order_ambiguous",
+        "policy_and_tool_semantics_conflict",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T8_AGGREGATOR",
+      "status": "COMPLETED",
+      "goal": "Aggregate atomic results into fixed capability groups and a strict pass without changing existing Tau2 results.",
+      "depends_on": [
+        "T7_TASK107_RUBRIC"
+      ],
+      "allowed_files": [
+        "src/evaluation/strict_task_evaluator.py",
+        "tests/test_strict_task_evaluator.py",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [
+        "tests/test_strict_task_evaluator.py"
+      ],
+      "acceptance": {
+        "fixed_group_denominator": true,
+        "strict_pass_rule_implemented": true,
+        "invalid_evaluation_separated": true,
+        "diagnostic_score_not_authoritative": true,
+        "tau2_result_preserved": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "need_to_overwrite_existing_pipeline_result",
+        "dynamic_denominator_required",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T9_ADVERSARIAL_TESTS",
+      "status": "COMPLETED",
+      "goal": "Stress-test the evaluator against false success, illegal writes, alternate valid paths, intent changes, and infrastructure failures.",
+      "depends_on": [
+        "T8_AGGREGATOR"
+      ],
+      "allowed_files": [
+        "tests/test_strict_evaluation_adversarial.py",
+        "tests/fixtures/retail_strict_v1/adversarial/",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [
+        "tests/test_strict_evaluation_adversarial.py"
+      ],
+      "required_scenarios": [
+        "missing_required_action",
+        "unrelated_write",
+        "policy_violation_with_correct_final_state",
+        "false_success_claim",
+        "late_user_intent_change",
+        "legitimate_repeat_read",
+        "static_gold_conflict",
+        "missing_evidence",
+        "infrastructure_error",
+        "alternative_valid_path"
+      ],
+      "acceptance": {
+        "all_required_scenarios_present": true,
+        "focused_tests_passed": true,
+        "no_known_critical_false_positive": true,
+        "no_known_critical_false_negative": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "stop_conditions": [
+        "critical_false_positive_found",
+        "critical_false_negative_found",
+        "fixture_requires_fabricated_environment_result",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T10_SHADOW_REPLAY",
+      "status": "COMPLETED",
+      "goal": "Run the strict evaluator read-only over every actually comparable frozen artifact, emit separate shadow outputs, and record missing or protocol-incompatible Base/SFT/RL cells without imputation.",
+      "scope_amendment": {
+        "approved_at": "2026-08-26",
+        "reason": "The frozen Qwen Base/SFT task set contains tasks 24, 50, 59, and 107 but not task 21. The existing RL artifacts cover only identity-authentication tasks 7, 10, 11, 13, 15, 20, and 22 under a truncated protocol, so they have zero task overlap and are not comparable to the full-task strict rubrics.",
+        "approved_execution": "Evaluate Base and SFT for tasks 24, 50, 59, and 107; mark task 21 source-missing; mark every RL cell no-task-overlap/protocol-incompatible; never impute, splice, or promote partial evidence to a strict pass.",
+        "closure_priority": "Complete an honest engineering loop before attempting metric improvement. A comparable full-task RL run belongs to a later explicitly approved plan."
+      },
+      "depends_on": [
+        "T9_ADVERSARIAL_TESTS"
+      ],
+      "allowed_files": [
+        "src/evaluation/run_strict_shadow_eval.py",
+        "tests/test_strict_shadow_eval.py",
+        "configs/execution/strict_eval_p0_plan_v1.json",
+        "output/strict_eval_p0/"
+      ],
+      "required_tests": [
+        "tests/test_strict_shadow_eval.py"
+      ],
+      "acceptance": {
+        "source_artifacts_unchanged": true,
+        "source_hashes_recorded": true,
+        "tau2_and_strict_outputs_both_present": true,
+        "infrastructure_failures_separate": true,
+        "task_level_evidence_paths_recorded": true,
+        "scope_clean": true,
+        "human_approved": true
+      },
+      "result": {
+        "status": "COMPLETED",
+        "output_path": "output/strict_eval_p0/shadow_replay_v2/strict_shadow_report.json",
+        "output_sha256": "3C03E98B37146A405A08248495C900130B404A47FE483FF17C5084A7F76FC0B9",
+        "rows": {
+          "evaluated_evidence_incomplete": 8,
+          "not_evaluated_source_missing": 2,
+          "not_evaluated_no_task_overlap": 5
+        },
+        "tests": "110 passed in 0.44s",
+        "interpretation": "The shadow run verifies source availability, hashes, raw tool/protocol evidence, and Tau2 preservation. It does not produce a valid strict score because historical artifacts lack state and semantic sidecars. Diagnostic group fractions are non-authoritative and must not be compared as model metrics."
+      },
+      "stop_conditions": [
+        "unrecorded_source_artifact_missing",
+        "hash_mismatch",
+        "need_to_overwrite_existing_output",
+        "evaluation_evidence_incomplete_but_not_reported_as_error",
+        "unexpected_dirty_file"
+      ]
+    },
+    {
+      "task_id": "T11_HUMAN_REVIEW",
+      "status": "COMPLETED",
+      "goal": "Review every Tau2-versus-strict disagreement and decide whether P0 is calibrated enough for extension.",
+      "depends_on": [
+        "T10_SHADOW_REPLAY"
+      ],
+      "allowed_files": [
+        "docs/00_\u5de5\u7a0b\u6cbb\u7406/2026-08-26_\u4e25\u683c\u8bc4\u6d4bP0\u51b3\u7b56\u8bb0\u5f55.md",
+        "configs/execution/strict_eval_p0_plan_v1.json"
+      ],
+      "required_tests": [],
+      "acceptance": {
+        "all_disagreements_reviewed": true,
+        "false_positive_risk_recorded": true,
+        "false_negative_risk_recorded": true,
+        "known_limitations_recorded": true,
+        "baseline20_decision_recorded": true,
+        "human_approved": true
+      },
+      "result": {
+        "status": "COMPLETED",
+        "decision_record": "docs/00_工程治理/2026-08-26_严格评测P0决策记录.md",
+        "proposed_decision": "Retain P0 as an engineering and protocol-diagnostic baseline, but do not expand to Baseline20, promote it to Reward, or claim a strict Base/SFT/RL metric until rollout-bound state and semantic sidecars exist.",
+        "critical_finding": "Task 59 proves that a rubric bound to one simulator trajectory's final intent can falsely fail another valid trajectory under the same task ID."
+      },
+      "stop_conditions": [
+        "unresolved_critical_disagreement",
+        "insufficient_human_evidence",
+        "request_to_promote_score_to_reward"
+      ]
+    }
+  ],
+  "transition_rule": "A task may transition to COMPLETE only after every acceptance field is true. The next task may transition from PENDING to READY only after explicit human approval.",
+  "open_questions": [
+    "Classify every pre-existing modified and untracked path before starting T1.",
+    "Decide whether to create a dedicated codex/strict-eval-p0 branch after G0; do not create it automatically.",
+    "Record the exact frozen Base, SFT, and RL artifact directories before T10.",
+    "Task 59 requires an explicit human decision on latest-intent authority versus static golden state."
+  ]
+}
