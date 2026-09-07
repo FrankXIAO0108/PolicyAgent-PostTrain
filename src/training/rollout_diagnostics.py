@@ -400,7 +400,10 @@ def validate_sampling_request(
         # GRPOConfig rejects num_generations < 2 even though this diagnostic
         # exits before advantages, scoring, loss or backward. The constructor
         # placeholder is replaced on the sampling-only trainer before rollout.
+        # TRL 1.9 also requires the constructor generation batch to be divisible
+        # by that placeholder, so use two constructor-only generation steps.
         "trl_constructor_num_generations": 2,
+        "trl_constructor_steps_per_generation": 2,
         "groups_per_task": 1,
         "trainer_max_steps_unused": True,
     }
@@ -769,6 +772,13 @@ class GuardedTrajectoryTrace:
             )
             if clipped or exhausted_without_eos:
                 self.flag(index, "COMPLETION_BUDGET_EXHAUSTED")
+                self.emit({
+                    "event": "censored_generation",
+                    "row": index,
+                    "generated_token_ids": list(output),
+                    "retained_token_count": len(kept),
+                    "training_eligible": False,
+                })
             self.emit(
                 {
                     "event": "generation_stop_observed",
@@ -1221,6 +1231,7 @@ def _generate_with_finished_row_guard(
     native_generate,
     images,
     multimodal_fields,
+    expected_max_new_tokens=None,
 ):
     """Guard only native generation; never enclose scoring or backward."""
     import torch
@@ -1264,6 +1275,10 @@ def _generate_with_finished_row_guard(
         if isolation is not None:
             raise RuntimeError("Multiple native generations in one bound turn")
         bound = inspect.signature(original_builder).bind(*args, **kwargs).arguments
+        if expected_max_new_tokens is not None and (
+            bound["generation_config"].max_new_tokens != expected_max_new_tokens
+        ):
+            raise RuntimeError("Effective generation budget differs from requested cap")
         if bound["input_ids_seq_length"] != max(map(len, prompt_ids)):
             raise RuntimeError("Native generation prompt width mismatch")
         processors = original_builder(*args, **kwargs)
@@ -1422,6 +1437,43 @@ def _bf16_native_generation(trainer, core, native_generate):
     return generate
 
 
+@contextmanager
+def _remaining_batch_generation_budget(trainer, trace, indices, prompts, emit):
+    """Cap shared generation at the largest remaining trajectory budget.
+
+    Do not use the minimum: that would censor other active candidates early.
+    Per-row trimming and transport rejection remain native/observer decisions.
+    """
+    if trace is None or indices is None:
+        yield
+        return
+    remaining = []
+    for index, prompt in zip(indices, prompts, strict=True):
+        original = trace.rows[index]["prompt_ids"]
+        if prompt[:len(original)] != original:
+            raise RuntimeError("Remaining-budget prompt prefix mismatch")
+        remaining.append(trace.budget - (len(prompt) - len(original)))
+    if not remaining or min(remaining) <= 0:
+        raise RuntimeError("Generation requested with no remaining trajectory budget")
+    original_config = trainer.generation_config
+    original_kwargs = trainer.generation_kwargs
+    configured = original_config.max_new_tokens
+    if "max_new_tokens" in original_kwargs:
+        configured = min(configured, original_kwargs["max_new_tokens"])
+    limit = min(configured, max(remaining))
+    try:
+        trainer.generation_config = deepcopy(original_config)
+        trainer.generation_kwargs = dict(original_kwargs)
+        trainer.generation_config.max_new_tokens = limit
+        trainer.generation_kwargs["max_new_tokens"] = limit
+        emit({"event": "remaining_generation_budget", "rows": indices,
+              "remaining_tokens": remaining, "max_new_tokens": limit})
+        yield
+    finally:
+        trainer.generation_config = original_config
+        trainer.generation_kwargs = original_kwargs
+
+
 def make_guarded_grpo_trainer(base_class: type, emit, *, bf16_generation=False) -> type:
     """Keep native training/KL intact and protect only generation forwards."""
     if type(bf16_generation) is not bool:
@@ -1468,6 +1520,35 @@ def make_guarded_grpo_trainer(base_class: type, emit, *, bf16_generation=False) 
                         {key: value for key, value in row.items() if key != "row"}
                     )
                     record({"event": "rollout_stop", **row})
+                blocking = [
+                    environment._blocking_transport_reasons()
+                    if hasattr(environment, "_blocking_transport_reasons") else []
+                    for environment in self.environments
+                ]
+                if any(blocking):
+                    # Save the WHOLE group before the first reward call can
+                    # raise. Separate quarantine records cannot seed a resume.
+                    for index, environment in enumerate(self.environments):
+                        environment._persist_rejected_rollout(trainer_evidence={
+                            "optimizer_step": getattr(self.state, "global_step", 0),
+                            "rollout_group_index": group_index,
+                            "row": index,
+                            "group_blocking_reasons": blocking,
+                            "prompt_token_ids": output[0][index],
+                            "completion_token_ids": output[1][index],
+                            "completion_text": self._tokenizer.decode(
+                                output[1][index], skip_special_tokens=False
+                            ),
+                            "trainer_messages": output[3][index],
+                        })
+                if not any(blocking):
+                    from src.evaluation.task44_hybrid_reward import prepare_semantic_group
+
+                    prepare_semantic_group(
+                        self.environments, output,
+                        optimizer_step=getattr(getattr(self, "state", None), "global_step", 0),
+                        group_index=group_index,
+                    )
                 return output
             except Exception as exc:
                 try:
@@ -1531,16 +1612,20 @@ def make_guarded_grpo_trainer(base_class: type, emit, *, bf16_generation=False) 
                     native_generate = _bf16_native_generation(
                         self, core, native_generate
                     )
-                output, logprobs = _generate_with_finished_row_guard(
-                    core,
-                    prompt_ids,
-                    list(range(len(prompt_ids))),
-                    index,
-                    record,
-                    native_generate,
-                    images,
-                    multimodal_fields,
-                )
+                with _remaining_batch_generation_budget(
+                    self, trace, original_indices, prompt_ids, record
+                ):
+                    output, logprobs = _generate_with_finished_row_guard(
+                        core,
+                        prompt_ids,
+                        list(range(len(prompt_ids))),
+                        index,
+                        record,
+                        native_generate,
+                        images,
+                        multimodal_fields,
+                        expected_max_new_tokens=self.generation_config.max_new_tokens,
+                    )
                 if trace is not None and original_indices is not None:
                     trace.generated(
                         original_indices,

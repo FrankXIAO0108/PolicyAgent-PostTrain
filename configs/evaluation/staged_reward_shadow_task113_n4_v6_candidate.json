@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "retail-task113-n4-hierarchical-review-v6-shadow-candidate",
+  "status": "OFFLINE_SHADOW_ONLY",
+  "purpose": "Test whether the existing hierarchical staged reward separates the four frozen Task 113 trajectories before any online optimization.",
+  "source_run": {
+    "run_dir": "_local_private_runs/task113_prescreen_20260902/passk-n4-v1",
+    "raw_rollouts_sha256": "0AB59257EB2B249B762D3E94C245D6AF3516BC2563AC3BE83A01A3FE78DDA20A",
+    "rollout_evidence_sha256": "0221C2A59C3895AD7237DAAD8252291F607C96C239C9FEFABB5E5B97F1A30120",
+    "sampling_groups_sha256": "8495BCACEDF82D61AC8B59EC17B5C5D18EF88A2EA3B835FE76A4CC15A88A40AB",
+    "num_generations": 4,
+    "expected_rollouts": 4,
+    "expected_groups": 1
+  },
+  "reward": {
+    "composition_mode": "hierarchical_state_authorization_review_v6",
+    "additive_component_weights": {
+      "environment_state": 0.35,
+      "interaction_complete": 0.10,
+      "identity_link": 0.08,
+      "target_evidence": 0.12,
+      "write_authorization": 0.20,
+      "post_write_communication": 0.15
+    },
+    "terminal_incomplete_communication_cap": 0.90,
+    "nonterminal_component_weights": {
+      "identity_link": 0.10,
+      "target_evidence": 0.20,
+      "required_write_progress": 0.50,
+      "grounded_communication": 0.10
+    },
+    "normalize_active_nonterminal_weights_to": 0.90,
+    "no_verified_write_cap": 0.25,
+    "authorization_review_value": 0.50,
+    "authorization_review_cap": 0.75,
+    "authorization_fail_hard_cap": 0.15,
+    "tool_error_penalty_each": 0.03,
+    "tool_error_penalty_cap": 0.09,
+    "repeated_call_penalty_each": 0.02,
+    "repeated_call_penalty_cap": 0.06,
+    "limit_reached_penalty": 0.10,
+    "unexpected_write_hard_cap": 0.0,
+    "minimum": 0.0,
+    "maximum": 1.0
+  },
+  "tasks": {
+    "113": {
+      "identity_link": {
+        "required_user_id": "yara_muller_8652",
+        "required_order_ids": [
+          "#W9384736",
+          "#W5056519",
+          "#W5995614",
+          "#W8277957"
+        ]
+      },
+      "target_evidence_calls": [
+        {
+          "evidence_id": "113_delivered_order",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W9384736"}
+        },
+        {
+          "evidence_id": "113_pending_order_one",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W5056519"}
+        },
+        {
+          "evidence_id": "113_pending_order_two",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W5995614"}
+        },
+        {
+          "evidence_id": "113_cancelled_order",
+          "name": "get_order_details",
+          "arguments": {"order_id": "#W8277957"}
+        }
+      ],
+      "required_write_action_ids": ["114_0", "114_1"],
+      "communication_source": "terminal_evaluator.tau2.communication.communicate_checks",
+      "claim_evidence_rules": [
+        {
+          "rule_id": "113_immediate_non_gift_card_refund",
+          "rule_type": "pattern_without_evidence_terms",
+          "verdict": "FAIL",
+          "source_call": {
+            "name": "get_user_details",
+            "arguments": {"user_id": "yara_muller_8652"}
+          },
+          "trigger_patterns": [
+            "(?is)refund.{0,160}(?:processed|credited|returned).{0,80}immediately",
+            "(?is)refund.{0,160}immediately"
+          ],
+          "support_terms": ["gift_card"]
+        }
+      ]
+    }
+  },
+  "shadow_gate": {
+    "minimum_mixed_groups": 1,
+    "maximum_zero_reward_std_fraction": 0.0,
+    "minimum_unique_reward_values": 3,
+    "minimum_verified_write_rollouts_for_online_promotion": 1,
+    "minimum_claim_safe_authorized_rollouts_for_online_promotion": 1,
+    "online_promotion_allowed": false,
+    "interpretation": "Passing proves only deterministic Task 113 ordering on the four frozen development rollouts."
+  },
+  "forbidden_uses": [
+    "Do not use this candidate for online GRPO.",
+    "Do not treat prompt-bound confirmation diagnostics as independent human gold.",
+    "Do not treat claim-check PASS as proof that every natural-language claim is grounded.",
+    "Do not claim generalization or business improvement."
+  ]
+}

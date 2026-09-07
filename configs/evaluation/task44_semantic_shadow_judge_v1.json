@@ -1,0 +1,22 @@
+{
+  "mode": "SHADOW_ONLY",
+  "used_as_training_reward": false,
+  "selection_scope": "Targeted development audit: 17 previously disputed rows plus rows 1 and 2 as controls; not representative, not independent human gold",
+  "independence_limit": "User simulator and judge share DeepSeek provider; correlated bias remains possible",
+  "judge": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "base_url_env": "SHADOW_JUDGE_BASE_URL",
+    "api_key_env": "SHADOW_JUDGE_API_KEY",
+    "approved_host": "api.deepseek.com"
+  },
+  "raw_rollouts": "_local_private_runs/20260903-task44-terminal-grpo-resume40-v1/raw_rollouts.jsonl",
+  "raw_sha256": "2ab95f4b8168f318c1f051739378b917a8d1aaf1b5f0a337ede9e9215d0e76c7",
+  "policy_path": "D:/tau2-bench/data/tau2/domains/retail/policy.md",
+  "policy_sha256": "4313d3fef8acf919f555fa17fbce929cc3ed1cef2dd8f0d35ff5c8c3364de176",
+  "rows": [1, 2, 21, 26, 61, 68, 70, 82, 84, 85, 94, 99, 116, 141, 143, 151, 154, 175, 194],
+  "max_requests": 19,
+  "max_request_chars": 120000,
+  "max_output_tokens": 4096,
+  "timeout_seconds": 60
+}

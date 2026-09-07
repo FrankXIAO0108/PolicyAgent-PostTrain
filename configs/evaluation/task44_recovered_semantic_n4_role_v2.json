@@ -1,0 +1,23 @@
+{
+  "mode": "FROZEN_RECOVERED_TASK44_SEMANTIC_RESCORE",
+  "max_requests": 4,
+  "training_authorized": false,
+  "gpu_authorized": false,
+  "recovery_dir": "_local_private_runs/task44_hybrid_base_recovery_v1",
+  "policy_path": "D:/tau2-bench/data/tau2/domains/retail/policy.md",
+  "prompt_sha256": "1de3e0270b361980f575a6f936e688c5231f1630a0b07c4182294a103f8949fe",
+  "interpreter_revision": "amount-role-entity-polarity-v2",
+  "source_sha256": {
+    "_local_private_runs/task44_hybrid_base_recovery_v1/recovery_manifest.json": "12438b923b6e8a803eebc91d7356b46fbf86c9c07f77864e69d10c56a9f4ec34",
+    "_local_private_runs/task44_hybrid_base_recovery_v1/row_0.json": "74bbcc9f05c3cd984cf5784a41f15dbf9685a9f4f2f8d530d51f8a90f54296e1",
+    "_local_private_runs/task44_hybrid_base_recovery_v1/row_1.json": "f06944685b5f4c67b0ebcfd5d71d820deba44fa57c81807bd02789db01bbb394",
+    "_local_private_runs/task44_hybrid_base_recovery_v1/row_2.json": "92f35f107f5c6c434272822722505bba26ef42640304cb39f42713952b9e7f98",
+    "_local_private_runs/task44_hybrid_base_recovery_v1/row_3.json": "a516caf5852d80890b00417b9e88b2d55389cf97217f0155efbf108ba650d8a7",
+    "src/evaluation/task44_hybrid_reward.py": "4e7658e96fc58fe8fbc68351ced4b90c580c08aa9ef0426c24ec925c6d931e0d",
+    "src/evaluation/task44_partial_semantics.py": "05e4ee8be20722aa569360036532fb7a33e6ef1704a75c10e46a4174ff395ed4",
+    "src/evaluation/task44_reward_evidence.py": "b8309c5d0d7fc365a0b66fc75a9b86678392845e75569405fe8df23e5850d9c6",
+    "src/evaluation/semantic_shadow_judge.py": "5aef398ec93f17b3287a581015c95027ceb522c91dc22fb0b05442fffe7d4cfd",
+    "src/evaluation/task44_claim_roles.py": "9c512736e67201b1fe6377ef41827d2ac5d53cb2c621e95f93d65f79ea740796",
+    "scripts/run_task44_recovered_semantics.py": "80679c8b5e1780cbaf9aaf3dc291b7f9700cd872acc3cca02e33db3f3731f912"
+  }
+}

@@ -163,6 +163,27 @@ def v6_spec() -> dict:
     return spec
 
 
+def v7_spec(*, verdict: str = "FAIL") -> dict:
+    spec = v6_spec()
+    spec["reward"].update(
+        {
+            "composition_mode": "hierarchical_state_authorization_claim_v7",
+            "claim_evidence_fail_cap": 0.75,
+            "claim_evidence_review_cap": 0.90,
+        }
+    )
+    spec["tasks"]["1"]["claim_evidence_rules"] = [
+        {
+            "rule_id": "unsupported_bad_claim",
+            "rule_type": "unsupported_literal",
+            "verdict": verdict,
+            "trigger_patterns": [r"\bBADCLAIM\b"],
+            "extract_pattern": r"\bBADCLAIM\b",
+        }
+    ]
+    return spec
+
+
 def confirmation_fixture(*, verdict: str = "PASS", confirmed: bool = True) -> dict:
     return {
         "write_count": 1,
@@ -689,6 +710,48 @@ class StagedRewardShadowTests(unittest.TestCase):
             score["components"]["grounded_communication"]["value"], 1.0
         )
         self.assertEqual(score["staged_reward"], 1.0)
+
+    def test_hierarchical_v7_caps_deterministic_claim_fail_and_review(self) -> None:
+        raw, evidence = fixtures(write=True, terminal=True)
+        evidence["terminal_evaluator"]["tau2"]["environment"] = {"reward": 1.0}
+
+        safe_raw = deepcopy(raw)
+        safe_raw["messages"].append(
+            {"role": "assistant", "content": "The update is complete."}
+        )
+        failed_raw = deepcopy(raw)
+        failed_raw["messages"].append(
+            {"role": "assistant", "content": "The update is BADCLAIM."}
+        )
+
+        passed = score_rollout(
+            safe_raw,
+            evidence,
+            v7_spec(),
+            confirmation_diagnostic=confirmation_fixture(),
+        )
+        failed = score_rollout(
+            failed_raw,
+            evidence,
+            v7_spec(),
+            confirmation_diagnostic=confirmation_fixture(),
+        )
+        review = score_rollout(
+            failed_raw,
+            evidence,
+            v7_spec(verdict="REVIEW"),
+            confirmation_diagnostic=confirmation_fixture(),
+        )
+
+        self.assertEqual(passed["staged_reward"], 1.0)
+        self.assertEqual(failed["staged_reward"], 0.75)
+        self.assertEqual(review["staged_reward"], 0.90)
+        self.assertTrue(failed["claim_evidence_cap_applied"])
+        self.assertTrue(
+            failed["components"]["claim_evidence_consistency"]["used_as_reward"]
+        )
+        self.assertGreater(passed["staged_reward"], review["staged_reward"])
+        self.assertGreater(review["staged_reward"], failed["staged_reward"])
 
     def test_terminal_state_does_not_hide_incomplete_communication(self) -> None:
         raw, evidence = fixtures(write=True, terminal=True)

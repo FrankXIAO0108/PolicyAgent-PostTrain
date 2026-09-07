@@ -9,6 +9,8 @@ import json
 import math
 import os
 import platform
+import shutil
+import statistics
 import subprocess
 import sys
 import time
@@ -47,6 +49,163 @@ def save_json(path: Path, payload: object) -> None:
         json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n",
         encoding="utf-8",
     )
+
+
+def validate_resume_checkpoint(
+    checkpoint: Path, config: dict[str, Any]
+) -> dict[str, Any]:
+    """Bind a continuation to a complete checkpoint and its parent run."""
+    grpo = config["grpo"]
+    if int(grpo["per_device_train_batch_size"]) * int(grpo["gradient_accumulation_steps"]) != int(grpo["num_generations"]):
+        raise ValueError("Multi-group resume is not audited; restart from the frozen SFT checkpoint")
+    checkpoint = checkpoint.resolve()
+    required = (
+        "adapter_model.safetensors",
+        "adapter_config.json",
+        "optimizer.pt",
+        "scheduler.pt",
+        "rng_state.pth",
+        "trainer_state.json",
+    )
+    missing = [name for name in required if not (checkpoint / name).is_file()]
+    if missing:
+        raise ValueError(f"Resume checkpoint is incomplete: {missing}")
+    state = load_json(checkpoint / "trainer_state.json")
+    completed_steps = int(state.get("global_step", 0))
+    max_steps = int(config["grpo"]["max_steps"])
+    if not 0 < completed_steps < max_steps:
+        raise ValueError(
+            f"Resume global_step must be between 1 and {max_steps - 1}"
+        )
+
+    parent_run = checkpoint.parent.parent
+    parent_config_path = parent_run / "config.json"
+    if not parent_config_path.is_file():
+        raise ValueError("Resume checkpoint parent is missing config.json")
+    parent_config = load_json(parent_config_path)
+    invariant_sections = (
+        "upstream",
+        "model",
+        "data",
+        "seed",
+        "precision",
+        "quantization",
+        "model_loading",
+        "lora",
+        "rollout",
+        "reward",
+        "generation_safety",
+    )
+    changed_sections = [
+        name
+        for name in invariant_sections
+        if parent_config.get(name) != config.get(name)
+    ]
+    if changed_sections:
+        raise ValueError(
+            f"Resume invariant sections differ from parent: {changed_sections}"
+        )
+    parent_acceptance = dict(parent_config.get("engineering_acceptance") or {})
+    resumed_acceptance = dict(config.get("engineering_acceptance") or {})
+    parent_tool_iteration_policy = parent_acceptance.pop(
+        "tool_iteration_limit_as_terminal_failure", False
+    )
+    resumed_tool_iteration_policy = resumed_acceptance.pop(
+        "tool_iteration_limit_as_terminal_failure", False
+    )
+    parent_budget_policy = parent_acceptance.pop(
+        "completion_budget_as_terminal_failure", False
+    )
+    resumed_budget_policy = resumed_acceptance.pop(
+        "completion_budget_as_terminal_failure", False
+    )
+    if type(parent_budget_policy) is not bool or type(resumed_budget_policy) is not bool:
+        raise ValueError("completion_budget_as_terminal_failure must be an explicit bool")
+    completion_budget_training_kwargs(config)
+    if parent_acceptance != resumed_acceptance:
+        raise ValueError("Resume engineering acceptance settings differ")
+    if type(parent_tool_iteration_policy) is not bool or type(
+        resumed_tool_iteration_policy
+    ) is not bool:
+        raise ValueError(
+            "tool_iteration_limit_as_terminal_failure must be an explicit bool"
+        )
+    parent_grpo = dict(parent_config["grpo"])
+    resumed_grpo = dict(config["grpo"])
+    parent_grpo.pop("max_completion_length", None)
+    resumed_grpo.pop("max_completion_length", None)
+    # The supported runtime default is False. Only normalize an explicit False
+    # for this opt-in policy; never permit a loss-mask change to True on resume.
+    if resumed_budget_policy:
+        if parent_grpo.get("mask_truncated_completions", False) is not False:
+            raise ValueError("Resume parent truncation loss mask must be False")
+        parent_grpo.setdefault("mask_truncated_completions", False)
+    if parent_grpo != resumed_grpo:
+        raise ValueError(
+            "Resume GRPO settings differ beyond max_completion_length"
+        )
+
+    prior_rollouts = completed_steps * int(config["grpo"]["num_generations"])
+    for name in ("raw_rollouts.jsonl", "rollout_evidence.jsonl"):
+        path = parent_run / name
+        if not path.is_file() or len(
+            path.read_text(encoding="utf-8").splitlines()
+        ) < prior_rollouts:
+            raise ValueError(
+                f"Resume parent lacks {prior_rollouts} rows in {name}"
+            )
+    return {
+        "checkpoint": str(checkpoint),
+        "checkpoint_sha256": directory_sha256(checkpoint),
+        "parent_run": str(parent_run),
+        "parent_config_sha256": sha256(parent_config_path),
+        "completed_steps": completed_steps,
+        "prior_rollouts": prior_rollouts,
+        "new_completion_budget": int(config["grpo"]["max_completion_length"]),
+        "parent_completion_budget": int(
+            parent_config["grpo"]["max_completion_length"]
+        ),
+        "parent_tool_iteration_limit_as_terminal_failure": (
+            parent_tool_iteration_policy
+        ),
+        "new_tool_iteration_limit_as_terminal_failure": (
+            resumed_tool_iteration_policy
+        ),
+        "parent_completion_budget_as_terminal_failure": parent_budget_policy,
+        "new_completion_budget_as_terminal_failure": resumed_budget_policy,
+        "completion_budget_policy_changed": parent_budget_policy != resumed_budget_policy,
+        "exact_same_policy_resume": (
+            parent_budget_policy == resumed_budget_policy
+            and parent_tool_iteration_policy == resumed_tool_iteration_policy
+            and parent_config["grpo"] == config["grpo"]
+        ),
+    }
+
+
+def seed_resume_artifacts(
+    output_dir: Path, resume: dict[str, Any]
+) -> None:
+    """Copy only checkpoint-backed rows, excluding a failed later group."""
+    parent = Path(resume["parent_run"])
+    row_count = int(resume["prior_rollouts"])
+    for name in ("raw_rollouts.jsonl", "rollout_evidence.jsonl"):
+        lines = (parent / name).read_text(encoding="utf-8").splitlines()
+        (output_dir / name).write_text(
+            "\n".join(lines[:row_count]) + "\n", encoding="utf-8"
+        )
+    parent_completions = parent / "trainer" / "completions"
+    if parent_completions.is_dir():
+        target = output_dir / "trainer" / "completions"
+        target.mkdir(parents=True, exist_ok=True)
+        for source in sorted(parent_completions.glob("*.parquet")):
+            # Native completion filenames are global optimizer steps. Never
+            # carry later, uncheckpointed samples into the resumed history.
+            prefix = "completions_"
+            step_text = source.stem.removeprefix(prefix)
+            if not source.stem.startswith(prefix) or not step_text.isdigit():
+                raise ValueError(f"Unknown completion artifact: {source.name}")
+            if 0 < int(step_text) <= int(resume["completed_steps"]):
+                shutil.copy2(source, target / source.name)
 
 
 def user_simulator_binding(model: str, raw_args: str) -> dict[str, Any]:
@@ -104,9 +263,15 @@ def _validate_upstream_files(
         if not path.is_relative_to(root) or not path.is_file():
             raise FileNotFoundError(f"Required tau2 file missing: {relative_path}")
         actual_sha256 = sha256(path)
-        if actual_sha256 != expected_sha256.upper():
-            raise ValueError(f"Required tau2 file hash mismatch: {relative_path}")
-        verified[relative_path] = actual_sha256
+        expected_sha256 = expected_sha256.upper()
+        if actual_sha256 != expected_sha256:
+            normalized = path.read_bytes().replace(b"\r\n", b"\n")
+            normalized_sha256 = hashlib.sha256(normalized).hexdigest().upper()
+            if normalized_sha256 != expected_sha256:
+                raise ValueError(
+                    f"Required tau2 file hash mismatch: {relative_path}"
+                )
+        verified[relative_path] = expected_sha256
     return verified
 
 
@@ -198,6 +363,14 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
 
     reward = config["reward"]
     tiered_reward = is_tiered_reward_config(reward)
+    if reward.get("staged_reward_spec", {}).get("semantic_assistance"):
+        if (
+            config.get("grpo", {}).get("num_generations") != 4
+            or config.get("grpo", {}).get("num_iterations") != 1
+            or config.get("generation_safety", {}).get("mode") != "eos_finished_rows_v1"
+            or not config.get("engineering_acceptance", {}).get("transport_complete_groups_required")
+        ):
+            raise ValueError("Hybrid reward requires n=4, num_iterations=1 and guarded transport")
     if (
         reward not in (DEFAULT_REWARD_CONFIG, TERMINAL_ONLY_REWARD_CONFIG)
         and not tiered_reward
@@ -248,7 +421,9 @@ def validate_config_and_split(config_path: Path) -> dict[str, Any]:
     if split["leakage_checks"].get("passed") is not True:
         raise ValueError("Task split leakage checks are not passing")
     sft_manifest_binding = None
-    if config["model"].get("source_stage") in {"SFT", "SFT_PROTOCOL_BRIDGE"}:
+    if config["model"].get("source_stage") in {
+        "SFT", "SFT_PROTOCOL_BRIDGE", "SFT100_SELECTED_CHECKPOINT30",
+    }:
         sft_manifest_binding = validate_sft_manifest_binding(config["model"], split)
         if (
             split["leakage_checks"].get(
@@ -771,6 +946,23 @@ def validate_model_loading(config: dict[str, Any]) -> str | None:
     return mode
 
 
+def completion_budget_training_kwargs(config: dict[str, Any]) -> dict[str, Any]:
+    """Explicit truncated negatives must retain generated-token loss masks."""
+    acceptance = config.get("engineering_acceptance") or {}
+    enabled = acceptance.get("completion_budget_as_terminal_failure", False)
+    if type(enabled) is not bool:
+        raise ValueError("completion_budget_as_terminal_failure must be an explicit bool")
+    if not enabled:
+        return {}
+    if acceptance.get("transport_complete_groups_required") is not True:
+        raise ValueError("Completion budget policy requires guarded transport")
+    if config.get("reward", {}).get("staged_reward_spec", {}).get("semantic_assistance"):
+        raise ValueError("Completion budget policy currently supports rule-only reward")
+    if config.get("grpo", {}).get("mask_truncated_completions") is not False:
+        raise ValueError("Completion budget negatives require mask_truncated_completions=false")
+    return {"mask_truncated_completions": False}
+
+
 def validate_optimization_contract(
     config: dict[str, Any], *, selected_task_count: int | None = None
 ) -> dict[str, Any] | None:
@@ -798,6 +990,7 @@ def validate_optimization_contract(
     ) <= 0:
         raise ValueError("GRPO optimization contract values must be positive")
     generation_batch_size = batch_size * steps_per_generation
+    optimizer_batch_size = batch_size * grad_accumulation
     if generation_batch_size % num_generations:
         raise ValueError(
             "per_device_train_batch_size * steps_per_generation must be divisible "
@@ -810,10 +1003,16 @@ def validate_optimization_contract(
                 "gradient_accumulation_steps"
             )
     if acceptance.get("one_prompt_group_per_optimizer_step"):
-        if generation_batch_size != num_generations:
+        if generation_batch_size != num_generations or optimizer_batch_size != num_generations:
             raise ValueError(
                 "Engineering closure requires exactly one GRPO prompt group per step"
             )
+    # This engineering contract covers fresh, complete groups on one GPU only.
+    # Native TRL permits two generation batches within one accumulated update.
+    if int(grpo.get("num_iterations", 1)) != 1:
+        raise ValueError("Engineering closure requires num_iterations=1")
+    if grad_accumulation % steps_per_generation:
+        raise ValueError("Engineering closure requires complete generation batches per update")
     if float(grpo["learning_rate"]) <= 0.0:
         raise ValueError("OPTIMIZE requires a positive learning rate")
     if acceptance.get("kl_reference_required") and float(grpo["beta"]) <= 0.0:
@@ -825,16 +1024,25 @@ def validate_optimization_contract(
         raise ValueError(
             "transport_complete_groups_required must be an explicit bool"
         )
+    completion_budget_training_kwargs(config)
+    tool_iteration_terminal_failure = acceptance.get(
+        "tool_iteration_limit_as_terminal_failure", False
+    )
+    if type(tool_iteration_terminal_failure) is not bool:
+        raise ValueError(
+            "tool_iteration_limit_as_terminal_failure must be an explicit bool"
+        )
 
     expected_steps = int(acceptance["expected_optimizer_steps"])
     expected_rollouts = int(acceptance["expected_rollouts"])
     expected_groups = int(acceptance["expected_groups"])
     if expected_steps != max_steps:
         raise ValueError("expected_optimizer_steps differs from grpo.max_steps")
-    if expected_groups != max_steps:
-        raise ValueError("expected_groups differs from the one-group-per-step contract")
-    if expected_rollouts != max_steps * num_generations:
-        raise ValueError("expected_rollouts differs from max_steps * num_generations")
+    groups_per_update = optimizer_batch_size // num_generations
+    if expected_groups != max_steps * groups_per_update:
+        raise ValueError("expected_groups differs from optimizer steps * groups per update")
+    if expected_rollouts != max_steps * optimizer_batch_size:
+        raise ValueError("expected_rollouts differs from optimizer steps * optimizer batch size")
     configured_task_pool_size = int(acceptance["configured_task_pool_size"])
     task_ids = list((config.get("data") or {}).get("task_ids") or [])
     if configured_task_pool_size != len(task_ids):
@@ -851,6 +1059,38 @@ def validate_optimization_contract(
         "configured_task_pool_size": configured_task_pool_size,
         "kl_reference_required": bool(acceptance.get("kl_reference_required")),
     }
+
+
+def explicit_grpo_training_kwargs(config: dict[str, Any]) -> dict[str, Any]:
+    """Pass declared knobs through; do not silently change historical defaults."""
+    grpo = config["grpo"]
+    converters = {
+        "max_grad_norm": float, "warmup_steps": int, "lr_scheduler_type": str,
+        "optim": str, "scale_rewards": str, "top_p": float, "top_k": int,
+    }
+    return {name: cast(grpo[name]) for name, cast in converters.items() if name in grpo}
+
+
+def summarize_sequential_reward_groups(rows: list[dict[str, Any]], group_size: int) -> dict[str, Any]:
+    """Single-process native reward order; groups are not optimizer log rows."""
+    if group_size < 2 or len(rows) % group_size:
+        raise ValueError("Raw rollouts must contain complete GRPO groups")
+    groups = []
+    for start in range(0, len(rows), group_size):
+        batch = rows[start:start + group_size]
+        if len({(str(r["task_id"]), r["user_seed"]) for r in batch}) != 1:
+            raise ValueError("A reward group must share task and user seed")
+        rewards = [float(r["reward"]["reward"]) for r in batch]
+        if not all(math.isfinite(r) for r in rewards):
+            raise ValueError("Nonfinite raw group reward")
+        mean, std = statistics.mean(rewards), statistics.stdev(rewards)
+        groups.append({
+            "group_index": start // group_size, "rewards": rewards,
+            "mean": mean, "sample_std_ddof1": std,
+            "advantages": [(r - mean) / (std + 1e-4) for r in rewards],
+        })
+    return {"group_count": len(groups), "groups": groups,
+            "nonzero_std_group_count": sum(g["sample_std_ddof1"] > 1e-12 for g in groups)}
 
 
 def trainable_parameter_fingerprint(model: Any) -> dict[str, Any]:
@@ -984,11 +1224,18 @@ def adapter_weights_artifact(adapter_dir: Path) -> dict[str, Any]:
 
 
 def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = False,
-        completion_budget: int | None = None, groups_per_task: int = 1) -> dict[str, Any]:
+        completion_budget: int | None = None, groups_per_task: int = 1,
+        resume_from_checkpoint: Path | None = None) -> dict[str, Any]:
     if output_dir.exists() and any(output_dir.iterdir()):
         raise FileExistsError(f"Refusing to overwrite non-empty output: {output_dir}")
     output_dir.mkdir(parents=True, exist_ok=True)
     config = deepcopy(preflight["config"])
+    resume = None
+    if resume_from_checkpoint is not None:
+        if sample_only:
+            raise ValueError("Sampling cannot resume an optimizer checkpoint")
+        resume = validate_resume_checkpoint(resume_from_checkpoint, config)
+        seed_resume_artifacts(output_dir, resume)
     if config.get("sampling") and not sample_only:
         raise ValueError("Explicit sampling diagnostic config requires --sample-only")
     from src.training.rollout_diagnostics import validate_generation_safety
@@ -1050,6 +1297,21 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
         )
         else "0"
     )
+    os.environ["POLICYAGENT_TOOL_ITERATION_LIMIT_AS_TERMINAL_FAILURE"] = (
+        "1"
+        if bool(
+            (config.get("engineering_acceptance") or {}).get(
+                "tool_iteration_limit_as_terminal_failure", False
+            )
+        )
+        else "0"
+    )
+    completion_budget_training_kwargs(config)
+    os.environ["POLICYAGENT_COMPLETION_BUDGET_AS_TERMINAL_FAILURE"] = (
+        "1" if (config.get("engineering_acceptance") or {}).get(
+            "completion_budget_as_terminal_failure", False
+        ) else "0"
+    )
     rollout_log = output_dir / "raw_rollouts.jsonl"
     os.environ["POLICYAGENT_ROLLOUT_LOG"] = str(rollout_log)
     rollout_evidence_log = output_dir / "rollout_evidence.jsonl"
@@ -1070,6 +1332,8 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
         }
     if optimization_contract is not None:
         runtime["optimization_contract"] = optimization_contract
+    if resume is not None:
+        runtime["resume"] = resume
     if bf16_activations:
         if not runtime["bf16_supported"]:
             raise RuntimeError("BF16 activation mitigation requires actual BF16 support")
@@ -1082,6 +1346,21 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
             "source_sha256": sha256(Path(rollout_diagnostics.__file__)),
         }
     runtime["tool_template"] = check_tool_template(preflight["model_path"])
+    if config["reward"].get("staged_reward_spec", {}).get("semantic_assistance"):
+        from src.evaluation.task44_hybrid_reward import PROMPT as semantic_prompt
+
+        runtime["hybrid_reward_sources"] = {
+            name: sha256(Path(__file__).resolve().parents[2] / name) for name in (
+                "src/evaluation/task44_hybrid_reward.py",
+                "src/evaluation/task44_partial_semantics.py",
+                "src/evaluation/task44_reward_evidence.py",
+                "src/evaluation/semantic_shadow_judge.py",
+                "src/evaluation/staged_reward_shadow.py",
+                "src/rl/retail_agentic_env.py",
+                "src/training/rollout_diagnostics.py",
+            )
+        }
+        runtime["semantic_prompt_sha256"] = hashlib.sha256(semantic_prompt.encode()).hexdigest()
     if guarded_generation:
         runtime["generation_safety"] = generation_runtime
         save_json(output_dir / "config.json", config)
@@ -1111,6 +1390,13 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
     optimization_enabled = execution_mode == "OPTIMIZE"
     set_seed(int(config["seed"]))
     dataset = build_dataset(preflight)
+    accumulation_plan = None
+    if (optimization_contract is not None and not sample_only
+            and int(grpo["gradient_accumulation_steps"]) > int(grpo["steps_per_generation"])):
+        from src.training.accumulation_contract import align_dataset_for_accumulation
+
+        dataset, accumulation_plan = align_dataset_for_accumulation(dataset, grpo)
+        save_json(output_dir / "accumulation_plan.json", accumulation_plan)
     bf16 = config["precision"] == "bf16" and runtime["bf16_supported"]
     quantization = config.get("quantization", {"enabled": False})
     model_init_kwargs: dict[str, Any] | None = None
@@ -1140,13 +1426,23 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
         per_device_train_batch_size=int(grpo["per_device_train_batch_size"]),
         gradient_accumulation_steps=int(grpo["gradient_accumulation_steps"]),
         steps_per_generation=int(
-            grpo.get("steps_per_generation", grpo["gradient_accumulation_steps"])
+            sampling_contract.get(
+                "trl_constructor_steps_per_generation",
+                grpo.get(
+                    "steps_per_generation", grpo["gradient_accumulation_steps"]
+                ),
+            )
+            if sampling_contract is not None
+            else grpo.get(
+                "steps_per_generation", grpo["gradient_accumulation_steps"]
+            )
         ),
         num_generations=(
             int(sampling_contract["trl_constructor_num_generations"])
             if sample_only
             else int(grpo["num_generations"])
         ),
+        num_iterations=int(grpo.get("num_iterations", 1)),
         max_completion_length=int(grpo["max_completion_length"]),
         max_tool_calling_iterations=int(
             config["rollout"]["max_tool_calling_iterations"]
@@ -1194,7 +1490,11 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
                 training_args_kwargs["generation_kwargs"] = {"do_sample": True}
         else:  # pragma: no cover - validate_sampling_request owns this contract.
             raise ValueError(f"Unsupported sampling mode: {sampling_contract['mode']}")
+    training_args_kwargs.update(completion_budget_training_kwargs(config))
+    training_args_kwargs.update(explicit_grpo_training_kwargs(config))
     training_args = GRPOConfig(**training_args_kwargs)
+    save_json(output_dir / "effective_grpo_config.json",
+              training_args.to_dict() if hasattr(training_args, "to_dict") else vars(training_args))
     peft_config = None
     if not sample_only:
         peft_config = LoraConfig(
@@ -1206,6 +1506,15 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
         )
     # Local imports, template and argument constructors must fail before any
     # paid API probe. Model loading still follows the probe to fail fast on auth.
+    semantic_settings = config["reward"].get("staged_reward_spec", {}).get("semantic_assistance")
+    if semantic_settings:
+        from src.evaluation.semantic_shadow_judge import validate_endpoint
+
+        # Local checks only; no paid judge request in preflight.
+        validate_endpoint({"judge": semantic_settings})
+        policy_path = Path(os.environ["POLICYAGENT_TAU2_ROOT"]) / "data/tau2/domains/retail/policy.md"
+        if hashlib.sha256(policy_path.read_text(encoding="utf-8").encode()).hexdigest() != semantic_settings["policy_sha256"]:
+            raise ValueError("Hybrid semantic policy hash mismatch")
     user_model = os.environ.get("POLICYAGENT_USER_MODEL", "").strip()
     simulator_binding = user_simulator_binding(
         user_model, os.environ.get("POLICYAGENT_USER_LLM_ARGS_JSON", "{}")
@@ -1227,6 +1536,7 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
             "split_sha256": preflight["split_sha256"],
             "openings_sha256": preflight["openings_sha256"],
             "starting_model_sha256": preflight["model_sha256"],
+            "resume": resume,
         },
     )
     trainer_class = GRPOTrainer
@@ -1253,6 +1563,22 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
             make_guarded_grpo_trainer(GRPOTrainer, emit_generation, bf16_generation=True)
             if bf16_activations else make_guarded_grpo_trainer(GRPOTrainer, emit_generation)
         )
+    if accumulation_plan is not None:
+        from src.training.accumulation_contract import make_accumulation_guard
+
+        def emit_accumulation(event):
+            with (output_dir / "accumulation_events.jsonl").open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps(event, allow_nan=False) + "\n")
+
+        def count_logged_rollouts():
+            if not rollout_log.exists():
+                return 0
+            with rollout_log.open(encoding="utf-8") as stream:
+                return sum(1 for line in stream if line.strip())
+
+        trainer_class = make_accumulation_guard(
+            trainer_class, accumulation_plan, emit_accumulation, count_logged_rollouts
+        )
     trainer = trainer_class(
         model=preflight["model_path"],
         args=training_args,
@@ -1261,6 +1587,8 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
         environment_factory=RetailAgenticEnvironment,
         peft_config=peft_config,
     )
+    if resume is not None:
+        trainer._load_from_checkpoint(resume["checkpoint"])
     if sample_only:
         from src.training.rollout_diagnostics import bind_sampling_runtime
 
@@ -1302,7 +1630,11 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
             sampled_result = run_pure_sampling(trainer, list(dataset), config, preflight, output_dir,
                                               groups_per_task, {**runtime, "sampling_adapter": sampling_runtime})
         else:
-            result = trainer.train()
+            result = (
+                trainer.train(resume_from_checkpoint=resume["checkpoint"])
+                if resume is not None
+                else trainer.train()
+            )
     if sample_only:
         if bf16_activations:
             # Bind only after precision-context exit; otherwise its cleanup event
@@ -1333,6 +1665,12 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
             starting_trainable_fingerprint, final_trainable_fingerprint
         )
         actual_rollouts = load_jsonl(rollout_log) if rollout_log.is_file() else []
+        multi_group_summary = None
+        if not acceptance.get("one_prompt_group_per_optimizer_step", True):
+            multi_group_summary = summarize_sequential_reward_groups(
+                actual_rollouts, int(config["grpo"]["num_generations"])
+            )
+            save_json(output_dir / "group_reward_summary.json", multi_group_summary)
         actual_task_ids = sorted(
             {str(row.get("task_id")) for row in actual_rollouts}
         )
@@ -1377,6 +1715,14 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
             )
             >= int(acceptance["minimum_nonzero_reward_std_groups"]),
         }
+        if multi_group_summary is not None:
+            criteria["group_count_matches"] = (
+                multi_group_summary["group_count"] == int(acceptance["expected_groups"])
+            )
+            criteria["minimum_nonzero_reward_std_groups_met"] = (
+                multi_group_summary["nonzero_std_group_count"]
+                >= int(acceptance["minimum_nonzero_reward_std_groups"])
+            )
         optimization_evidence = {
             "schema_version": "retail-agentic-grpo-optimization-evidence-v2",
             "status": "PASSED" if all(criteria.values()) else "FAILED",
@@ -1397,6 +1743,7 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
                 "trainable_parameters_changed"
             ],
             "training_log": training_log_evidence,
+            "raw_reward_group_summary": multi_group_summary,
             "criteria": criteria,
         }
         save_json(output_dir / "optimization_evidence.json", optimization_evidence)
@@ -1464,11 +1811,18 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
         for name, path in {
             "generation_events": generation_log,
             "config_snapshot": output_dir / "config.json",
+            "effective_grpo_config": output_dir / "effective_grpo_config.json",
             "command": output_dir / "command.json",
             "optimization_evidence": output_dir / "optimization_evidence.json",
         }.items():
             if not path.is_file():
                 raise RuntimeError(f"Guarded GRPO missing required artifact: {name}")
+            artifacts[name] = {"path": str(path), "sha256": sha256(path)}
+    if accumulation_plan is not None:
+        for name in ("accumulation_plan.json", "accumulation_events.jsonl"):
+            path = output_dir / name
+            if not path.is_file():
+                raise RuntimeError(f"Missing accumulation evidence: {name}")
             artifacts[name] = {"path": str(path), "sha256": sha256(path)}
     if bf16_activations:
         artifacts["precision_events"] = {
@@ -1512,6 +1866,7 @@ def run(preflight: dict[str, Any], output_dir: Path, *, sample_only: bool = Fals
         "status": "COMPLETED",
         "execution_mode": execution_mode,
         "optimization_enabled": optimization_enabled,
+        "resume": resume,
         "git": {
             "commit": preflight["git_commit"],
             "branch": preflight["git_branch"],
@@ -1572,6 +1927,7 @@ def main() -> None:
     parser.add_argument("--completion-budget", type=int,
                         help="Explicit cumulative budget for --sample-only; never inferred")
     parser.add_argument("--groups-per-task", type=int, default=1)
+    parser.add_argument("--resume-from-checkpoint", type=Path)
     args = parser.parse_args()
     if sum((args.sample_only, args.preflight_only, args.environment_only_preflight,
             args.user_simulator_api_preflight_only)) > 1:
@@ -1583,6 +1939,12 @@ def main() -> None:
             parser.error("--sample-only cannot be combined with preflight modes")
     elif args.completion_budget is not None or args.groups_per_task != 1:
         parser.error("Sampling overrides require --sample-only")
+    if args.resume_from_checkpoint is not None and (
+        args.sample_only
+        or args.environment_only_preflight
+        or args.user_simulator_api_preflight_only
+    ):
+        parser.error("Checkpoint resume is valid only for optimize or full preflight")
     if args.environment_only_preflight:
         print(
             json.dumps(
@@ -1603,6 +1965,11 @@ def main() -> None:
         )
         return
     preflight = validate_inputs(args.config.resolve(), args.allow_dirty)
+    resume = (
+        validate_resume_checkpoint(args.resume_from_checkpoint, preflight["config"])
+        if args.resume_from_checkpoint is not None
+        else None
+    )
     if args.preflight_only:
         runtime = check_runtime()
         runtime["tool_template"] = check_tool_template(preflight["model_path"])
@@ -1616,6 +1983,7 @@ def main() -> None:
                     "rows": len(preflight["openings"]),
                     "starting_model_sha256": preflight["model_sha256"],
                     "runtime": runtime,
+                    "resume": resume,
                 },
                 ensure_ascii=False,
                 indent=2,
@@ -1630,7 +1998,9 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=False)
     try:
         result = run(preflight, output_dir, sample_only=args.sample_only,
-                     completion_budget=args.completion_budget, groups_per_task=args.groups_per_task)
+                     completion_budget=args.completion_budget,
+                     groups_per_task=args.groups_per_task,
+                     resume_from_checkpoint=args.resume_from_checkpoint)
     except Exception as exc:
         output_dir.mkdir(parents=True, exist_ok=True)
         is_user_simulator_failure = isinstance(exc, UserSimulatorSystemFailure)
@@ -1640,8 +2010,10 @@ def main() -> None:
             "raw_rollouts.jsonl",
             "rollout_evidence.jsonl",
             "generation_events.jsonl",
+            "rejected_rollouts.jsonl",
             "sampling_groups.jsonl",
             "effective_config.json",
+            "effective_grpo_config.json",
             "command.json",
             "user_simulator_preflight.json",
         ):

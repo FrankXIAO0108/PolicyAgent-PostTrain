@@ -28,6 +28,38 @@ def load_existing(path: Path) -> dict[str, dict[str, Any]]:
     return {str(row["task_id"]): row for row in rows}
 
 
+def resolve_task_ids(
+    split: dict[str, Any],
+    subset: str,
+    requested: list[str] | None,
+    limit: int | None,
+) -> list[str]:
+    subset_ids = [str(task_id) for task_id in split["splits"][subset]]
+    if requested is not None:
+        selected = [str(task_id) for task_id in requested]
+        if not selected or len(selected) != len(set(selected)):
+            raise ValueError("--task-ids must be non-empty and unique")
+        outside = sorted(set(selected) - set(subset_ids), key=int)
+        if outside:
+            raise ValueError(f"Requested task IDs are outside {subset}: {outside}")
+        if limit is not None:
+            raise ValueError("--limit cannot be combined with --task-ids")
+        return selected
+    if limit is not None:
+        if limit <= 0:
+            raise ValueError("--limit must be positive")
+        return subset_ids[:limit]
+    return subset_ids
+
+
+def manifest_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return str(resolved)
+
+
 def save_rows(path: Path, rows: dict[str, dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     ordered = [rows[key] for key in sorted(rows, key=int)]
@@ -102,6 +134,11 @@ def main() -> None:
     )
     parser.add_argument("--seed", type=int, default=20260810)
     parser.add_argument("--limit", type=int)
+    parser.add_argument(
+        "--task-ids",
+        nargs="+",
+        help="Exact ordered task IDs from the selected subset; cannot use with --limit.",
+    )
     args = parser.parse_args()
 
     _ensure_tau2_importable()
@@ -109,9 +146,7 @@ def main() -> None:
 
     split_path = args.task_split.resolve()
     split = load_json(split_path)
-    task_ids = list(split["splits"][args.subset])
-    if args.limit is not None:
-        task_ids = task_ids[: args.limit]
+    task_ids = resolve_task_ids(split, args.subset, args.task_ids, args.limit)
     tasks = {
         str(task.id): task for task in registry.get_tasks_loader("retail")("train")
     }
@@ -177,9 +212,10 @@ def main() -> None:
         "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
         "subset": args.subset,
         "rows": len(selected),
-        "task_split_path": str(split_path),
+        "task_ids": task_ids,
+        "task_split_path": manifest_path(split_path),
         "task_split_sha256": sha256(split_path),
-        "output_path": str(output_path),
+        "output_path": manifest_path(output_path),
         "output_sha256": sha256(output_path),
         "user_model": args.model,
         "temperature": 0.0,
@@ -187,6 +223,8 @@ def main() -> None:
         "total_cost": total_cost,
         "hidden_user_scenarios_persisted": False,
         "training_labels_included": False,
+        "selection_used_reward_values": False,
+        "derivation": "frozen_user_simulator_api_generation",
     }
     args.manifest.parent.mkdir(parents=True, exist_ok=True)
     args.manifest.write_text(

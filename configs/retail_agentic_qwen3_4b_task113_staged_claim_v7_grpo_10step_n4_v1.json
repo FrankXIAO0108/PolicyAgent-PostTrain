@@ -1,0 +1,212 @@
+{
+  "schema_version": "retail-agentic-grpo-config-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "execution_mode": "OPTIMIZE",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved_for_final_evaluation": true,
+    "rl_train_task_only": true,
+    "sft_task_unseen_according_to_bound_split": true,
+    "minimal_engineering_run_only": true,
+    "single_development_task": true,
+    "generalization_claim_allowed": false,
+    "communication_or_policy_compliance_claim_allowed": false,
+    "long_horizon_behavior_claim_allowed": false,
+    "reward_selected_after_frozen_prescreen_audit": true,
+    "same_prompt_as_eligibility_prescreen": true
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "740A29DFA64D7BC08EEA3BF7493575B914A63F744ACBAF7F199EE07EDDAF72D3"
+    }
+  },
+  "model": {
+    "name_or_path": "/root/autodl-tmp/policyagent-runs/20260824-sft-v3-agentic-protocol-bridge-s20-v1/teacher_sft_merged",
+    "source_stage": "SFT_PROTOCOL_BRIDGE",
+    "expected_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+    "training_data_manifest_path": "data/retail_agentic_rl_v2/protocol_bridge_sft_manifest_v1.json",
+    "training_data_manifest_sha256": "696C8DAC2796E736ACB3DDBF8A3A9B18A893428CEA146C2C36C0DFB98284B436",
+    "training_data_source_manifest_sha256": "59B162093E2658E68C41FA06FE0B44E3EB145FFF1F978580501FBB461AC14C2B"
+  },
+  "data": {
+    "task_split": "data/retail_agentic_rl_v2/task_split.json",
+    "openings": "data/retail_agentic_rl_v2/task113_frozen_opening_from_prescreen_v1.jsonl",
+    "openings_manifest": "data/retail_agentic_rl_v2/task113_frozen_opening_from_prescreen_manifest_v1.json",
+    "train_subset": "rl_train",
+    "task_ids": ["113"],
+    "max_tasks": 1
+  },
+  "seed": 20260902,
+  "precision": "bf16",
+  "quantization": {"enabled": false},
+  "model_loading": {"mode": "qwen3_bf16_lora_v1"},
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj", "k_proj", "v_proj", "o_proj",
+      "gate_proj", "up_proj", "down_proj"
+    ]
+  },
+  "grpo": {
+    "max_steps": 10,
+    "learning_rate": 0.000005,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "steps_per_generation": 4,
+    "num_generations": 4,
+    "max_completion_length": 5120,
+    "temperature": 0.8,
+    "beta": 0.02,
+    "loss_type": "dr_grpo",
+    "use_vllm": false,
+    "logging_steps": 1,
+    "save_steps": 1,
+    "log_completions": true,
+    "num_completions_to_print": 0,
+    "gradient_checkpointing": true
+  },
+  "sampling": {
+    "mode": "STOCHASTIC_GROUP_SAMPLING",
+    "contract_version": "fixed-n4-single-group-v1",
+    "do_sample": true,
+    "temperature": 0.8,
+    "top_p": 1.0,
+    "top_k": 0
+  },
+  "rollout": {
+    "stage": "FULL_TASK",
+    "max_customer_turns": 8,
+    "max_tool_calls": 24,
+    "max_tool_calling_iterations": 32
+  },
+  "reward": {
+    "process_reward_mode": "tiered_terminal_process_v2",
+    "environment_state_action_progress_gate": "none",
+    "environment_state_weight": 0.0,
+    "required_action_weight": 0.0,
+    "communication_weight": 0.0,
+    "tool_error_penalty_each": 0.0,
+    "tool_error_penalty_cap": 0.0,
+    "repeated_call_penalty_each": 0.0,
+    "repeated_call_penalty_cap": 0.0,
+    "unexpected_write_penalty_each": 0.0,
+    "unexpected_write_penalty_cap": 0.0,
+    "unfinished_interaction_penalty": 0.0,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": true,
+    "staged_reward_spec": {
+      "spec_id": "retail-task113-hierarchical-claim-v7-online-engineering",
+      "reward": {
+        "composition_mode": "hierarchical_state_authorization_claim_v7",
+        "additive_component_weights": {
+          "environment_state": 0.35,
+          "interaction_complete": 0.10,
+          "identity_link": 0.08,
+          "target_evidence": 0.12,
+          "write_authorization": 0.20,
+          "post_write_communication": 0.15
+        },
+        "terminal_incomplete_communication_cap": 0.90,
+        "nonterminal_component_weights": {
+          "identity_link": 0.10,
+          "target_evidence": 0.20,
+          "required_write_progress": 0.50,
+          "grounded_communication": 0.10
+        },
+        "normalize_active_nonterminal_weights_to": 0.90,
+        "no_verified_write_cap": 0.25,
+        "authorization_review_value": 0.50,
+        "authorization_review_cap": 0.75,
+        "authorization_fail_hard_cap": 0.15,
+        "claim_evidence_fail_cap": 0.75,
+        "claim_evidence_review_cap": 0.90,
+        "tool_error_penalty_each": 0.03,
+        "tool_error_penalty_cap": 0.09,
+        "repeated_call_penalty_each": 0.02,
+        "repeated_call_penalty_cap": 0.06,
+        "limit_reached_penalty": 0.10,
+        "unexpected_write_hard_cap": 0.0,
+        "minimum": 0.0,
+        "maximum": 1.0
+      },
+      "tasks": {
+        "113": {
+          "identity_link": {
+            "required_user_id": "yara_muller_8652",
+            "required_order_ids": [
+              "#W9384736", "#W5056519", "#W5995614", "#W8277957"
+            ]
+          },
+          "target_evidence_calls": [
+            {
+              "evidence_id": "113_delivered_order",
+              "name": "get_order_details",
+              "arguments": {"order_id": "#W9384736"}
+            },
+            {
+              "evidence_id": "113_pending_order_one",
+              "name": "get_order_details",
+              "arguments": {"order_id": "#W5056519"}
+            },
+            {
+              "evidence_id": "113_pending_order_two",
+              "name": "get_order_details",
+              "arguments": {"order_id": "#W5995614"}
+            },
+            {
+              "evidence_id": "113_cancelled_order",
+              "name": "get_order_details",
+              "arguments": {"order_id": "#W8277957"}
+            }
+          ],
+          "required_write_action_ids": ["114_0", "114_1"],
+          "communication_source": "terminal_evaluator.tau2.communication.communicate_checks",
+          "claim_evidence_rules": [
+            {
+              "rule_id": "113_immediate_non_gift_card_refund",
+              "rule_type": "pattern_without_evidence_terms",
+              "verdict": "FAIL",
+              "source_call": {
+                "name": "get_user_details",
+                "arguments": {"user_id": "yara_muller_8652"}
+              },
+              "trigger_patterns": [
+                "(?is)refund.{0,160}(?:processed|credited|returned).{0,80}immediately",
+                "(?is)refund.{0,160}immediately"
+              ],
+              "support_terms": ["gift_card"]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "generation_safety": {"mode": "eos_finished_rows_v1"},
+  "engineering_acceptance": {
+    "contract_version": "grpo-engineering-closure-v1",
+    "enforcement": "PRE_REWARD_FAIL_CLOSED_TRANSPORT_GATE",
+    "expected_optimizer_steps": 10,
+    "expected_rollouts": 40,
+    "expected_groups": 10,
+    "configured_task_pool_size": 1,
+    "expected_distinct_tasks": 1,
+    "one_prompt_group_per_optimizer_step": true,
+    "steps_per_generation_equals_gradient_accumulation_required": true,
+    "kl_reference_required": true,
+    "minimum_nonzero_reward_std_groups": 1,
+    "finite_gradients_required": true,
+    "trainable_parameter_change_required": true,
+    "same_protocol_before_after_evaluation_required": true,
+    "business_score_improvement_required": false,
+    "gpu_backward_and_memory_validated": false,
+    "long_horizon_rl_validated": false,
+    "transport_complete_groups_required": true
+  }
+}

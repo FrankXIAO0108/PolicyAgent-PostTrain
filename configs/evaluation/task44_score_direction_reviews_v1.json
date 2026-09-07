@@ -1,0 +1,37 @@
+{
+  "source_dir": "_local_private_runs/task44_hybrid_semantic_rescore_n4_v1",
+  "summary_sha256": "5e9295c3b640591e405e7ed44d3900f241069af95f76fc38b7fb079d4be71d0d",
+  "label_status": "CODEX_ANALYST_PROVISIONAL",
+  "independent_gold": false,
+  "review_scope": "Expected scalar under current frozen reward weights; not a claim of unrestricted policy correctness. Reviewer is also the implementation author; known-case regression only.",
+  "reviews": [
+    {
+      "row_index_zero_based": 0,
+      "request_sha256": "e5ae1403a1e4257e9549b7b4d3e20b724c215de4e075724ac3acd06b4833f94a",
+      "response_sha256": "c00d1db4d93fa35d31eb40b650d4c84db6b621fd47cc5c15b62ac006762b587c",
+      "expected_reward": 1.0,
+      "reason": "Messages 5/7/9 bind order ownership, available variant prices and gift card. Message 11 confirms replacement and 17.99 refund; write 12 and tool 13 match. Final replies 14/16 match returned state; user stops at 17. All six components 1 and no penalty."
+    },
+    {
+      "row_index_zero_based": 1,
+      "request_sha256": "da3a979c6f4805be7a4519fb637c4c925c7909926e0ac2fe279bd6c668e0f817",
+      "response_sha256": "d6bc96a83c8b8ef708566118efcd807a7612563201b64d692715abd8a2e3da95",
+      "expected_reward": 0.2,
+      "reason": "Trajectory ends after product result 7 with no write or completed interaction. Identity and target evidence only: 0.08 + 0.12. No semantic facts beyond opening."
+    },
+    {
+      "row_index_zero_based": 2,
+      "request_sha256": "184a87b4ddbbaa4db06dbf60506aa5482db7637f3666db306a56677cf7e6d509",
+      "response_sha256": "6a921af7166828960bab8e6f7f4c6206e2cbc2c6a92ebf5585c869a4e6186f0e",
+      "expected_reward": 0.98,
+      "reason": "Duplicate identity call at 4 costs 0.02. Product tool 9 establishes lowest available variant 5320792178 at 135.24, replacing 153.23 item. Card balance 17.00 at 11; refund 17.99 explicitly at 14/16. User 17 confirms; write 18/result 19 and final 20 agree. 34.99 is resulting balance, not refund. Six components 1 minus 0.02; not a full-score trajectory."
+    },
+    {
+      "row_index_zero_based": 3,
+      "request_sha256": "fc44e1adec377463dcfabec6e2ea5e5e25b08e2b2247a60c8c44c80dce19cef0",
+      "response_sha256": "d14b8127dbb77657821cf3786b1df9b1e6878c3954575d9b25c2185a76f1bb6e",
+      "expected_reward": 0.25,
+      "reason": "Messages 10/14 incorrectly call 164.28 variant cheapest despite product result 7 listing 135.24 available. At 14 the 11.05 is an additional payment, not positive refund. User 15 withdraws; no write; assistant 16 confirms no change and user stops 17. Identity + target evidence + interaction = 0.30, limited by unchanged no-write cap to 0.25. Error remains; no artificial full score."
+    }
+  ]
+}

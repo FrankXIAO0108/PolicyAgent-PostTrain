@@ -1,0 +1,120 @@
+{
+  "schema_version": "retail-agentic-grpo-config-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "execution_mode": "ROLLOUT_DIAGNOSTIC",
+  "claims": {
+    "formal_retail_gate_unchanged": true,
+    "business_improvement_claim_allowed": false,
+    "official_test_reserved_for_final_evaluation": true,
+    "rl_train_task_only": true,
+    "sft_task_unseen_according_to_bound_split": true,
+    "parameter_update_allowed": false,
+    "exact_rl_starting_checkpoint_greedy_baseline": true,
+    "task_selection_uses_model_outputs": false
+  },
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {
+      "data/tau2/user_simulator/simulation_guidelines.md": "740A29DFA64D7BC08EEA3BF7493575B914A63F744ACBAF7F199EE07EDDAF72D3"
+    }
+  },
+  "model": {
+    "name_or_path": "/root/autodl-tmp/policyagent-runs/20260824-sft-v3-agentic-protocol-bridge-s20-v1/teacher_sft_merged",
+    "source_stage": "SFT_PROTOCOL_BRIDGE",
+    "expected_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+    "training_data_manifest_path": "data/retail_agentic_rl_v2/protocol_bridge_sft_manifest_v1.json",
+    "training_data_manifest_sha256": "696C8DAC2796E736ACB3DDBF8A3A9B18A893428CEA146C2C36C0DFB98284B436",
+    "training_data_source_manifest_sha256": "59B162093E2658E68C41FA06FE0B44E3EB145FFF1F978580501FBB461AC14C2B"
+  },
+  "data": {
+    "task_split": "data/retail_agentic_rl_v2/task_split.json",
+    "openings": "data/retail_agentic_rl_v2/task113_initial_user_message_v1.jsonl",
+    "openings_manifest": "data/retail_agentic_rl_v2/task113_initial_user_message_manifest_v1.json",
+    "train_subset": "rl_train",
+    "task_ids": ["113"],
+    "max_tasks": 1
+  },
+  "seed": 20260902,
+  "precision": "bf16",
+  "quantization": {
+    "enabled": false
+  },
+  "model_loading": {
+    "mode": "qwen3_bf16_inference_v1"
+  },
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "grpo": {
+    "max_steps": 1,
+    "learning_rate": 0.0,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 1,
+    "steps_per_generation": 1,
+    "num_generations": 1,
+    "max_completion_length": 8192,
+    "temperature": 1.0,
+    "beta": 0.0,
+    "loss_type": "dr_grpo",
+    "use_vllm": false,
+    "logging_steps": 1,
+    "save_steps": 1000,
+    "log_completions": false,
+    "num_completions_to_print": 0,
+    "gradient_checkpointing": false
+  },
+  "sampling": {
+    "mode": "TRUE_GREEDY",
+    "do_sample": false
+  },
+  "diagnostic": {
+    "strict_opening_manifest_binding": true,
+    "expected_rollouts": 1,
+    "expected_tasks": 1,
+    "expected_rollouts_per_task": 1,
+    "groups_per_task": 1,
+    "group_size": 1,
+    "weight_update_expected": false,
+    "task_selection_uses_reward": false,
+    "trainer_max_steps_unused": true
+  },
+  "rollout": {
+    "stage": "FULL_TASK",
+    "max_customer_turns": 8,
+    "max_tool_calls": 24,
+    "max_tool_calling_iterations": 32
+  },
+  "reward": {
+    "process_reward_mode": "terminal_environment_state",
+    "environment_state_action_progress_gate": "none",
+    "environment_state_weight": 1.0,
+    "required_action_weight": 0.0,
+    "communication_weight": 0.0,
+    "tool_error_penalty_each": 0.0,
+    "tool_error_penalty_cap": 0.0,
+    "repeated_call_penalty_each": 0.0,
+    "repeated_call_penalty_cap": 0.0,
+    "unexpected_write_penalty_each": 0.0,
+    "unexpected_write_penalty_cap": 0.0,
+    "unfinished_interaction_penalty": 0.0,
+    "llm_judge_used": false,
+    "policy_guard_used_as_reward": false,
+    "confirmation_signal_used_as_reward": false
+  },
+  "generation_safety": {
+    "mode": "eos_finished_rows_v1"
+  }
+}

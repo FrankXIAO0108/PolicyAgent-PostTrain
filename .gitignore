@@ -34,6 +34,10 @@ precommit_audit_small.txt
 *.temp
 ~$*
 
+# Local test workspaces and one-off deployment snapshots (keep on disk)
+/.tmp_*/
+/.tmp_*.bundle
+
 # Generated archives and console logs
 *.zip
 *.log

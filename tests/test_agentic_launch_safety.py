@@ -357,6 +357,7 @@ TRUE_GREEDY_SAMPLING_CONTRACT = {
     "do_sample": False,
     "actual_num_generations": 1,
     "trl_constructor_num_generations": 2,
+    "trl_constructor_steps_per_generation": 2,
     "groups_per_task": 1,
     "trainer_max_steps_unused": True,
 }
@@ -1343,6 +1344,11 @@ def test_sampling_runner_uses_exact_checkpoint_without_peft_and_never_trains(
         "expected_do_sample": expected_do_sample
     }
     assert received["grpo_arguments"]["num_generations"] == 2
+    assert received["grpo_arguments"]["steps_per_generation"] == (
+        2
+        if not expected_do_sample
+        else inputs["config"]["grpo"]["steps_per_generation"]
+    )
     assert received["grpo_arguments"]["generation_kwargs"] == (
         expected_generation_kwargs
     )

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,6 +15,7 @@ from src.rl.retail_agentic_env import (
     IDENTITY_AUTHENTICATION_ACTIONS,
     IDENTITY_AUTHENTICATION_STAGE,
     REQUIRE_TRANSPORT_COMPLETE_ENV,
+    ROLLOUT_LOG_ENV,
     RetailAgenticEnvironment,
     TERMINAL_ONLY_REWARD_CONFIG,
     TIERED_TERMINAL_PROCESS_MODE,
@@ -312,6 +314,83 @@ class RetailAgenticEnvironmentTests(unittest.TestCase):
             env.reset(task_id="1", initial_user_message="Need help")
             env._set_trainer_completion_telemetry(telemetry)
             self.assertEqual(env.get_reward(), 0.0)
+
+    def test_transport_rejection_is_quarantined_without_reward_or_duplicate(self):
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
+            REQUIRE_TRANSPORT_COMPLETE_ENV: "1",
+            ROLLOUT_LOG_ENV: str(Path(directory) / "raw_rollouts.jsonl"),
+        }):
+            env = self.make_env()
+            env.reset(task_id="1", initial_user_message="Need help")
+            env._evaluator = lambda *a: self.fail("Rejected row reached evaluator")
+            env._set_trainer_completion_telemetry(_completion_telemetry(
+                stop_reason="COMPLETION_BUDGET_EXHAUSTED",
+                stop_flags=["COMPLETION_BUDGET_EXHAUSTED"],
+                completion_token_budget_exhausted=True,
+                model_completion_truncated=True,
+            ))
+            env._persist_rejected_rollout(trainer_evidence={
+                "row": 1, "completion_text": "unfinished model text",
+            })
+            with self.assertRaisesRegex(RuntimeError, "Transport-invalid"):
+                env.get_reward()
+            path = Path(directory) / "rejected_rollouts.jsonl"
+            records = [json.loads(line) for line in path.read_text().splitlines()]
+            self.assertEqual(len(records), 1)
+            record = records[0]
+            self.assertIsNone(record["reward"])
+            self.assertFalse(record["training_eligible"])
+            self.assertIn("initial_state", record)
+            self.assertEqual(record["trainer_evidence"]["row"], 1)
+            self.assertFalse((Path(directory) / "raw_rollouts.jsonl").exists())
+            env.reset(task_id="1", initial_user_message="Next reset")
+            self.assertFalse(env._rejected_snapshot_saved)
+
+    def test_transport_gate_can_score_tool_iteration_limit_as_terminal_failure(self) -> None:
+        telemetry = _completion_telemetry(
+            stop_reason="TOOL_ITERATION_LIMIT",
+            stop_flags=["TOOL_ITERATION_LIMIT"],
+            tool_iteration_limit_reached=True,
+        )
+        with patch.dict(
+            os.environ,
+            {
+                REQUIRE_TRANSPORT_COMPLETE_ENV: "1",
+                "POLICYAGENT_TOOL_ITERATION_LIMIT_AS_TERMINAL_FAILURE": "1",
+            },
+        ):
+            env = self.make_env(reward=1.0)
+            env.reset(task_id="1", initial_user_message="Need help")
+            env._set_trainer_completion_telemetry(telemetry)
+            self.assertEqual(env.get_reward(), 0.0)
+            self.assertEqual(env._last_reward_info["underlying_evaluator_reward"], 1.0)
+            self.assertEqual(
+                env._last_reward_info["reward_override"]["reason"],
+                "tool_iteration_limit_reached",
+            )
+
+    def test_tool_iteration_terminal_failure_does_not_hide_other_transport_failure(self) -> None:
+        telemetry = _completion_telemetry(
+            stop_reason="COMPLETION_BUDGET_EXHAUSTED",
+            stop_flags=["COMPLETION_BUDGET_EXHAUSTED", "TOOL_ITERATION_LIMIT"],
+            completion_token_budget_exhausted=True,
+            tool_iteration_limit_reached=True,
+            model_completion_truncated=True,
+        )
+        with patch.dict(
+            os.environ,
+            {
+                REQUIRE_TRANSPORT_COMPLETE_ENV: "1",
+                "POLICYAGENT_TOOL_ITERATION_LIMIT_AS_TERMINAL_FAILURE": "1",
+            },
+        ):
+            env = self.make_env(reward=1.0)
+            env.reset(task_id="1", initial_user_message="Need help")
+            env._set_trainer_completion_telemetry(telemetry)
+            with self.assertRaisesRegex(
+                RuntimeError, "completion_token_budget_exhausted"
+            ):
+                env.get_reward()
 
     def test_transport_gate_environment_value_is_strict(self) -> None:
         with patch.dict(os.environ, {REQUIRE_TRANSPORT_COMPLETE_ENV: "true"}):
@@ -903,6 +982,43 @@ class ProcessRewardSignalTests(unittest.TestCase):
             loaded["staged_reward_spec"]["reward"]["composition_mode"],
             "hierarchical_state_authorization_review_v6",
         )
+
+    def test_hierarchical_v7_loader_requires_deterministic_claim_rules(self) -> None:
+        spec = json.loads(
+            (
+                PROJECT
+                / "configs"
+                / "evaluation"
+                / "staged_reward_shadow_task113_n4_claim_v7_candidate.json"
+            ).read_text(encoding="utf-8")
+        )
+        configured = {
+            **DEFAULT_REWARD_CONFIG,
+            "process_reward_mode": TIERED_TERMINAL_PROCESS_MODE,
+            "environment_state_action_progress_gate": "none",
+            "confirmation_signal_used_as_reward": True,
+            "staged_reward_spec": spec,
+        }
+        with patch.dict(
+            os.environ,
+            {"POLICYAGENT_REWARD_CONFIG_JSON": json.dumps(configured)},
+        ):
+            loaded = load_reward_config()
+        self.assertEqual(
+            loaded["staged_reward_spec"]["reward"]["composition_mode"],
+            "hierarchical_state_authorization_claim_v7",
+        )
+
+        invalid = json.loads(json.dumps(configured))
+        invalid["staged_reward_spec"]["tasks"]["113"].pop(
+            "claim_evidence_rules"
+        )
+        with patch.dict(
+            os.environ,
+            {"POLICYAGENT_REWARD_CONFIG_JSON": json.dumps(invalid)},
+        ):
+            with self.assertRaisesRegex(RuntimeError, "requires claim_evidence_rules"):
+                load_reward_config()
 
     def test_terminal_task_gate_requires_environment_reward_basis(self) -> None:
         eligible = SimpleNamespace(
@@ -2497,6 +2613,46 @@ class RetailAgenticSplitTests(unittest.TestCase):
                             )
                         },
                     )
+
+    def test_git_upstream_accepts_crlf_for_bound_lf_text(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "tau2-bench"
+            root.mkdir()
+            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True)
+            subprocess.run(
+                ["git", "config", "user.email", "test@example.com"],
+                cwd=root,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test"], cwd=root, check=True
+            )
+            policy = root / "policy.md"
+            policy.write_bytes(b"one\r\ntwo\r\n")
+            subprocess.run(["git", "add", "policy.md"], cwd=root, check=True)
+            subprocess.run(
+                ["git", "commit", "-m", "fixture"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+            )
+            commit = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            expected = hashlib.sha256(b"one\ntwo\n").hexdigest().upper()
+
+            with patch.dict(
+                os.environ, {"POLICYAGENT_TAU2_ROOT": str(root)}, clear=False
+            ):
+                result = validate_upstream_checkout(
+                    commit, expected_files={"policy.md": expected}
+                )
+
+            self.assertEqual(result["required_file_sha256"]["policy.md"], expected)
 
     def test_task44_explicit_context_prescreen_is_short_and_hash_bound(self) -> None:
         config_path = (

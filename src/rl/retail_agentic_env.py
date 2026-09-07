@@ -25,6 +25,12 @@ ROLLOUT_LOG_ENV = "POLICYAGENT_ROLLOUT_LOG"
 ROLLOUT_EVIDENCE_LOG_ENV = "POLICYAGENT_ROLLOUT_EVIDENCE_LOG"
 ROLLOUT_STAGE_ENV = "POLICYAGENT_ROLLOUT_STAGE"
 REQUIRE_TRANSPORT_COMPLETE_ENV = "POLICYAGENT_REQUIRE_TRANSPORT_COMPLETE_GROUPS"
+TOOL_ITERATION_LIMIT_AS_TERMINAL_FAILURE_ENV = (
+    "POLICYAGENT_TOOL_ITERATION_LIMIT_AS_TERMINAL_FAILURE"
+)
+COMPLETION_BUDGET_AS_TERMINAL_FAILURE_ENV = (
+    "POLICYAGENT_COMPLETION_BUDGET_AS_TERMINAL_FAILURE"
+)
 FULL_TASK_STAGE = "FULL_TASK"
 IDENTITY_AUTHENTICATION_STAGE = "IDENTITY_AUTHENTICATION"
 TIERED_TERMINAL_PROCESS_MODE = "tiered_terminal_process_v2"
@@ -291,6 +297,17 @@ def load_reward_config() -> dict[str, Any]:
 def _validate_staged_reward_spec(spec: Any) -> None:
     if not isinstance(spec, dict):
         raise RuntimeError("tiered_terminal_process_v2 requires staged_reward_spec")
+    if "semantic_assistance" in spec:
+        from src.evaluation.task44_hybrid_reward import validate_settings
+
+        validate_settings(spec["semantic_assistance"])
+        if (
+            set(spec.get("tasks", {})) != {"44"}
+            or spec.get("evidence_rules_version") != "task44_evidence_v2"
+            or spec.get("reward", {}).get("composition_mode")
+            != "hierarchical_state_authorization_review_v6"
+        ):
+            raise RuntimeError("Semantic assistance is scoped to Task44 evidence-v2/v6")
     if not isinstance(spec.get("reward"), dict) or not isinstance(
         spec.get("tasks"), dict
     ):
@@ -305,6 +322,7 @@ def _validate_staged_reward_spec(spec: Any) -> None:
     if composition_mode in {
         "hierarchical_state_authorization_v5",
         "hierarchical_state_authorization_review_v6",
+        "hierarchical_state_authorization_claim_v7",
     }:
         required_reward_fields.update(
             {
@@ -322,6 +340,13 @@ def _validate_staged_reward_spec(spec: Any) -> None:
                     "authorization_fail_hard_cap",
                 }
             )
+            if composition_mode == "hierarchical_state_authorization_claim_v7":
+                required_reward_fields.update(
+                    {
+                        "claim_evidence_fail_cap",
+                        "claim_evidence_review_cap",
+                    }
+                )
     elif composition_mode in {
         "additive_terminal_process_v3",
         "additive_terminal_process_confirmation_v4",
@@ -340,6 +365,18 @@ def _validate_staged_reward_spec(spec: Any) -> None:
     missing = sorted(required_reward_fields - set(spec["reward"]))
     if missing:
         raise RuntimeError(f"staged_reward_spec reward fields missing: {missing}")
+    if composition_mode == "hierarchical_state_authorization_claim_v7":
+        missing_claim_rules = sorted(
+            str(task_id)
+            for task_id, task_spec in spec["tasks"].items()
+            if not isinstance(task_spec, dict)
+            or not list(task_spec.get("claim_evidence_rules") or [])
+        )
+        if missing_claim_rules:
+            raise RuntimeError(
+                "hierarchical_state_authorization_claim_v7 requires "
+                f"claim_evidence_rules for tasks: {missing_claim_rules}"
+            )
 
 
 def _staged_reward_uses_confirmation(spec: Any) -> bool:
@@ -351,6 +388,7 @@ def _staged_reward_uses_confirmation(spec: Any) -> bool:
             "additive_terminal_process_confirmation_v4",
             "hierarchical_state_authorization_v5",
             "hierarchical_state_authorization_review_v6",
+            "hierarchical_state_authorization_claim_v7",
         }
     )
 
@@ -405,6 +443,7 @@ def tiered_terminal_process_reward(
     user_stopped: bool,
     completion: dict[str, Any],
     staged_reward_spec: dict[str, Any],
+    skip_semantics: bool = False,
 ) -> dict[str, Any]:
     """Score one online rollout with the frozen v2 offline formula."""
 
@@ -450,6 +489,19 @@ def tiered_terminal_process_reward(
         confirmation_diagnostic=confirmation,
     )
     score["terminal_environment_reward"] = terminal_value
+    if "semantic_assistance" in staged_reward_spec and not skip_semantics:
+        from src.evaluation.task44_hybrid_reward import hybrid_score
+
+        policy_path = Path(os.environ["POLICYAGENT_TAU2_ROOT"]) / "data/tau2/domains/retail/policy.md"
+        result = hybrid_score(
+            score, raw, staged_reward_spec,
+            policy=policy_path.read_text(encoding="utf-8"),
+            directory=Path(os.environ[ROLLOUT_LOG_ENV]).resolve().parent,
+        )
+        # Preserve rule-only diagnostics; never relabel them as the new score.
+        score["rule_only_reward"] = score["staged_reward"]
+        score["staged_reward"] = result["offline_reward"]
+        score["semantic_assistance"] = result
     return score
 
 
@@ -1115,6 +1167,25 @@ class RetailAgenticEnvironment:
                 f"{REQUIRE_TRANSPORT_COMPLETE_ENV} must be exactly '0' or '1'"
             )
         self._require_transport_complete = transport_gate == "1"
+        tool_iteration_policy = os.environ.get(
+            TOOL_ITERATION_LIMIT_AS_TERMINAL_FAILURE_ENV, "0"
+        ).strip()
+        if tool_iteration_policy not in {"0", "1"}:
+            raise RuntimeError(
+                f"{TOOL_ITERATION_LIMIT_AS_TERMINAL_FAILURE_ENV} must be exactly "
+                "'0' or '1'"
+            )
+        self._tool_iteration_limit_as_terminal_failure = (
+            tool_iteration_policy == "1"
+        )
+        completion_budget_policy = os.environ.get(
+            COMPLETION_BUDGET_AS_TERMINAL_FAILURE_ENV, "0"
+        ).strip()
+        if completion_budget_policy not in {"0", "1"}:
+            raise RuntimeError(
+                f"{COMPLETION_BUDGET_AS_TERMINAL_FAILURE_ENV} must be exactly '0' or '1'"
+            )
+        self._completion_budget_as_terminal_failure = completion_budget_policy == "1"
         self._rollout_stage = os.environ.get(ROLLOUT_STAGE_ENV, FULL_TASK_STAGE).strip()
         if self._rollout_stage not in SUPPORTED_ROLLOUT_STAGES:
             raise RuntimeError(
@@ -1197,26 +1268,57 @@ class RetailAgenticEnvironment:
         self._last_reward_info = None
         self._reward_persisted = False
         self._trainer_completion_telemetry = None
+        self._rejected_snapshot_saved = False
         self._runtime_stop_signals = []
         self._customer_turns = 0
         self._user, self._user_state = self._build_user()
         return None
 
     def get_reward(self) -> float:
-        """Score the rollout with deterministic tau2 evaluation components.
+        """Score with deterministic tau2 components and opt-in local semantics.
 
         Returns:
             Weighted terminal-state, required-action, and communication reward.
             LLM-judged natural-language assertions and diagnostic policy-guard
-            findings do not alter this v1 reward.
+            findings do not alter the default v1 reward. Task44 hybrid mode
+            additionally validates candidate-bound semantic extraction.
         """
 
         self._require_ready()
+        if self._uses_semantic_reward() and self._last_reward_info is not None:
+            # The pre-advantage barrier scores once; native TRL consumes the cache.
+            return float(self._last_reward_info["reward"])
+        if self._is_completion_budget_terminal_failure():
+            # Budget exhaustion is the bounded-task outcome, not a guessed
+            # evaluator score for a complete trajectory. Never parse/evaluate
+            # the unfinished response, and never dispatch its unfinished tool call.
+            payload = {
+                "reward": 0.0,
+                "reward_mode": "completion_budget_terminal_failure_v1",
+                "evaluator_called": False,
+                "reward_override": {
+                    "reason": "completion_token_budget_exhausted",
+                    "policy": "bounded_completion_terminal_failure_v1",
+                },
+                "diagnostic_policy_findings": deepcopy(self._policy_findings),
+                "policy_findings_are_reward_authority": False,
+            }
+            self._last_reward_info = payload
+            self._persist_rollout(payload)
+            return 0.0
+        tool_iteration_terminal_failure = False
         if self._require_transport_complete:
             invalid_reasons = transport_invalid_reasons(
                 self._trainer_completion_telemetry
             )
+            if (
+                self._tool_iteration_limit_as_terminal_failure
+                and invalid_reasons == ["tool_iteration_limit_reached"]
+            ):
+                tool_iteration_terminal_failure = True
+                invalid_reasons = []
             if invalid_reasons:
+                self._persist_rejected_rollout()
                 raise RuntimeError(
                     "Transport-invalid rollout rejected before reward: "
                     + ", ".join(invalid_reasons)
@@ -1235,11 +1337,93 @@ class RetailAgenticEnvironment:
         else:
             reward = float(reward_info)
             payload = {"reward": reward}
+        if tool_iteration_terminal_failure:
+            payload["underlying_evaluator_reward"] = reward
+            payload["reward"] = 0.0
+            payload["reward_override"] = {
+                "reason": "tool_iteration_limit_reached",
+                "policy": "bounded_agent_loop_terminal_failure_v1",
+            }
+            reward = 0.0
         payload["diagnostic_policy_findings"] = deepcopy(self._policy_findings)
         payload["policy_findings_are_reward_authority"] = False
         self._last_reward_info = payload
         self._persist_rollout(payload)
         return reward
+
+    def _uses_semantic_reward(self) -> bool:
+        return "semantic_assistance" in self._reward_config.get("staged_reward_spec", {})
+
+    def _semantic_pending_snapshot(self) -> dict[str, Any]:
+        self._require_ready()
+        return {
+            "task_id": str(self._task.id), "user_seed": self._seed,
+            "messages": [_message_payload(m) for m in self._messages],
+            "initial_state": deepcopy(self._initial_environment_state),
+            "final_state": _environment_state(self._environment),
+            "completion": deepcopy(self._trainer_completion_telemetry),
+        }
+
+    def _blocking_transport_reasons(self) -> list[str]:
+        if not self._require_transport_complete:
+            return []
+        reasons = transport_invalid_reasons(self._trainer_completion_telemetry)
+        if self._is_completion_budget_terminal_failure():
+            return []
+        if self._tool_iteration_limit_as_terminal_failure and reasons == [
+            "tool_iteration_limit_reached"
+        ]:
+            return []
+        return reasons
+
+    def _is_completion_budget_terminal_failure(self) -> bool:
+        """Opt-in for model-output exhaustion only, never mixed infra failure."""
+        if not (
+            self._require_transport_complete
+            and getattr(self, "_completion_budget_as_terminal_failure", False)
+            and not self._uses_semantic_reward()
+        ):
+            return False
+        telemetry = self._trainer_completion_telemetry
+        return bool(
+            telemetry
+            and telemetry["stop_reason"] == "COMPLETION_BUDGET_EXHAUSTED"
+            and "TOOL_RESULT_BUDGET_EXCEEDED" not in telemetry["stop_flags"]
+            and telemetry["model_tokens_retained"] > 0
+            and set(transport_invalid_reasons(telemetry)) == {
+                "completion_token_budget_exhausted", "model_completion_truncated"
+            }
+        )
+
+    def _persist_rejected_rollout(self, *, trainer_evidence=None) -> None:
+        """Quarantine evidence without evaluating it or assigning a reward."""
+        path_value = os.environ.get(ROLLOUT_LOG_ENV)
+        if not path_value:
+            return
+        # A group snapshot is richer than a standalone get_reward failure.
+        if getattr(self, "_rejected_snapshot_saved", False):
+            return
+        record = {
+            "schema_version": "retail-agentic-rejected-rollout-v1",
+            "task_id": str(self._task.id),
+            "user_seed": self._seed,
+            "training_eligible": False,
+            "reward_eligible": False,
+            "reward": None,
+            "reasons": self._blocking_transport_reasons(),
+            "messages": [m.model_dump(mode="json") for m in self._messages],
+            "initial_state": deepcopy(self._initial_environment_state),
+            "final_state": _environment_state(self._environment),
+            "completion": deepcopy(self._trainer_completion_telemetry),
+            "trainer_evidence": deepcopy(trainer_evidence),
+            "hidden_user_scenario_persisted": False,
+        }
+        record["evidence_sha256"] = _canonical_sha256(record)
+        path = Path(path_value).resolve().with_name("rejected_rollouts.jsonl")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+        self._rejected_snapshot_saved = True
 
     def _set_trainer_completion_telemetry(self, payload: dict[str, Any]) -> None:
         """Bind trainer-observed termination evidence before reward persistence."""
@@ -1418,7 +1602,7 @@ class RetailAgenticEnvironment:
         self._reward_persisted = True
 
     def _calculate_programmatic_reward(self) -> dict[str, Any]:
-        """Compose reproducible RL reward without an LLM judge."""
+        """Compose rule scores; optional local extractor never assigns totals."""
 
         trajectory = deepcopy(self._messages)
         if self._rollout_stage == IDENTITY_AUTHENTICATION_STAGE:
@@ -1521,9 +1705,21 @@ class RetailAgenticEnvironment:
                 user_stopped=self._user_stopped,
                 completion=completion,
                 staged_reward_spec=reward_config["staged_reward_spec"],
+                skip_semantics=bool(
+                    self._tool_iteration_limit_as_terminal_failure
+                    and transport_invalid_reasons(self._trainer_completion_telemetry)
+                    == ["tool_iteration_limit_reached"]
+                ),
             )
             return {
                 "reward": score["staged_reward"],
+                **({
+                    "rule_only_reward": score["rule_only_reward"],
+                    "semantic_assistance": deepcopy(score["semantic_assistance"]),
+                    "hybrid_additive_components": deepcopy(score["semantic_assistance"]["additive_components"]),
+                    "reward_component_source": "hybrid_additive_components",
+                    "llm_semantic_assistance_used": True,
+                } if "semantic_assistance" in score else {}),
                 "reward_mode": TIERED_TERMINAL_PROCESS_MODE,
                 "terminal_environment_reward": score["terminal_environment_reward"],
                 "components": deepcopy(score["components"]),
@@ -1565,6 +1761,12 @@ class RetailAgenticEnvironment:
                 "reward_config": deepcopy(reward_config),
                 "nl_assertions_used": False,
                 "communication_used_as_reward": True,
+                "claim_evidence_used_as_reward": bool(
+                    (
+                        score["components"].get("claim_evidence_consistency")
+                        or {}
+                    ).get("used_as_reward")
+                ),
                 "policy_guard_used_as_reward": False,
                 "tau2": {
                     "environment": environment_payload,

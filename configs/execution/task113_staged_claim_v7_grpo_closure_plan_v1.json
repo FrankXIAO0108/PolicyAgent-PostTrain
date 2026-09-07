@@ -1,0 +1,72 @@
+{
+  "schema_version": "grpo-engineering-closure-plan-v1",
+  "plan_id": "task113-staged-claim-v7-grpo-10step-n4-v1",
+  "status": "TEN_STEP_LOCAL_VALIDATION_COMPLETE_AWAITING_CLOUD_PREFLIGHT",
+  "created_at": "2026-09-02",
+  "objective": "Complete a ten-step Task 113 GRPO parameter-update development run with the audited staged-v7 reward, inspect checkpoints 2, 5, and 10, then compare the updated adapters against the exact SFT checkpoint under one frozen sampling protocol.",
+  "claim_boundary": {
+    "engineering_parameter_update_claim_allowed_after_artifact_acceptance": true,
+    "business_improvement_claim_allowed": false,
+    "generalization_claim_allowed": false,
+    "official_test_claim_allowed": false,
+    "ten_step_single_task_run_is_not_generalization_evidence": true
+  },
+  "bindings": {
+    "training_config": "configs/retail_agentic_qwen3_4b_task113_staged_claim_v7_grpo_10step_n4_v1.json",
+    "training_config_sha256": "59CDF36AC87655FD48C4B1A085991EEDD5D223AE0201B39F675577E4793A35F8",
+    "starting_model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+    "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+    "opening_sha256": "E453DE8892C10A9F9107B122149EA2BEE1C594826216100937A910F67E42120A",
+    "opening_manifest_sha256": "8EDE9E2DC368FB7F60188CB5C3DA5E38F4F4F7743904D565255DB04477A2CCA9",
+    "source_prescreen_opening_sha256": "83782B2364E2049D57926CA76AE19DDB0C1E75D6BC9AD787CB1276990EABF7E6",
+    "staged_v7_shadow_report_sha256": "59CBF3AFCFDD87C34AC913E892890BA041AD98BBF0EB87F03BFE515A1DEFE02F",
+    "staged_reward_source_sha256": "FA3962DF85FDF6122049B221CBAC3F541C3E7FF3EB7DEB530DDDC888358D04CE",
+    "environment_source_sha256": "AA5F8D1F3262849E1222295985574AD09F1C7080AB0E96AAFDE599E796DC3137",
+    "runner_source_sha256": "E873766BAB9B9F52E8406685D1F762ABDD67E6E3F6DF339D16AD211BF3EC1240"
+  },
+  "frozen_training_contract": {
+    "task_id": "113",
+    "optimizer_steps": 10,
+    "num_generations": 4,
+    "expected_rollouts": 40,
+    "learning_rate": 0.000005,
+    "beta": 0.02,
+    "loss_type": "dr_grpo",
+    "max_completion_length": 5120,
+    "precision": "bf16",
+    "lora_r": 16,
+    "reward_composition": "hierarchical_state_authorization_claim_v7",
+    "checkpoints_for_analysis": [2, 5, 10]
+  },
+  "phases": [
+    {
+      "phase_id": "P0_LOCAL_STATIC_VALIDATION",
+      "status": "COMPLETE",
+      "acceptance": "Config, split, opening manifest, staged reward, optimization arithmetic, and focused tests pass without API or GPU.",
+      "evidence": "The ten-step configuration passed 116 focused tests with one unrelated upstream audioop deprecation warning; Ruff passed; git diff --check reported only existing Windows line-ending warnings."
+    },
+    {
+      "phase_id": "P1_CLOUD_PREFLIGHT",
+      "status": "BLOCKED_ON_FUTURE_USER_AUTHORIZATION",
+      "acceptance": "Bound model/upstream hashes match; BF16 and CUDA are available; DeepSeek preflight passes; no training starts during preflight."
+    },
+    {
+      "phase_id": "P2_TEN_STEP_GRPO",
+      "status": "BLOCKED_ON_P1",
+      "command": "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python -m src.training.run_retail_agentic_grpo --config configs/retail_agentic_qwen3_4b_task113_staged_claim_v7_grpo_10step_n4_v1.json --output-dir /root/autodl-tmp/policyagent-runs/20260902-task113-staged-v7-grpo-10step-n4-v1",
+      "acceptance": "Exactly 10 optimizer steps and 40 transport-complete rollouts; at least one group has nonzero reward std; finite loss/gradients/KL; trainable parameter fingerprint changes; checkpoints 2, 5, and 10 and all raw artifacts are preserved."
+    },
+    {
+      "phase_id": "P3_FROZEN_POST_EVALUATION",
+      "status": "BLOCKED_ON_P2_ARTIFACT_REVIEW",
+      "acceptance": "SFT and GRPO are sampled with identical Task 113 opening, seed, n=4, decoding, budgets, user simulator, and evaluator; trajectory-level reward components and bad cases are audited."
+    }
+  ],
+  "stop_rules": [
+    "Stop before optimization if any hash or dependency binding differs.",
+    "Fail closed before reward/backward if any rollout in a training group is truncated or transport-incomplete.",
+    "Stop interpretation if all groups have zero reward standard deviation.",
+    "Do not call reward increase a business improvement without frozen post-evaluation.",
+    "Do not continue beyond 10 steps automatically."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "rl_train",
+  "rows": 1,
+  "task_ids": ["88"],
+  "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+  "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+  "output_path": "data/retail_agentic_rl_v2/task88_longrun_initial_user_message_v1.jsonl",
+  "output_sha256": "AD6B0886D0CAB97CB87E373BDD0E0618BDBF31FADD53E1B1ECBAFA6C9C10ABD2",
+  "source_openings": [
+    {
+      "task_id": "88",
+      "path": "_local_private_runs/layer2_run_v1/private_evaluation/task_88/returned_results.json",
+      "sha256": "359D43536BFCE2F39EFB7D8FAA9E9EFEBE112C6FEAB9988FB2ADC76EBFFC1C0B",
+      "simulation_index": 0,
+      "simulation_seed": 814494
+    }
+  ],
+  "selection_used_reward_values": false,
+  "selection_reason": "Development-only single-write cancellation task selected for a long optimizer-step GRPO dynamics experiment. The business endpoint is deterministic, the task is in rl_train, and it is SFT-exposed. A fresh same-checkpoint n=4 prescreen is mandatory before optimization.",
+  "derivation": "deterministic_copy_of_existing_first_user_message_no_external_api_call",
+  "source_user_model": "deepseek/deepseek-chat",
+  "source_temperature": 0.0,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false,
+  "evaluation_claim_allowed": false
+}

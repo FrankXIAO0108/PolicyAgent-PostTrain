@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from src.training.rollout_diagnostics import (
+    _remaining_batch_generation_budget,
     BudgetTrace,
     GuardedTrajectoryTrace,
     bind_sampling_runtime,
@@ -15,6 +16,97 @@ from src.training.rollout_diagnostics import (
     validate_sampling_request,
     verify_trl_source,
 )
+
+
+def test_remaining_batch_budget_uses_max_and_restores_even_on_exception():
+    trace = GuardedTrajectoryTrace(8, 100, lambda e: None)
+    trace.start([[1], [2]])
+    config = SimpleNamespace(max_new_tokens=8)
+    kwargs = {"max_new_tokens": 8, "temperature": 0.8}
+    trainer = SimpleNamespace(generation_config=config, generation_kwargs=kwargs)
+    events = []
+    with pytest.raises(RuntimeError, match="test interruption"):
+        with _remaining_batch_generation_budget(
+            trainer, trace, [0, 1], [[1, 3, 4, 5], [2, 6]], events.append
+        ):
+            assert trainer.generation_config.max_new_tokens == 7
+            assert trainer.generation_kwargs["max_new_tokens"] == 7
+            assert config.max_new_tokens == 8
+            raise RuntimeError("test interruption")
+    assert trainer.generation_config is config
+    assert trainer.generation_kwargs is kwargs
+    assert events[0]["remaining_tokens"] == [5, 7]
+
+
+def test_remaining_budget_refuses_zero_and_keeps_configured_smaller_limit():
+    trace = GuardedTrajectoryTrace(2, 100, lambda e: None)
+    trace.start([[1]])
+    trainer = SimpleNamespace(
+        generation_config=SimpleNamespace(max_new_tokens=1), generation_kwargs={}
+    )
+    with _remaining_batch_generation_budget(trainer, trace, [0], [[1]], lambda e: None):
+        assert trainer.generation_config.max_new_tokens == 1
+    with pytest.raises(RuntimeError, match="no remaining"):
+        with _remaining_batch_generation_budget(
+            trainer, trace, [0], [[1, 3, 4]], lambda e: None
+        ):
+            pytest.fail("Zero-budget generation must not start")
+    trainer.generation_config.max_new_tokens = 8
+    trainer.generation_kwargs["max_new_tokens"] = 1
+    with _remaining_batch_generation_budget(trainer, trace, [0], [[1]], lambda e: None):
+        assert trainer.generation_config.max_new_tokens == 1
+
+
+def test_guarded_rejected_group_preserves_all_candidates_before_reward():
+    events, saved = [], []
+
+    class Environment:
+        _runtime_stop_signals = []
+        _user_stopped = True
+
+        def _set_trainer_completion_telemetry(self, payload):
+            self.telemetry = payload
+
+        def _blocking_transport_reasons(self):
+            return ["model_completion_truncated"] if self.telemetry[
+                "model_completion_truncated"
+            ] else []
+
+        def _persist_rejected_rollout(self, *, trainer_evidence):
+            saved.append(trainer_evidence)
+
+        def get_reward(self):
+            pytest.fail("Group preservation must precede all reward calls")
+
+    class Native:
+        def __init__(self):
+            self.model = SimpleNamespace(config=SimpleNamespace(max_position_embeddings=100))
+            self._is_vlm = False
+            self.state = SimpleNamespace(global_step=49)
+            self.max_completion_length = 3
+            self.max_tool_calling_iterations = 32
+            self._tokenizer = SimpleNamespace(
+                eos_token_id=99, decode=lambda ids, **kw: str(ids)
+            )
+            self.environments = [Environment() for _ in range(4)]
+
+        def _generate(self, prompts):
+            trace = self._policyagent_stop_trace
+            ids = [[5, 99], [5, 6, 7, 8], [6, 99], [7, 99]]
+            trace.generated(trace.start(prompts), prompts, ids, 99)
+            kept = [ids[0], ids[1][:3], ids[2], ids[3]]
+            return (prompts, kept, [[1] * len(s) for s in kept],
+                    [[{"role": "assistant", "content": str(s)}] for s in kept])
+
+    trainer = make_guarded_grpo_trainer(Native, events.append)()
+    trainer._generate([[1]] * 4)
+    assert [s["row"] for s in saved] == [0, 1, 2, 3]
+    assert saved[1]["completion_token_ids"] == [5, 6, 7]
+    assert saved[1]["optimizer_step"] == 49
+    assert saved[0]["group_blocking_reasons"] == [[], ["model_completion_truncated"], [], []]
+    censored = next(e for e in events if e["event"] == "censored_generation")
+    assert censored["generated_token_ids"] == [5, 6, 7, 8]
+    assert not hasattr(trainer, "_policyagent_stop_trace")
 
 
 def _guarded_environment(*, user_stopped=False, signals=None):
@@ -613,6 +705,7 @@ def test_true_greedy_requires_explicit_decode_contract_not_temperature():
     assert contract["mode"] == "TRUE_GREEDY"
     assert contract["actual_num_generations"] == 1
     assert contract["trl_constructor_num_generations"] == 2
+    assert contract["trl_constructor_steps_per_generation"] == 2
     with pytest.raises(ValueError, match="frozen config"):
         validate_sampling_request(config, 1, 1)
 

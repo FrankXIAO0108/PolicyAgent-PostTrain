@@ -1,0 +1,16 @@
+{
+  "mode": "OFFLINE_PARTIAL_SEMANTIC_CANDIDATE",
+  "online_promotion_allowed": false,
+  "source_config": "configs/evaluation/task44_semantic_shadow_judge_v1.json",
+  "baseline_config": "configs/retail_agentic_qwen3_4b_task44_staged_v6_n4_50step_c8192_v2.json",
+  "baseline_config_sha256": "abf5c13750af302047329cc35836481c01a96267a70ca270e14d50b9ff5228bb",
+  "evidence_path": "_local_private_runs/20260903-task44-terminal-grpo-resume40-v1/rollout_evidence.jsonl",
+  "evidence_sha256": "4a76fbc5187b7f2a5ba0acdeda60ea8d6fbb7131cf6db6c263750441039707a3",
+  "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+  "max_output_tokens": 8192,
+  "changed_slots": ["write_authorization", "post_write_communication"],
+  "communication_gate": "Remove existing communication credit only on a rule-verified contradiction in an extracted assistant claim, including pre-write claims",
+  "missing_or_invalid_semantics": "KEEP_BASELINE_RULE_SCORE",
+  "unknown_means_safe": false,
+  "same_19_rows_reextraction_authorized_by_owner": true
+}

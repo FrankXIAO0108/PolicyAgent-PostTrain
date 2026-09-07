@@ -1,0 +1,34 @@
+{
+  "schema_version": "retail-tau2-teacher-pilot-layer1-v1",
+  "status": "FROZEN",
+  "scope": "TAU2_GROUNDED_TEACHER_DATA_ENGINEERING_PILOT_REFRESH",
+  "purpose": "First small teacher refresh batch on existing TRAIN tasks; candidate generation only, never automatic SFT release.",
+  "claims": {"official_metric": false, "formal_retail_gate_unchanged": true, "training_data_released": false, "business_improvement_claim_allowed": false, "official_test_reserved": true},
+  "upstream": {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "source_package_sha256": "70561F84785BFCE85A2E7BC3BFFC4599877F224D58A274A08CAA516AEFFE2C20",
+    "required_files": {"data/tau2/user_simulator/simulation_guidelines.md": "E054ADB606A4AA6F586F33F3AA61542954B6F699D029C9CD4C156E28B6300067"}
+  },
+  "task_split": "data/retail_agentic_rl_v1/task_split.json",
+  "task_subset": "rl_train",
+  "tasks": [
+    {"task_id": "44", "stratum": "cheapest_variant_refund", "reason": "Review available-variant comparison, refund versus payment, authorization, and factual communication."},
+    {"task_id": "73", "stratum": "return_exclusion_scope", "reason": "Review return scope excluding coffee machine, confirmation, actual tool effects, and completion."}
+  ],
+  "generation": {
+    "agent": {"implementation": "audited_teacher_llm_agent", "model": "deepseek/deepseek-chat", "temperature_ladder": [0.2, 0.4, 0.6, 0.8]},
+    "user": {"implementation": "user_simulator", "model": "deepseek/deepseek-chat", "temperature": 0.0},
+    "candidates_per_task": 4, "seed": 20260905, "max_steps": 120, "max_errors": 5, "max_concurrency": 1, "max_retries": 0
+  },
+  "teacher_visibility": {"policy": true, "tool_schemas": true, "observed_user_messages": true, "observed_tool_results": true, "evaluation_criteria": false, "expected_actions": false, "gold_database_state": false, "hidden_user_scenario": false},
+  "offline_evaluation": {"tau2_evaluation_type": "ALL_IGNORE_BASIS", "llm_judge_used": false, "expected_actions_used_only_after_generation": true, "human_review_required_for_training_release": true, "maximum_automatic_label": "AUTO_PASS_CANDIDATE"},
+  "known_limitations": [
+    "FROZEN describes configuration, not permission to call external APIs; explicit batch authorization is still required.",
+    "deepseek-chat is a service alias; actual response model must be recorded and reviewed, not assumed.",
+    "Eight candidates are planned, not eight approved training trajectories; same-family teacher/user bias remains.",
+    "These are seen training tasks, not additional independent tasks or a generalization benchmark.",
+    "Native tau2 dialogue requires a separately verified protocol conversion before agentic SFT; no conversion or training is authorized by this config.",
+    "Automatic success and existing rule checks do not establish factual correctness of every teacher statement."
+  ]
+}

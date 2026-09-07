@@ -1,0 +1,29 @@
+{
+  "schema_version": "retail-agentic-rl-user-openings-v1",
+  "scope": "ISOLATED_AGENTIC_RL_ENGINEERING",
+  "subset": "rl_train",
+  "rows": 1,
+  "task_ids": ["113"],
+  "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+  "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+  "output_path": "data/retail_agentic_rl_v2/task113_frozen_opening_from_prescreen_v1.jsonl",
+  "output_sha256": "E453DE8892C10A9F9107B122149EA2BEE1C594826216100937A910F67E42120A",
+  "source_openings": [
+    {
+      "task_id": "113",
+      "path": "_local_private_runs/task113_prescreen_20260902/passk-n4-v1/raw_rollouts.jsonl",
+      "sha256": "0AB59257EB2B249B762D3E94C245D6AF3516BC2563AC3BE83A01A3FE78DDA20A",
+      "message_index": 1,
+      "simulation_seed": 20260902
+    }
+  ],
+  "original_generated_opening_sha256": "83782B2364E2049D57926CA76AE19DDB0C1E75D6BC9AD787CB1276990EABF7E6",
+  "semantic_opening_unchanged": true,
+  "derivation": "deterministic_copy_of_hash_bound_first_user_message_from_frozen_prescreen_rollout",
+  "source_user_model": "deepseek/deepseek-chat",
+  "source_temperature": 0.0,
+  "hidden_user_scenarios_persisted": false,
+  "training_labels_included": false,
+  "selection_used_reward_values": false,
+  "evaluation_claim_allowed": false
+}

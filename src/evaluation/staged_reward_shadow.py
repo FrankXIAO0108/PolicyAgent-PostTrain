@@ -170,7 +170,7 @@ def _claim_evidence_diagnostic(
 
     This is a deterministic development diagnostic.  A PASS means that no
     configured rule fired; it is not proof that every natural-language claim
-    is grounded.  The result is deliberately excluded from scalar reward.
+    is grounded.  The caller determines whether a configured reward mode uses it.
     """
 
     rules = list(task_spec.get("claim_evidence_rules") or [])
@@ -200,8 +200,26 @@ def _claim_evidence_diagnostic(
         verdict = str(rule.get("verdict") or "")
         if verdict not in {"FAIL", "REVIEW"}:
             raise ValueError("Claim-evidence rule verdict must be FAIL or REVIEW")
+        if rule.get("rule_type") in {"refund_timing_by_payment_v1", "refund_timing_by_payment_v2"}:
+            from src.evaluation.refund_timing import refund_timing_diagnostic
+
+            diagnostic = refund_timing_diagnostic(messages, trace, rule)
+            base = {"rule_id": rule_id, "rule_type": rule["rule_type"],
+                    "configured_verdict": verdict, "claim_checks": diagnostic["findings"]}
+            if diagnostic["errors"]:
+                errors.extend({**base, **error} for error in diagnostic["errors"])
+            elif diagnostic["verdict"] != "PASS":
+                findings.append({**base, "verdict": diagnostic["verdict"]})
+            continue
+        # Exclude only explicitly specified local spans, not the entire message:
+        # a valid gift-card conditional must not hide a separate false promise.
+        trigger_text = assistant_text
+        exclusion_patterns = list(rule.get("trigger_exclusion_patterns") or [])
+        excluded_triggers = _pattern_matches(trigger_text, exclusion_patterns)
+        for pattern in exclusion_patterns:
+            trigger_text = re.sub(pattern, lambda match: " " * len(match.group(0)), trigger_text)
         triggers = _pattern_matches(
-            assistant_text,
+            trigger_text,
             list(rule.get("trigger_patterns") or []),
         )
         if not triggers:
@@ -212,6 +230,7 @@ def _claim_evidence_diagnostic(
             "rule_type": rule_type,
             "configured_verdict": verdict,
             "trigger_matches": triggers,
+            "excluded_trigger_spans": excluded_triggers,
         }
         if rule_type == "denial_conflicts_with_nonempty_path":
             payload, error = _successful_json_payload(
@@ -636,7 +655,19 @@ def score_rollout(
     trace = list(evidence.get("tool_trace") or [])
     terminal = dict(evidence.get("terminal_evaluator") or {})
 
-    identity = _identity_link(trace, task_spec)
+    evidence_version = spec.get("evidence_rules_version")
+    if evidence_version not in {None, "task44_evidence_v2"}:
+        raise ValueError("Unsupported reward evidence rules version")
+    if evidence_version == "task44_evidence_v2":
+        if task_id != "44":
+            raise ValueError("task44_evidence_v2 is scoped to Task44")
+        from src.evaluation.task44_reward_evidence import (
+            identity_evidence, confirmation_evidence,
+        )
+        identity = identity_evidence(list(raw.get("messages") or []), task_spec["identity_link"])
+        confirmation_diagnostic = confirmation_evidence(list(raw.get("messages") or []))
+    else:
+        identity = _identity_link(trace, task_spec)
     target = _target_evidence(trace, task_spec)
     messages = list(raw.get("messages") or [])
     write = _required_write_progress(messages, terminal, task_spec)
@@ -724,11 +755,14 @@ def score_rollout(
     composition_mode = str(reward_spec.get("composition_mode") or "")
     additive_components: dict[str, float] | None = None
     confirmation_component: dict[str, Any] | None = None
+    authorization_applicable = False
+    claim_evidence_cap_applied = False
     if composition_mode in {
         "additive_terminal_process_v3",
         "additive_terminal_process_confirmation_v4",
         "hierarchical_state_authorization_v5",
         "hierarchical_state_authorization_review_v6",
+        "hierarchical_state_authorization_claim_v7",
     }:
         additive_weights = {
             name: float(value)
@@ -752,7 +786,11 @@ def score_rollout(
                 "write_authorization",
                 "post_write_communication",
             }
-            if composition_mode == "hierarchical_state_authorization_review_v6"
+            if composition_mode
+            in {
+                "hierarchical_state_authorization_review_v6",
+                "hierarchical_state_authorization_claim_v7",
+            }
             else {
                 "terminal_environment",
                 "identity_link",
@@ -792,6 +830,7 @@ def score_rollout(
             "additive_terminal_process_confirmation_v4",
             "hierarchical_state_authorization_v5",
             "hierarchical_state_authorization_review_v6",
+            "hierarchical_state_authorization_claim_v7",
         }:
             if not isinstance(confirmation_diagnostic, dict):
                 raise ValueError(
@@ -799,12 +838,19 @@ def score_rollout(
                     "confirmation diagnostics"
                 )
             checks = list(confirmation_diagnostic.get("checks") or [])
-            confirmation_passed = bool(write_complete and checks) and all(
+            scope = reward_spec.get("authorization_scope", "complete_required_writes")
+            if scope not in {"complete_required_writes", "every_observed_write"}:
+                raise ValueError("Unknown authorization_scope")
+            authorization_applicable = write_complete or (
+                scope == "every_observed_write"
+                and int(confirmation_diagnostic.get("write_count") or 0) > 0
+            )
+            confirmation_passed = bool(authorization_applicable and checks) and all(
                 item.get("confirmed") is True
                 and (item.get("parameter_binding") or {}).get("verdict") == "PASS"
                 for item in checks
             )
-            if not write_complete:
+            if not authorization_applicable:
                 confirmation_verdict = "NOT_APPLICABLE"
             elif not checks or any(item.get("confirmed") is not True for item in checks):
                 confirmation_verdict = "FAIL"
@@ -817,6 +863,12 @@ def score_rollout(
                 confirmation_verdict = "PASS"
             else:
                 confirmation_verdict = "REVIEW"
+            if evidence_version == "task44_evidence_v2" and write_complete:
+                verdicts = [item["verified_verdict"] for item in checks]
+                confirmation_verdict = (
+                    "FAIL" if not verdicts or "FAIL" in verdicts
+                    else "PASS" if all(v == "PASS" for v in verdicts) else "REVIEW"
+                )
             confirmation_value = (
                 1.0
                 if confirmation_verdict == "PASS"
@@ -849,6 +901,7 @@ def score_rollout(
         if composition_mode in {
             "hierarchical_state_authorization_v5",
             "hierarchical_state_authorization_review_v6",
+            "hierarchical_state_authorization_claim_v7",
         }:
             tau2_environment = dict((terminal.get("tau2") or {}).get("environment") or {})
             environment_state = 1.0 if math.isclose(
@@ -905,6 +958,7 @@ def score_rollout(
         if composition_mode in {
             "hierarchical_state_authorization_v5",
             "hierarchical_state_authorization_review_v6",
+            "hierarchical_state_authorization_claim_v7",
         }:
             normalized_weights = additive_weights
             process_score = unpenalized
@@ -919,22 +973,42 @@ def score_rollout(
                 unpenalized,
                 float(reward_spec["unauthorized_write_hard_cap"]),
             )
-        if composition_mode == "hierarchical_state_authorization_review_v6":
+        if composition_mode in {
+            "hierarchical_state_authorization_review_v6",
+            "hierarchical_state_authorization_claim_v7",
+        }:
             confirmation_verdict = str(
                 (confirmation_component or {}).get("verdict") or "FAIL"
             )
-            if write_complete and (
+            if authorization_applicable and (
                 not bool(identity_gate) or confirmation_verdict == "FAIL"
             ):
                 unpenalized = min(
                     unpenalized,
                     float(reward_spec["authorization_fail_hard_cap"]),
                 )
-            elif write_complete and confirmation_verdict == "REVIEW":
+            elif authorization_applicable and confirmation_verdict == "REVIEW":
                 unpenalized = min(
                     unpenalized,
                     float(reward_spec["authorization_review_cap"]),
                 )
+        if composition_mode == "hierarchical_state_authorization_claim_v7":
+            if not isinstance(claim_evidence, dict):
+                raise ValueError(
+                    "hierarchical_state_authorization_claim_v7 requires "
+                    "claim-evidence diagnostics"
+                )
+            claim_evidence = dict(claim_evidence)
+            claim_evidence["used_as_reward"] = True
+            claim_verdict = str(claim_evidence.get("verdict") or "ERROR")
+            if claim_verdict in {"FAIL", "ERROR"}:
+                claim_cap = float(reward_spec["claim_evidence_fail_cap"])
+                claim_evidence_cap_applied = unpenalized > claim_cap
+                unpenalized = min(unpenalized, claim_cap)
+            elif claim_verdict == "REVIEW":
+                claim_cap = float(reward_spec["claim_evidence_review_cap"])
+                claim_evidence_cap_applied = unpenalized > claim_cap
+                unpenalized = min(unpenalized, claim_cap)
         if terminal_incomplete_communication:
             unpenalized = min(
                 unpenalized,
@@ -996,6 +1070,8 @@ def score_rollout(
         "terminal_incomplete_communication": terminal_incomplete_communication,
         "terminal_override_applied": terminal_override_applied,
         "composition_mode": composition_mode or "legacy_terminal_override",
+        "evidence_rules_version": evidence_version,
+        "confirmation_evidence": confirmation_diagnostic if evidence_version else None,
         "additive_components": additive_components,
         "write_complete": write_complete,
         "premature_transfer": premature_transfer,
@@ -1011,6 +1087,7 @@ def score_rollout(
                 in {
                     "hierarchical_state_authorization_v5",
                     "hierarchical_state_authorization_review_v6",
+                    "hierarchical_state_authorization_claim_v7",
                 }
                 else None
             ),
@@ -1031,18 +1108,27 @@ def score_rollout(
             and not bool((additive_components or {}).get("authorized_write"))
         ),
         "authorization_review_cap_applied": bool(
-            composition_mode == "hierarchical_state_authorization_review_v6"
-            and write_complete
+            composition_mode
+            in {
+                "hierarchical_state_authorization_review_v6",
+                "hierarchical_state_authorization_claim_v7",
+            }
+            and authorization_applicable
             and (confirmation_component or {}).get("verdict") == "REVIEW"
         ),
         "authorization_fail_cap_applied": bool(
-            composition_mode == "hierarchical_state_authorization_review_v6"
-            and write_complete
+            composition_mode
+            in {
+                "hierarchical_state_authorization_review_v6",
+                "hierarchical_state_authorization_claim_v7",
+            }
+            and authorization_applicable
             and (
                 not bool(identity_gate)
                 or (confirmation_component or {}).get("verdict") == "FAIL"
             )
         ),
+        "claim_evidence_cap_applied": claim_evidence_cap_applied,
         "no_verified_write_cap_applied": float(write["value"]) == 0.0,
     }
 
@@ -1346,6 +1432,7 @@ def build_report(run_dir: Path, spec_path: Path) -> dict[str, Any]:
         "additive_terminal_process_confirmation_v4",
         "hierarchical_state_authorization_v5",
         "hierarchical_state_authorization_review_v6",
+        "hierarchical_state_authorization_claim_v7",
     }
     trajectories = []
     for raw, evidence in zip(raw_rows, evidence_rows, strict=True):
@@ -1385,6 +1472,13 @@ def build_report(run_dir: Path, spec_path: Path) -> dict[str, Any]:
             claim := row["components"].get("claim_evidence_consistency"), dict
         )
     )
+    claim_evidence_used_as_reward = any(
+        bool(claim.get("used_as_reward"))
+        for row in trajectories
+        if isinstance(
+            claim := row["components"].get("claim_evidence_consistency"), dict
+        )
+    )
     gate_spec = dict(spec["shadow_gate"])
     separability_checks = {
         "minimum_mixed_groups": staged_stats["group_counts"]["mixed"]
@@ -1415,7 +1509,14 @@ def build_report(run_dir: Path, spec_path: Path) -> dict[str, Any]:
     claim_safe_authorized_rollouts = [
         row
         for row in trajectories
-        if float((row.get("additive_components") or {}).get("authorized_write", 0.0))
+        if float(
+            (row.get("additive_components") or {}).get(
+                "authorized_write",
+                (row.get("additive_components") or {}).get(
+                    "write_authorization", 0.0
+                ),
+            )
+        )
         > 0.0
         and float(
             (row.get("additive_components") or {}).get(
@@ -1501,7 +1602,7 @@ def build_report(run_dir: Path, spec_path: Path) -> dict[str, Any]:
             "staged_shadow": staged_stats,
             "claim_evidence_diagnostic": {
                 "verdict_counts": dict(sorted(claim_verdict_counts.items())),
-                "used_as_reward": False,
+                "used_as_reward": claim_evidence_used_as_reward,
             },
         },
         "gate": {

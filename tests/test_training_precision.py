@@ -9,6 +9,7 @@ import pytest
 from src.training import run_retail_agentic_grpo as runner
 from src.training.rollout_diagnostics import (
     BudgetTrace,
+    GuardedTrajectoryTrace,
     _exclusive_sampling_model,
     make_guarded_grpo_trainer,
     make_sampling_trainer,
@@ -350,8 +351,14 @@ def test_factory_bf16_flag_enters_only_native_generation_and_always_exits(
             self.use_vllm = self._is_vlm = self.use_transformers_continuous_batching = (
                 False
             )
-            self._budget_trace = BudgetTrace(8, 100, lambda event: None)
+            self._budget_trace = (
+                GuardedTrajectoryTrace(8, 100, lambda event: None)
+                if factory == "sample"
+                else BudgetTrace(8, 100, lambda event: None)
+            )
             self._tokenizer = SimpleNamespace(eos_token_id=9)
+            self.generation_config = SimpleNamespace(max_new_tokens=8)
+            self.generation_kwargs = {}
 
         def _generate_single_turn(self, prompts, images, fields):
             calls.append("native")
@@ -362,8 +369,10 @@ def test_factory_bf16_flag_enters_only_native_generation_and_always_exits(
             return output
 
     def generation_guard(
-        core, prompts, indices, generation_index, emit, native, images, fields
+        core, prompts, indices, generation_index, emit, native, images, fields,
+        expected_max_new_tokens=None,
     ):
+        assert expected_max_new_tokens == (8 if factory == "optimize" else None)
         assert not torch.is_autocast_enabled("cpu")
         try:
             return native(prompts, images, fields)

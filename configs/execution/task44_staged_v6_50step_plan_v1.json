@@ -1,0 +1,82 @@
+{
+  "plan_id": "task44-staged-v6-50step-v1",
+  "status": "DRAFT_PENDING_OWNER_APPROVAL",
+  "current_task": "LOCAL_DESIGN_AND_VALIDATION",
+  "cloud_execution_authorized": false,
+  "reward_audit_ready_for_cloud": false,
+  "offline_audit": {
+    "path": "_local_private_runs/20260903-task44-reward-v2-audit-v2/summary.json",
+    "rows": 200,
+    "nonzero_staged_groups": 49,
+    "previous_low_success_review": {
+      "PASS": 8,
+      "REVIEW": 8,
+      "FAIL": 1
+    },
+    "required_followup": "Owner review of v2 rule revision and cloud prescreen approval; REVIEW is uncertainty, not human gold. No cloud execution authorized."
+  },
+  "external_api_authorized": false,
+  "training_config": "configs/retail_agentic_qwen3_4b_task44_staged_v6_n4_50step_c8192_v2.json",
+  "local_head": "5e50138f13c4fcc408c714d074449c1ef05549dc",
+  "working_tree_dirty": true,
+  "source_sha256": {
+    "src/rl/retail_agentic_env.py": "8CCE35E80A7D3A050BB3D66334DDC045945284F1E5B2CF73B79452C068B86F03",
+    "src/evaluation/staged_reward_shadow.py": "960485D19A6D36C6D18EBD50FD7CC75ED48B8BC4041FBF9BFF07B0083A91E13F",
+    "src/training/rollout_diagnostics.py": "C75B08EF9FC379D036C688D3B50F498D9EE0578908FAF6174A05762C635BD6EF",
+    "src/training/run_retail_agentic_grpo.py": "F122A87FACC7E7FED99EE71A570AF3903AAAB99A72EC01F4759F7ED190770AA2",
+    "src/evaluation/task44_reward_evidence.py": "B8309C5D0D7FC365A0B66FC75A9B86678392845E75569405FE8DF23E5850D9C6"
+  },
+  "reward_source": "configs/retail_agentic_qwen3_4b_task44_staged_v6_n4_50step_c8192_v2.json",
+  "reward_formula_unchanged": false,
+  "reference_terminal_config": "configs/retail_agentic_qwen3_4b_task44_reward_ab_terminal_n4_50step_c8192_resume20_toollimit0_v1.json",
+  "historical_terminal_is_strict_control": false,
+  "resume_from_checkpoint": null,
+  "starting_model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+  "scope": "SINGLE_TRAIN_TASK_ENGINEERING_NOT_GENERALIZATION",
+  "new_rollout_budget": {
+    "prescreen": 4,
+    "training": 200,
+    "paired_evaluation": 8,
+    "total": 212
+  },
+  "user_simulator": {
+    "model": "deepseek/deepseek-chat",
+    "llm_args_config": "configs/execution/task44_user_simulator_args_v1.json",
+    "seed_source": "frozen opening user_seed"
+  },
+  "evaluation": {
+    "models": [
+      "same SFT checkpoint",
+      "new staged-v6 checkpoint-50"
+    ],
+    "num_generations": 4,
+    "groups_per_task": 1,
+    "seed": 20260904,
+    "temperature": 0.8,
+    "max_completion_length": 8192,
+    "task_ids": [
+      "44"
+    ],
+    "opening": "data/retail_agentic_rl_v2/terminal_grpo_closure_task44_explicit_context_initial_user_message.jsonl",
+    "metrics": [
+      "terminal_environment_reward",
+      "db_state_correct",
+      "early_eos_rate",
+      "authorization_diagnostics_not_gold",
+      "tool_calls_conditioned_on_terminal_success"
+    ],
+    "interpretation": "same-task stochastic comparison only; not independent task holdout"
+  },
+  "constraints": [
+    "Do not modify runner, reward weights, task, opening, optimizer or existing artifacts in this task.",
+    "Use one pinned repaired runtime for prescreen, all training steps, and paired evaluation.",
+    "No resume from a Terminal-GRPO or partial staged checkpoint.",
+    "Unexpected truncation, context errors, API/system errors abort; preserve quarantine evidence.",
+    "Sole tool_iteration_limit_reached is reward=0 in BOTH arms under current explicit policy.",
+    "Prescreen must contain nonzero staged reward spread, no transport failures, and a reviewed valid completed positive before training.",
+    "No automatic retries, parameter changes, reward changes or increased sampling on gate failure.",
+    "Future cloud/API/upload operations require fresh scoped authorization."
+  ],
+  "reward_evidence_rules_version": "task44_evidence_v2",
+  "reward_weights_unchanged": true
+}

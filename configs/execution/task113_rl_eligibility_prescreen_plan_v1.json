@@ -1,0 +1,113 @@
+{
+  "schema_version": "rl-eligibility-prescreen-plan-v1",
+  "plan_id": "task113-sft-checkpoint-eligibility-prescreen-v1",
+  "status": "PRESCREEN_COMPLETE_STAGED_REWARD_REQUIRED_BEFORE_OPTIMIZATION",
+  "created_at": "2026-09-02",
+  "objective": "Determine whether the bound Qwen3-4B SFT checkpoint can produce both correct and incorrect full Task 113 trajectories under one frozen prompt, making a short same-task terminal-reward GRPO engineering closure technically justified.",
+  "claim_boundary": {
+    "parameter_update_in_this_plan": false,
+    "same_task_development_diagnostic_allowed": true,
+    "business_improvement_claim_allowed": false,
+    "generalization_claim_allowed": false,
+    "official_test_claim_allowed": false,
+    "policy_compliance_claim_requires_trajectory_audit": true
+  },
+  "source_binding": {
+    "project_head_before_local_preparation": "5e50138f13c4fcc408c714d074449c1ef05549dc",
+    "upstream_commit": "58e5e1ace69302e6982d27014569c03e0ffccdd2",
+    "task_split_path": "data/retail_agentic_rl_v2/task_split.json",
+    "task_split_sha256": "C43CD3A97350BB33F213B7053077483497D008E94343BB38B798D932FB528135",
+    "starting_model_sha256": "0A2E06C9BCA6082F3FE6723EC54A46D4CE1D37A8C6DD6B9BC116BBA4BAB16576",
+    "prepare_openings_path": "src/rl/prepare_user_openings.py",
+    "prepare_openings_sha256": "F0689E730162C31D1C2A642F9E9DF902B24B9D3DAF0B5EE4CF4C1582D815A99A",
+    "greedy_config_path": "configs/retail_agentic_qwen3_4b_task113_greedy_prescreen_v1.json",
+    "greedy_config_sha256": "0E059B0D4E753BDC92EE34C6A708DB56585F2310B0B473AF532C55D30687D80E",
+    "passk_config_path": "configs/retail_agentic_qwen3_4b_task113_passk_n4_prescreen_v1.json",
+    "passk_config_sha256": "943E796C9EFBF0F1722431241B2642D063BAC5C68F2B2236904562C80946DC65"
+  },
+  "task_selection": {
+    "task_id": "113",
+    "task_subset": "rl_train",
+    "included_in_bound_sft_split": false,
+    "repository_history_contains_teacher_and_correction_artifacts": true,
+    "selection_used_current_qwen_outputs": false,
+    "nominal_business_path": "Authenticate by name and zip, enumerate orders, identify two pending orders, ask for an allowed cancellation reason and explicit confirmation, cancel both orders serially, and report completion.",
+    "required_mutations": 2,
+    "selection_rationale": "Task 113 is the shortest operationally clear candidate among the three rl_train tasks excluded from the bound SFT split (0, 91, 113). It still exercises identity lookup, state inspection, confirmation, two writes, and termination.",
+    "known_evidence": "Historical DeepSeek teacher trajectories achieved DB match after following this task, but were correction-required for parallel calls and mixed text/tool turns. This does not establish Qwen SFT competence or policy-compliant reward positives.",
+    "known_upstream_anomaly": "The task is ID 113 while expected action IDs are labelled 114_0 and 114_1. Historical deterministic state replay reported db_match=true; the IDs are treated as metadata only, but every new terminal-positive trajectory must still be audited against final DB state and actual call arguments."
+  },
+  "frozen_sampling": {
+    "completion_budget": 8192,
+    "user_model": "deepseek/deepseek-chat",
+    "user_temperature": 0.0,
+    "user_seed": 20260902,
+    "greedy_agent_seed": 20260902,
+    "stochastic_agent_seed": 20260902,
+    "stochastic_temperature": 0.8,
+    "top_p": 1.0,
+    "top_k": 0,
+    "num_generations": 4,
+    "groups_per_task": 1,
+    "learning_rate": 0.0,
+    "beta": 0.0
+  },
+  "phases": [
+    {
+      "phase_id": "P0_LOCAL_VALIDATION",
+      "status": "COMPLETE",
+      "evidence": "Focused config and opening-selector tests pass locally; no model, API, or GPU call was made."
+    },
+    {
+      "phase_id": "P1_GENERATE_FROZEN_OPENING",
+      "status": "COMPLETE",
+      "command": "python -m src.rl.prepare_user_openings --task-split data/retail_agentic_rl_v2/task_split.json --subset rl_train --task-ids 113 --output data/retail_agentic_rl_v2/task113_initial_user_message_v1.jsonl --manifest data/retail_agentic_rl_v2/task113_initial_user_message_manifest_v1.json --model deepseek/deepseek-chat --seed 20260902",
+      "acceptance": "Exactly one row for Task 113; temperature 0.0; hidden scenario absent; output and split hashes match the manifest.",
+      "evidence": "Opening SHA256 83782B2364E2049D57926CA76AE19DDB0C1E75D6BC9AD787CB1276990EABF7E6; one Task 113 row; hidden scenario absent. The requested provider alias was deepseek/deepseek-chat; provider response metadata reported deepseek-v4-flash, so the backend model version is not independently frozen."
+    },
+    {
+      "phase_id": "P2_TRUE_GREEDY_PASS1",
+      "status": "COMPLETE",
+      "command": "python -m src.training.run_retail_agentic_grpo --config configs/retail_agentic_qwen3_4b_task113_greedy_prescreen_v1.json --output-dir /root/autodl-tmp/policyagent-runs/20260902-task113-greedy-v1 --sample-only --completion-budget 8192 --groups-per-task 1",
+      "acceptance": "One transport-complete rollout, no truncation, no infrastructure failure, and complete raw rollout/evidence manifests.",
+      "evidence": "Accepted run is greedy-v3 after two pre-rollout launch failures. Reward 1.0; DB match true; two required writes matched; confirmation diagnostics 2/2; no tool error, truncation, context limit, or loop abnormality. Local run_manifest SHA256 F94E1B8ABDCE27A3882353EC0C403CCFCE88335C0ED056E86100BCAEECD39AB4. No optimization, backward, optimizer, or loss computation occurred."
+    },
+    {
+      "phase_id": "P3_STOCHASTIC_PASS4",
+      "status": "COMPLETE",
+      "command": "python -m src.training.run_retail_agentic_grpo --config configs/retail_agentic_qwen3_4b_task113_passk_n4_prescreen_v1.json --output-dir /root/autodl-tmp/policyagent-runs/20260902-task113-passk-n4-v1 --sample-only --completion-budget 8192 --groups-per-task 1",
+      "acceptance": "Four transport-complete same-prompt rollouts, no truncation, no infrastructure failure, and complete raw rollout/evidence manifests.",
+      "evidence": "Four transport-complete rollouts with observational terminal rewards [0.0, 1.0, 1.0, 1.0]; no truncation, context limit, unresolved tool call, or framework abnormality. Local run_manifest SHA256 C9415D12D1A252C5ED92A4DF5885FBD3ED45C050BBCFB9FF9A6794702625DC58. No optimization, backward, optimizer, or loss computation occurred."
+    },
+    {
+      "phase_id": "P4_ELIGIBILITY_AUDIT",
+      "status": "COMPLETE_TERMINAL_REWARD_REJECTED_FOR_OPTIMIZATION",
+      "eligible_rule": "The n=4 group contains one to three terminal DB positives; at least one positive trajectory is policy-compliant after manual trace audit; at least one negative is an agent behavior failure rather than infrastructure or evaluator failure.",
+      "stop_rules": {
+        "zero_of_four": "Do not start GRPO; the checkpoint has not shown the required behavior. Return to SFT data or choose a simpler predeclared rl_train task.",
+        "four_of_four": "Do not start GRPO on Task 113; terminal reward has no group contrast and the task is at sampled ceiling.",
+        "mixed_but_positive_is_policy_unsafe": "Do not use terminal reward alone; define and audit a Task 113 staged reward before optimization.",
+        "transport_or_evaluator_failure": "Classify as infrastructure/evaluator failure and rerun only the identical failed sample after repair."
+      }
+    }
+  ],
+  "observed_result": {
+    "greedy_terminal_reward": 1.0,
+    "stochastic_terminal_rewards": [0.0, 1.0, 1.0, 1.0],
+    "stochastic_terminal_success_count": 3,
+    "stochastic_rollout_count": 4,
+    "clean_positive_count_after_trace_audit": 1,
+    "valid_model_behavior_negative_count": 1,
+    "terminal_positive_with_material_quality_issue_count": 2,
+    "eligibility_verdict": "ELIGIBLE_ONLY_WITH_AUDITED_STAGED_REWARD",
+    "reason": "Candidate 0 ended before the user stopped and made no tool progress. Candidate 2 is a clean terminal positive. Candidate 1 reached the correct DB state but falsely promised immediate credit-card refunds instead of 5 to 7 business days. Candidate 3 reached the correct DB state but hallucinated user_id 12345, incurred a tool error, temporarily described all four orders as pending, and triggered confirmation-binding review. Terminal DB reward therefore has useful group contrast but is misaligned with trajectory quality and must not be used alone."
+  },
+  "next_task_if_eligible": "Create a separately reviewed short staged-reward GRPO card from the same checkpoint and Task 113. The staged reward must distinguish clean completion from false refund communication, fabricated identifiers/tool errors, and confirmation-binding defects. Then run frozen SFT-versus-GRPO post-sampling. No optimization is authorized by this prescreen plan itself.",
+  "estimated_gpu_time_minutes": {
+    "environment_and_opening": "3-7",
+    "greedy": "5-10",
+    "n4": "12-25",
+    "audit": "5-10",
+    "prescreen_total": "25-52"
+  }
+}

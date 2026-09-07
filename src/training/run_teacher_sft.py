@@ -35,7 +35,7 @@ from src.training.run_retail_agentic_grpo import (
     sha256,
     validate_upstream_checkout,
 )
-from src.training.run_retail_tool_sft import TOOL_NAMES, build_tools
+from src.training.run_retail_tool_sft import build_tools
 
 SCOPE = "TEACHER_TRAJECTORY_SFT"
 PROTOCOL_BRIDGE_SCOPE = "AGENTIC_PROTOCOL_BRIDGE_SFT"
@@ -467,6 +467,49 @@ def validate_inputs(config_path: Path, allow_dirty: bool) -> dict[str, Any]:
     }
 
 
+def load_sft_tokenizer(model_path: str | Path, tokenizer_factory: Any) -> Any:
+    """Read legacy saved tokenizers without rewriting frozen model files."""
+    path = Path(model_path)
+    config = load_json(path / "tokenizer_config.json")
+    overrides = {}
+    if isinstance(config.get("extra_special_tokens"), list):
+        # Transformers 4.57 expects a named mapping, but older saves used a
+        # list. The actual token inventory and IDs must already be serialized.
+        inventory = load_json(path / "tokenizer.json")["added_tokens"]
+        registered = {item["content"] for item in inventory}
+        if not all(isinstance(token, str) and token in registered
+                   for token in config["extra_special_tokens"]):
+            raise ValueError("Legacy extra special tokens missing from tokenizer.json")
+        overrides["extra_special_tokens"] = {}
+    tokenizer = tokenizer_factory.from_pretrained(model_path, **overrides)
+    if overrides:
+        for item in inventory:
+            if tokenizer.convert_tokens_to_ids(item["content"]) != item["id"]:
+                raise ValueError("Tokenizer compatibility load changed saved token IDs")
+    return tokenizer
+
+
+def chat_tool_schemas(tools: list[Any]) -> list[dict[str, Any]]:
+    """Materialize bound-method schemas before Transformers template checks."""
+    from transformers.utils.chat_template_utils import get_json_schema
+
+    return [tool if isinstance(tool, dict) else get_json_schema(tool) for tool in tools]
+
+
+def periodic_evaluation_args(spec: dict[str, Any]) -> dict[str, Any]:
+    interval = spec.get("eval_steps")
+    if interval is None:
+        return {}
+    if type(interval) is not int or interval <= 0 or int(spec["max_steps"]) % interval:
+        raise ValueError("eval_steps must be a positive divisor of max_steps")
+    return {
+        "eval_strategy": "steps", "eval_steps": interval,
+        "per_device_eval_batch_size": 1, "prediction_loss_only": True,
+        "load_best_model_at_end": True,
+        "metric_for_best_model": "eval_validation_loss", "greater_is_better": False,
+    }
+
+
 def load_runtime(preflight: dict[str, Any]) -> dict[str, Any]:
     import accelerate
     import bitsandbytes
@@ -490,7 +533,7 @@ def load_runtime(preflight: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeError("CUDA is required for Teacher SFT")
     config = preflight["config"]
     set_seed(int(config["seed"]))
-    tokenizer = AutoTokenizer.from_pretrained(preflight["model_path"])
+    tokenizer = load_sft_tokenizer(preflight["model_path"], AutoTokenizer)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     return {
@@ -527,7 +570,7 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     runtime = load_runtime(preflight)
     torch = runtime["torch"]
     tokenizer = runtime["tokenizer"]
-    tools = build_tools()
+    tools = chat_tool_schemas(build_tools())
     config = preflight["config"]
     max_length = int(config["max_length"])
     validation_max_length = int(config["validation_max_length"])
@@ -593,14 +636,15 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         max_length=max_length,
         logging_steps=1,
         save_strategy="steps",
-        save_steps=int(spec["max_steps"]),
-        save_total_limit=1,
+        save_steps=int(spec.get("eval_steps", spec["max_steps"])),
+        save_total_limit=(int(spec["max_steps"]) // int(spec["eval_steps"]) if "eval_steps" in spec else 1),
         report_to="none",
         bf16=True,
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
         seed=int(config["seed"]),
         data_seed=int(config["seed"]),
+        **periodic_evaluation_args(spec),
     )
     lora_spec = config["lora"]
     lora = runtime["LoraConfig"](
@@ -619,6 +663,10 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
         ),
         processing_class=tokenizer,
         peft_config=lora,
+        **({"eval_dataset": {
+            "validation": runtime["Dataset"].from_list(val_batches),
+            "train_fixed": runtime["Dataset"].from_list(train_batches),
+        }} if "eval_steps" in spec else {}),
     )
     started = time.time()
     result = trainer.train()
@@ -626,6 +674,14 @@ def run(preflight: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     trainer.save_model(adapter_dir)
     save_json(output_dir / "train_metrics.json", result.metrics)
     save_json(output_dir / "log_history.json", trainer.state.log_history)
+    if "eval_steps" in spec:
+        save_json(output_dir / "checkpoint_selection.json", {
+            "best_model_checkpoint": trainer.state.best_model_checkpoint,
+            "best_metric": trainer.state.best_metric,
+            "selection_metric": "eval_validation_loss",
+            "periodic_eval_precision": "QLoRA NF4/bf16; not the final merged BF16 evaluator",
+            "final_adapter_is_best_checkpoint": True,
+        })
     del trainer, model
     torch.cuda.empty_cache()
 
