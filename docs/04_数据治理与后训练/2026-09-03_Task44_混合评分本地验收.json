@@ -1,0 +1,89 @@
+{
+  "schema_version": "task44-hybrid-local-acceptance-v1",
+  "date": "2026-09-03",
+  "head": "5e50138f13c4fcc408c714d074449c1ef05549dc",
+  "worktree": "DIRTY_USER_CHANGES_PRESERVED_NO_COMMIT",
+  "scope": "LOCAL_CPU_AND_MOCK_CLIENT_ONLY",
+  "cloud_gpu_used": false,
+  "paid_api_called": false,
+  "runtime_config": "configs/retail_agentic_qwen3_4b_task44_hybrid_n4_50step_v1.json",
+  "source_hashes": [
+    {
+      "path": "src/evaluation/task44_hybrid_reward.py",
+      "sha256": "f46d3958f08704875c3922c618312c223a41774eb0d0477c74c96b0b812ecff9"
+    },
+    {
+      "path": "src/evaluation/task44_partial_semantics.py",
+      "sha256": "05e4ee8be20722aa569360036532fb7a33e6ef1704a75c10e46a4174ff395ed4"
+    },
+    {
+      "path": "src/rl/retail_agentic_env.py",
+      "sha256": "5f4d5a1adb571b59d73dba1c5e075e815e457e5402a22b721d090a2db1c9c6f3"
+    },
+    {
+      "path": "src/training/rollout_diagnostics.py",
+      "sha256": "2158bd735223540fb6892e6475e543c54504472aa003a21dda140cf293bac360"
+    },
+    {
+      "path": "src/training/run_retail_agentic_grpo.py",
+      "sha256": "d6223dda60775595296a164ba3834af0948c39b79e4150b8bd05710251677762"
+    },
+    {
+      "path": "tests/test_task44_hybrid_reward.py",
+      "sha256": "1c4895a0f8be73191a7509e18e9188ee46f1af5e736fa219e22512531966c20f"
+    },
+    {
+      "path": "tests/test_training_precision.py",
+      "sha256": "8aa9b7b719be267c76bf536e5fd264f058d4a168e4435fb09272597d2b59e90a"
+    },
+    {
+      "path": "configs/retail_agentic_qwen3_4b_task44_hybrid_n4_50step_v1.json",
+      "sha256": "18f37a72c9e6120964111bef4e323e32a9c71482830bb9c3b285df52eb9f8f1e"
+    }
+  ],
+  "tests": [
+    {
+      "python": "D:/tau2-bench/.venv/Scripts/python.exe",
+      "env": {
+        "POLICYAGENT_TAU2_ROOT": "D:/tau2-bench"
+      },
+      "command": "-m pytest tests/test_retail_agentic_rl.py tests/test_staged_reward_shadow.py tests/test_task44_reward_evidence.py tests/test_semantic_shadow_judge.py tests/test_agentic_launch_safety.py tests/test_task44_hybrid_reward.py tests/test_task44_partial_semantics.py tests/test_task44_staged_50step_config.py -q --tb=short --basetemp .tmp_hybrid_acceptance_tau2",
+      "passed": 292,
+      "skipped": 5,
+      "warnings": 1,
+      "skip_reason": "PyTorch absent here; same five barrier/backward tests passed in second environment",
+      "warning": "upstream audioop deprecation"
+    },
+    {
+      "python": "C:/Users/xiaoy/AppData/Local/Programs/Python/Python312/python.exe",
+      "command": "-m pytest tests/test_training_precision.py tests/test_rollout_diagnostics.py tests/test_task44_hybrid_reward.py -q -k 'not new_config and not actual_environment' --tb=short --basetemp .tmp_hybrid_acceptance_torch",
+      "passed": 138,
+      "skipped": 4,
+      "deselected": 2,
+      "skip_reason": "Existing dependency/version-conditional tests; not claimed as passed",
+      "note": "CPU torch actual backward/parameter update with trainer double, not GPU/native full TRL training"
+    }
+  ],
+  "tests_overlap_do_not_sum": true,
+  "ruff": "All checks passed",
+  "regressions": {
+    "amount_sentence_period": "fixed",
+    "row194_coverage": "mandatory availability candidate m10:321:378 present in original row",
+    "all_four_errors_stop_before_update": true,
+    "old_reward_default_unchanged": true,
+    "cache_reuse_no_second_api": true,
+    "unknown_score_bounds_checked": true
+  },
+  "original_evidence": {
+    "path": "_local_private_runs/20260903-task44-terminal-grpo-resume40-v1/raw_rollouts.jsonl",
+    "sha256": "2ab95f4b8168f318c1f051739378b917a8d1aaf1b5f0a337ede9e9215d0e76c7",
+    "rows": 200
+  },
+  "limitations": [
+    "Live DeepSeek candidate-schema adherence not yet tested",
+    "Real cloud TRL backward/VRAM not verified this turn",
+    "Candidate coverage is not universal semantic correctness",
+    "Precise interrupted-group resume not implemented",
+    "No training improvement or generalization conclusion"
+  ]
+}
