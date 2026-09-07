@@ -22,6 +22,22 @@
 → 具备可靠监督后再进入 SFT / DPO / GRPO
 ```
 
+## 最新项目状态（2026-09-07）
+
+项目已经完成开发级 Retail 数据治理、教师 SFT 和一次真实 Agentic GRPO 训练闭环；
+此前 README 中“正式 Retail Agentic GRPO 未运行”的描述已经过时。最新可核验状态是：
+
+- 教师数据共 88 条合成 Retail 轨迹，按实体隔离为 66 条 TRAIN、22 条 VALIDATION，覆盖 55 个 task；这些数据经过项目所有者复核，不是独立业务专家金标。
+- Qwen3-4B 的独立 100-step QLoRA SFT 已完成。固定验证集 loss 在 step 30 最低，因此最终合并 checkpoint-30；step 30 后训练 loss 继续下降、验证 loss 轻微回升，表现为后期轻度过拟合趋势。
+- 选中 SFT checkpoint 在 Task113 上完成 greedy 1 条和随机 32 条冻结采样，终局成功分别为 1/1 和 30/32；这只证明模型能完成该开发任务，不代表跨任务泛化。
+- 从同一 SFT checkpoint 完成 Task113 `staged-v7.1 / n=4 / accumulation=8 / 50 updates` 的真实 GRPO：400 条在线 rollout、100 个独立组，90 个组存在非零 reward 方差，50 次优化器更新均通过累积门禁。
+- 训练前后窗口的 terminal success 都是 90%，原训练 reward 均值由 0.76975 降至 0.72920。GRPO 冻结后评测只完成同一组 4 条配对采样，样本不足，因此**尚未证明 GRPO 带来可信正向收益**。
+- 当前主要瓶颈不是“没有梯度”，而是 reward/verifier 的排序可信度与轨迹级信用分配。最新训练中有 145 条退款声明规则 FAIL，其中 52 条仍获得正 advantage；必须区分真实违规、规则误判和其他分项带来的相对高分。
+
+完整事实、公式、参数、轨迹案例和证据边界见
+[技术报告](TECHNICAL_REPORT.md)；本次代码与文档整理的回归记录见
+[Git 整理与本地回归验收](docs/00_工程治理/2026-09-07_Git整理与本地回归验收.md)。
+
 ## 离线证据摘要
 
 演示不需要 API Key、不调用模型、不付费，也不需要重新运行 tau2。它只读取
@@ -292,9 +308,9 @@ Precision/Recall/F1 或生产可靠性结论。治理边界见
 | Verifier 开发版 | 已完成 |
 | Runtime Guard 原型与离线审计 | 已完成 |
 | 独立人工政策金标 | 未获得 |
-| 开发级教师 SFT 数据 | 34 条 TRAIN、13 条实体隔离 VALIDATION；项目所有者复核，不是独立专家 gold |
-| Qwen3-4B 教师 SFT | 三个训练 seed、80 steps、merge 与 30-task 开发重评测已完成 |
-| 教师 SFT 行为结果 | seed18/19/20 开发视图为 17/30、16/30、16/30；多 seed 逐任务一致率 73.3% |
+| 开发级教师 SFT 数据 | 最新发布 88 条：66 TRAIN、22 实体隔离 VALIDATION，覆盖 55 个 task；项目所有者复核，不是独立专家 gold |
+| Qwen3-4B 教师 SFT | 最新独立 100-step QLoRA 已完成；固定验证 loss 选择 checkpoint-30，之后出现轻度过拟合趋势 |
+| 教师 SFT 行为结果 | Task113 开发采样 greedy 1/1、随机 30/32 终局成功；单任务证据，不代表总体 pass@k 或泛化 |
 | 过程 Reward 离线审计 | 8 个翻转对中成功轨迹排序更高 7/8；task67 标量分数并列 |
 | Claim-State 对抗评测 | 24 条冻结合成样本精确匹配 20/24；FAIL F1 76.92%，Reward 接入门禁未通过 |
 | Claim-State V2 开发版 | 20/20 开发规格；60 条既有轨迹中 0 个假 FAIL，但仅 1 PASS、42 REVIEW，等待全新 holdout |
@@ -305,10 +321,10 @@ Precision/Recall/F1 或生产可靠性结论。治理边界见
 | 写前确认联合约束 | 修正批量确认状态机后，74 次写中 59 次通过、15 次缺确认；成功轨迹仍有 4 次缺确认，尚未接入 Reward |
 | 确认参数绑定诊断 | 合成契约 18/18；真实写操作为 34 PASS、18 REVIEW、7 NOT_EVALUABLE；18 条 REVIEW 已由项目所有者复核（11 ACCEPTABLE、5 POLICY_VIOLATION、2 ACCEPTABLE_CUMULATIVE），见 2026-08-21 确认参数绑定裁决文档，不接入 Reward |
 | 正式 Retail DPO | 未运行；偏好数据与独立验证门禁未通过 |
-| 正式 Retail Agentic GRPO | 未运行；Reward holdout 与抗钻空子门禁未通过 |
+| 开发级 Retail Agentic GRPO | Task113 50 次更新、400 条在线 rollout 已完成；冻结后评测仅完成 4 条，未证明正向收益 |
 | 隔离合成 SFT→DPO→GRPO 工程实操 | 已在单卡 RTX 4090 完成并自动验收 |
 | Qwen3-4B 隔离 Tool SFT warmup | 80-step QLoRA、merge 与 20 条同分布 holdout 已完成；不代表业务提升 |
-| 隔离真实多轮 Retail Agentic RL | 1-step 工程 sanity 与 Base 模型 32 条无更新 rollout 已完成；尚无有效 RL 改善证据 |
+| 真实多轮 Retail Agentic RL | 已完成 Task113 SFT→50-update GRPO 闭环和训练诊断；Reward 可信度与完整冻结评测仍未过门 |
 
 这是一个明确的工程判断：监督信号不可靠时，不应为了补齐流程而训练。
 
@@ -345,6 +361,8 @@ src/
 │  ├─ db_diff.py                   最终数据库结构化差异
 │  ├─ nl_checker.py                读取冻结 NL assertion
 │  ├─ failure_attributor.py        失败根因
+│  ├─ staged_reward_shadow.py      分层轨迹 Reward 与诊断明细
+│  ├─ refund_timing.py             退款时效声明的确定性检查
 │  ├─ taxonomy.py                  官方信号/根因/业务影响
 │  ├─ report_generator.py          JSON 与 Markdown 报告
 │  └─ pipeline.py                  V7 评测入口
@@ -367,6 +385,8 @@ src/
    ├─ sft_decision_builder.py      SFT 决策数据构建
    ├─ sft_release.py               SFT 发布门禁
    ├─ readiness_gate.py            SFT/DPO/RL 阶段门禁
+   ├─ run_teacher_sft.py           教师轨迹 QLoRA SFT、周期评测与保存
+   ├─ accumulation_contract.py     GRPO 生成组与梯度累积契约
    └─ run_retail_agentic_grpo.py   Agentic GRPO 预检、训练与证据保存
 ```
 
@@ -388,9 +408,10 @@ src/
 ```
 
 完整 V7 重放测试需要使用已安装上游依赖的 tau2 虚拟环境；仅运行不依赖 tau2 的
-单元测试时也可使用当前项目 Python。2026-08-21 使用 `D:\tau2-bench\.venv` 完整回归：
-`313 passed, 2 skipped, 1 warning, 12 subtests passed`。唯一 warning 为 Python `audioop`
-弃用提示；2 个 skip 需按各测试自身条件解释，不能写成 296/296。
+单元测试时也可使用当前项目 Python。2026-09-07 按依赖拆分回归：
+`1310 passed, 13 skipped, 1 warning, 36 subtests passed`。tau2 环境承担主体测试，
+本机 Python 3.12 承担 PyTorch 张量和 Matplotlib 绘图测试；warning 为上游 Python
+`audioop` 弃用提示。跳过项主要依赖可选 TRL/CUDA 或私有证据，不能写成全量无条件通过。
 
 ### 重放 V7
 
@@ -461,16 +482,17 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
 
 ## 后续计划
 
-1. 暂停把 Claim-State V2 接入 Reward；它只作为离线诊断和人工路由信号；
-2. 冻结当前确认参数规则；对 18 个 REVIEW 做语义裁决，并构建未参与开发的真实轨迹 holdout；
-3. 若开发 Claim-State V3，必须先解决事实来源冲突，再在全新 holdout 上评测；
-4. 做 SFT 数据规模与多 seed 消融，区分数据不足、行为方差和模型容量限制；
-5. 只有高精度且覆盖率足够的过程信号通过独立验证后，才启动小规模 Agentic GRPO。
+1. 冻结并复盘已完成的 Task113 训练，不继续把训练 reward 当成效果指标；
+2. 优先审计退款声明 verifier 的误判和正 advantage 失败轨迹，验证 reward 排序方向；
+3. 补齐同协议、同任务、同采样配置的 SFT/GRPO 冻结配对评测；样本不足时不发布提升数字；
+4. 若推进新的“退款执行与告知”针对性实验，先冻结结构化回执、训练/开发/留出数据与主指标，再检查 SFT pass@1/pass@k 和 reward precision；
+5. 只有预采样存在可学习差异且 verifier 达到门槛，才运行新一轮 GRPO。独立专家指标和生产结论门禁保持关闭。
 
 ## 结论
 
-本项目当前完成的是一个可复现的 Tool Agent Reliability System，而不是一个
-已经证明后训练提升的项目。
+本项目当前完成了可复现的 Tool Agent Reliability System，以及开发级
+“教师数据 → SFT → 在线 GRPO → 轨迹诊断”闭环；它仍不是一个已经证明 GRPO
+带来业务提升的项目。
 
 它展示的核心能力不是“调用框架跑一次训练”，而是：
 
@@ -479,7 +501,11 @@ trace。所有 raw 结果必须重新经过 V7 才能形成恢复率结论。
 - 把失败映射到可行动的工程根因；
 - 在副作用发生之前建立确定性防护；
 - 防止错误标签和 benchmark 冲突进入后训练；
+- 证明真实 rollout、组内 advantage、LoRA 参数更新和训练完整性门禁确实发生；
 - 对实验结果保持可复现、可审计、不过度声明。
+
+下面的 2026-08-13 与 2026-08-21 小节是当时的阶段记录，其中“暂不启动 GRPO”或
+“门禁继续关闭”描述的是对应日期的状态，已被本页顶部 2026-09-07 状态更新取代。
 
 ## 2026-08-13 多轮 Tool-SFT 诊断更新
 
