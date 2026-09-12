@@ -37,6 +37,7 @@ def _active_flags(task: dict[str, Any]) -> list[str]:
 
 
 def build_project_summary(project_root: Path) -> dict[str, Any]:
+    """Summarize frozen Baseline/Guard evidence, not current training status."""
     root = project_root.resolve()
     evaluation_path = root / "reports" / "evaluation" / "final_report.json"
     guard_path = (
@@ -103,7 +104,7 @@ def build_project_summary(project_root: Path) -> dict[str, Any]:
     summary = evaluation["summary"]
     guard_summary = guard["summary"]
     return {
-        "schema_version": "policy-agent-project-summary-v1.0",
+        "schema_version": "policy-agent-project-summary-v2.0",
         "project": "PolicyAgent-PostTrain",
         "positioning": (
             "构建于上游 tau2-bench Retail 环境之上的可复现 Tool Agent "
@@ -112,6 +113,15 @@ def build_project_summary(project_root: Path) -> dict[str, Any]:
         "thesis": (
             "最终 reward 正确，不足以证明轨迹安全且符合业务政策。"
         ),
+        "demo_scope": {
+            "kind": "frozen_baseline_guard_example",
+            "description": (
+                "只读取冻结 Baseline、V6/V7 对比与 Guard 产物，"
+                "不重跑评测，也不判断当前后训练状态。"
+            ),
+            "current_training_status": "not_assessed",
+            "current_training_status_reference": "TECHNICAL_REPORT.md",
+        },
         "frozen_scope": {
             "task_count": summary["task_count"],
             "official_success_count": summary["success_count"],
@@ -148,14 +158,6 @@ def build_project_summary(project_root: Path) -> dict[str, Any]:
             ),
         },
         "cases": cases,
-        "post_training_status": {
-            "development_teacher_sft_completed": True,
-            "formal_retail_dpo_completed": False,
-            "formal_retail_agentic_grpo_completed": False,
-            "reason": (
-                "过程 Reward 的独立验证与抗钻空子门禁尚未通过。"
-            ),
-        },
         "evidence": {
             "evaluation_report": {
                 "path": evaluation_path.relative_to(root).as_posix(),
@@ -169,48 +171,28 @@ def build_project_summary(project_root: Path) -> dict[str, Any]:
                 "path": comparison_path.relative_to(root).as_posix(),
                 "sha256": _sha256(comparison_path),
             },
-            "teacher_sft_report": {
-                "path": (
-                    "docs/04_数据治理与后训练/"
-                    "2026-08-21_教师SFT多种子稳定性与扩窗补跑报告.md"
-                ),
-                "sha256": _sha256(
-                    root
-                    / "docs/04_数据治理与后训练/"
-                    "2026-08-21_教师SFT多种子稳定性与扩窗补跑报告.md"
-                ),
-            },
-            "process_reward_report": {
-                "path": (
-                    "docs/04_数据治理与后训练/"
-                    "2026-08-21_过程Reward离线正向验证报告.md"
-                ),
-                "sha256": _sha256(
-                    root
-                    / "docs/04_数据治理与后训练/"
-                    "2026-08-21_过程Reward离线正向验证报告.md"
-                ),
-            },
         },
         "boundaries": [
             "20 任务实验是冻结开发基线，不是排行榜成绩。",
             "V7 指标衡量冻结产物的重放一致性。",
             "Guard 拦截是离线证据，不是在线恢复率结论。",
-            "独立裁决的政策标签数量为 0。",
-            "开发级教师 SFT 结果不等同于正式业务提升。",
-            "不声明 DPO、RLHF 或 GRPO 带来了提升。",
+            "本示例不评估当前标签审阅进度或后训练完成情况。",
+            "本示例不提供 SFT、DPO 或 GRPO 业务提升证据。",
         ],
     }
 
 
 def render_markdown(demo: dict[str, Any]) -> str:
+    demo_scope = demo["demo_scope"]
     scope = demo["frozen_scope"]
     comparison = demo["comparison"]
     guard = demo["guard"]
     lines = [
-        "# PolicyAgent-PostTrain — 冻结证据摘要",
+        "# PolicyAgent-PostTrain — 冻结 Baseline/Guard 离线示例",
         "",
         f"> {demo['thesis']}",
+        "",
+        demo_scope["description"],
         "",
         "## 冻结实验",
         "",
@@ -276,13 +258,12 @@ def render_markdown(demo: dict[str, Any]) -> str:
             ),
             "- 这是离线反事实拦截结果，不代表重新生成后一定成功。",
             "",
-            "## 后训练状态",
+            "## 当前项目状态入口",
             "",
-            "- 开发级教师 SFT：已完成三 seed 训练、合并与 30-task 开发重评测",
-            "- 正式 Retail DPO：未运行",
-            "- 正式 Retail Agentic GRPO：未运行",
             (
-                "- 原因：过程 Reward 的独立验证与抗钻空子门禁尚未通过。"
+                "当前后训练进展与证据边界见 "
+                f"[技术报告]({demo_scope['current_training_status_reference']})"
+                "（以报告核验日期为准）；本示例不据此生成训练状态结论。"
             ),
             "",
             "## 证据边界",
@@ -295,7 +276,7 @@ def render_markdown(demo: dict[str, Any]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="从本地冻结产物生成项目证据摘要。"
+        description="从本地冻结产物生成 Baseline/Guard 离线示例，不评估当前训练状态。"
     )
     parser.add_argument(
         "--project-root",

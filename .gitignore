@@ -34,7 +34,7 @@ precommit_audit_small.txt
 *.temp
 ~$*
 
-# Local test workspaces and one-off deployment snapshots (keep on disk)
+# Local test workspaces and one-off deployment snapshots
 /.tmp_*/
 /.tmp_*.bundle
 
